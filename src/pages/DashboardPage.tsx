@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
+import LiveChatButton from '../components/ui/LiveChatButton';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
 const DashboardPage: React.FC = () => {
@@ -306,9 +307,22 @@ const DashboardPage: React.FC = () => {
             </Card>
           </div>
         </div>
+
+        {/* Live Chat Support */}
+        <div className="mt-8 p-4 bg-gradient-to-r from-primary-50 to-accent-50 rounded-lg border border-primary-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Need Help?</h2>
+              <p className="text-sm text-gray-600">Our support team is here to assist you</p>
+            </div>
+            <LiveChatButton variant="inline" />
+          </div>
+        </div>
       </div>
     </Layout>
   );
 };
 
 export default DashboardPage;
+
+export default DashboardPage
