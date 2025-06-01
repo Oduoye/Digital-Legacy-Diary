@@ -25,10 +25,10 @@ const Header: React.FC = () => {
             <Link to={currentUser ? '/dashboard' : '/'} className="flex items-center group">
               <div className="flex items-center">
                 <div className="rounded-full bg-black p-1">
-                  <img src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" alt="DLD Logo" className="h-8 w-auto" />
+                  <img src="/black_circle_360x360.png" alt="Bolt Logo" className="h-8 w-auto" />
                 </div>
                 <div className="rounded-full bg-black p-1 ml-2">
-                  <img src="/black_circle_360x360.png" alt="Bolt Logo" className="h-8 w-auto" />
+                  <img src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" alt="DLD Logo" className="h-8 w-auto" />
                 </div>
                 <span className="ml-2 text-xl font-serif font-semibold text-white">Digital Legacy Diary</span>
               </div>
