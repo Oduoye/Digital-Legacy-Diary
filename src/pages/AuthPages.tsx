@@ -5,17 +5,28 @@ import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
 import { subscriptionTiers } from '../utils/subscriptions';
 import Button from '../components/ui/Button';
+import ComingSoonModal from '../components/ui/ComingSoonModal';
 
 const AuthPages: React.FC = () => {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const [selectedTier, setSelectedTier] = useState(subscriptionTiers[0].id);
   const [showSubscription, setShowSubscription] = useState(!isLoginPage);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
 
   // Update showSubscription when route changes
   useEffect(() => {
     setShowSubscription(!isLoginPage);
   }, [location.pathname]);
+
+  const handleTierSelect = (tierId: string) => {
+    if (tierId !== 'free') {
+      setShowComingSoonModal(true);
+    } else {
+      setSelectedTier(tierId);
+      setShowSubscription(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -70,7 +81,7 @@ const AuthPages: React.FC = () => {
                           : 'border-gray-200 hover:border-primary-300'
                       }`}
                       style={{ animationDelay: `${400 + index * 100}ms` }}
-                      onClick={() => setSelectedTier(tier.id)}
+                      onClick={() => handleTierSelect(tier.id)}
                     >
                       {tier.id === 'gold' && (
                         <div className="absolute -top-3 -right-3">
@@ -166,6 +177,14 @@ const AuthPages: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Coming Soon Modal */}
+      <ComingSoonModal
+        isOpen={showComingSoonModal}
+        onClose={() => setShowComingSoonModal(false)}
+        title="Premium Plans Coming Soon!"
+        message="We're working hard to bring you our premium subscription plans. Stay tuned for exciting features and enhanced capabilities!"
+      />
     </div>
   );
 };

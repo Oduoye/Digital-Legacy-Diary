@@ -4,12 +4,14 @@ import { Mail, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const { login, currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -79,7 +81,7 @@ const LoginForm: React.FC = () => {
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => alert('Password reset functionality would be implemented in the full version')}
+            onClick={() => setShowForgotPasswordModal(true)}
             className="text-sm text-primary-600 hover:text-primary-700"
           >
             Forgot your password?
@@ -92,6 +94,11 @@ const LoginForm: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </>
   );
 };
