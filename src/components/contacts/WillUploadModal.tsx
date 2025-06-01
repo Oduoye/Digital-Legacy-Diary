@@ -1,0 +1,182 @@
+import React, { useState, useRef } from 'react';
+import { Upload, FileText, Paperclip, AlertTriangle } from 'lucide-react';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Textarea from '../ui/Textarea';
+import { Will, WillAttachment } from '../../types';
+
+interface WillUploadModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentWill?: Will;
+  onSave: (data: Partial<Will>) => void;
+}
+
+const WillUploadModal: React.FC<WillUploadModalProps> = ({
+  isOpen,
+  onClose,
+  currentWill,
+  onSave,
+}) => {
+  const [title, setTitle] = useState(currentWill?.title || '');
+  const [content, setContent] = useState(currentWill?.content || '');
+  const [attachments, setAttachments] = useState<WillAttachment[]>(
+    currentWill?.attachments || []
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (!isOpen) return null;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newAttachments: WillAttachment[] = files.map((file) => ({
+      id: crypto.randomUUID(),
+      name: file.name,
+      url: URL.createObjectURL(file),
+      type: file.type,
+      size: file.size,
+    }));
+    setAttachments([...attachments, ...newAttachments]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      title,
+      content,
+      attachments,
+      isActive: true,
+    });
+    onClose();
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(attachments.filter((att) => att.id !== id));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
+        <div className="sticky top-0 bg-white z-10 p-6 pb-4 border-b">
+          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+            Upload Your Will
+          </h2>
+          <p className="text-gray-600">
+            Securely store your will and related documents
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
+          <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-4 rounded-lg border border-primary-100">
+            <Input
+              label="Will Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Last Will and Testament"
+              required
+              icon={<FileText className="h-5 w-5 text-gray-400" />}
+            />
+          </div>
+
+          <div className="bg-gradient-to-br from-secondary-50 to-white p-4 rounded-lg border border-secondary-100">
+            <Textarea
+              label="Will Content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Enter the content of your will..."
+              className="h-48"
+              required
+            />
+          </div>
+
+          <div className="bg-gradient-to-br from-accent-50 to-white p-4 rounded-lg border border-accent-100">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Attachments
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-accent-300 transition-colors">
+              <div className="text-center">
+                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="mt-2">
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer text-accent-600 hover:text-accent-500"
+                  >
+                    <span>Upload files</span>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      className="sr-only"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      multiple
+                    />
+                  </label>
+                  <p className="text-sm text-gray-500">
+                    or drag and drop files here
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {attachments.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {attachments.map((attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Paperclip className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {attachment.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(attachment.id)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1" />
+              <div>
+                <h3 className="font-medium text-gray-900">Important Notice</h3>
+                <p className="text-sm text-gray-600">
+                  This digital copy of your will is for storage purposes only.
+                  Please ensure you have a legally executed physical copy of your
+                  will stored in a secure location.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="sticky bottom-0 bg-white border-t pt-4 pb-2">
+            <div className="flex justify-end space-x-3">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {currentWill ? 'Update Will' : 'Upload Will'}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default WillUploadModal;
