@@ -40,7 +40,7 @@ const Header: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-6">
               {currentUser ? (
                 <>
-                  <Link to="/dashboard\" className="text-white hover:text-gray-200 transition-colors">
+                  <Link to="/dashboard" className="text-white hover:text-gray-200 transition-colors">
                     Dashboard
                   </Link>
                   
@@ -124,7 +124,10 @@ const Header: React.FC = () => {
                     Sign In
                   </Link>
                   <Link to="/register">
-                    <Button size="sm" className="bg-white text-primary-600 hover:bg-gray-100">
+                    <Button 
+                      size="sm" 
+                      className="bg-white hover:bg-gray-100 text-primary-600 hover:text-primary-700 border-transparent"
+                    >
                       Sign Up
                     </Button>
                   </Link>

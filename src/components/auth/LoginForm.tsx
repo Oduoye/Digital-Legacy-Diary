@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -12,6 +12,7 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const { login, currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -28,7 +29,10 @@ const LoginForm: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (err) {
       setError('Failed to log in. Please check your credentials.');
       console.error(err);
@@ -52,6 +56,13 @@ const LoginForm: React.FC = () => {
           Back to Home
         </Link>
       </div>
+
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 bg-green-50 text-green-900 px-4 py-3 rounded-lg shadow-lg animate-slide-down flex items-center">
+          <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+          <span>Login successful! Redirecting to dashboard...</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -102,5 +113,3 @@ const LoginForm: React.FC = () => {
     </>
   );
 };
-
-export default LoginForm;
