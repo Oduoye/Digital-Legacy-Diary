@@ -9,7 +9,6 @@ import { useAuth } from '../context/AuthContext';
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
 
-  // If user is logged in, redirect to dashboard
   if (currentUser) {
     return <Navigate to="/dashboard" replace />;
   }
