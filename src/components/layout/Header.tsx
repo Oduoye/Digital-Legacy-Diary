@@ -40,7 +40,7 @@ const Header: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-6">
               {currentUser ? (
                 <>
-                  <Link to="/dashboard\" className="text-white hover:text-gray-200 transition-colors">
+                  <Link to="/dashboard" className="text-white hover:text-gray-200 transition-colors">
                     Dashboard
                   </Link>
                   
