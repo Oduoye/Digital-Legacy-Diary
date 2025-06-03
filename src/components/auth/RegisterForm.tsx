@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,11 +7,10 @@ import Button from '../ui/Button';
 import { SubscriptionTier } from '../../types';
 
 interface RegisterFormProps {
-  onComplete: () => void;
   selectedTier: SubscriptionTier['id'];
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onComplete, selectedTier }) => {
+const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,14 +18,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onComplete, selectedTier })
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const { register, currentUser } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (currentUser) {
-      navigate('/dashboard');
-    }
-  }, [currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +39,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onComplete, selectedTier })
       await register(name, email, password, selectedTier);
       setShowSuccessMessage(true);
       setTimeout(() => {
-        onComplete();
+        navigate('/dashboard');
       }, 2000);
     } catch (err) {
       setError('Failed to create account');
@@ -55,10 +48,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onComplete, selectedTier })
       setIsLoading(false);
     }
   };
-
-  if (currentUser) {
-    return null;
-  }
 
   return (
     <>
@@ -124,7 +113,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onComplete, selectedTier })
         />
         <div>
           <Button type="submit" isLoading={isLoading} className="w-full">
-            Continue
+            Create Account
           </Button>
         </div>
       </form>

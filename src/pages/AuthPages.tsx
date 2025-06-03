@@ -14,7 +14,6 @@ const AuthPages: React.FC = () => {
   const [showSubscription, setShowSubscription] = useState(!isLoginPage);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
 
-  // Update showSubscription when route changes
   useEffect(() => {
     setShowSubscription(!isLoginPage);
   }, [location.pathname]);
@@ -33,17 +32,6 @@ const AuthPages: React.FC = () => {
       {/* Left side (form) */}
       <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center p-6 md:p-12 bg-white animate-fade-in">
         <div className="w-full max-w-md">
-          {/* Back to Home Link */}
-          <div className="mb-8 animate-fade-in-up [animation-delay:100ms]">
-            <Link 
-              to="/" 
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to Home
-            </Link>
-          </div>
-
           <div className="text-center mb-8 animate-fade-in-up [animation-delay:200ms]">
             <Link to="/" className="inline-flex items-center justify-center">
               <div className="rounded-full bg-black p-2 hover:scale-105 transition-transform">
@@ -85,7 +73,7 @@ const AuthPages: React.FC = () => {
                     >
                       {tier.id === 'gold' && (
                         <div className="absolute -top-3 -right-3">
-                          <div className="bg-yellow-400 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center animate-float">
+                          <div className="bg-yellow-400 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center shadow-sm">
                             <Crown className="h-3 w-3 mr-1" />
                             Popular
                           </div>
@@ -131,7 +119,7 @@ const AuthPages: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <RegisterForm onComplete={() => setShowSubscription(true)} selectedTier={selectedTier} />
+              <RegisterForm selectedTier={selectedTier} />
             )}
           </div>
 
@@ -153,9 +141,11 @@ const AuthPages: React.FC = () => {
       </div>
 
       {/* Right side (image/content) */}
-      <div className="hidden md:block w-1/2 bg-gradient-to-br from-primary-600 to-accent-700 relative overflow-hidden animate-fade-in">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_-100px,rgba(255,255,255,0.1),transparent)] animate-pulse"></div>
+      <div className="hidden md:block w-1/2 bg-gradient-to-br from-primary-600 to-accent-600 text-white relative overflow-hidden animate-fade-in">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_-100px,rgba(255,255,255,0.1),transparent)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_80%_600px,rgba(255,255,255,0.1),transparent)]" />
+        </div>
         <div className="absolute inset-0 flex items-center justify-center p-12">
           <div className="max-w-md text-white text-center animate-fade-in-up [animation-delay:500ms]">
             <h2 className="text-3xl font-serif font-bold mb-6">
