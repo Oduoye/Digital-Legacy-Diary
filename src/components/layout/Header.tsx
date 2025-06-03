@@ -126,7 +126,7 @@ const Header: React.FC = () => {
                   <Link to="/register">
                     <Button 
                       size="sm"
-                      className="bg-white text-red-600 font-bold hover:bg-white"
+                      className="bg-white text-red-600 font-bold"
                     >
                       Sign Up
                     </Button>
