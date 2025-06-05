@@ -25,7 +25,7 @@ const Header: React.FC = () => {
             <Link to={currentUser ? '/dashboard' : '/'} className="flex items-center group">
               <div className="flex items-center">
                 <img 
-                  src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png"
+                  src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000 copy copy copy.png"
                   alt="Digital Legacy Diary"
                   className="h-12 w-12 object-contain"
                 />
@@ -39,7 +39,7 @@ const Header: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-6">
               {currentUser ? (
                 <>
-                  <Link to="/dashboard\" className="text-white hover:text-gray-200 transition-colors">
+                  <Link to="/dashboard" className="text-white hover:text-gray-200 transition-colors">
                     Dashboard
                   </Link>
                   

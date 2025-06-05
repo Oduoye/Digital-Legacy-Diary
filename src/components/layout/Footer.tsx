@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col items-center text-center">
           <Link to="/" className="inline-flex items-center">
             <img 
-              src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png"
+              src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000 copy copy copy.png"
               alt="Digital Legacy Diary"
               className="h-12 w-12 object-contain"
             />
