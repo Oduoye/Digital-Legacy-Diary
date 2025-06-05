@@ -10,16 +10,17 @@ import { WritingPrompt, getRandomPrompt } from '../../utils/writingPrompts';
 interface JournalEntryFormProps {
   initialEntry?: Partial<DiaryEntry>;
   onSubmit: (entry: Omit<DiaryEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
+  onCancel?: () => void;
 }
 
 const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
   initialEntry = { title: '', content: '', tags: [], images: [] },
   onSubmit,
+  onCancel,
 }) => {
   const [title, setTitle] = useState(initialEntry.title || '');
   const [content, setContent] = useState(initialEntry.content || '');
   const [tags, setTags] = useState<string[]>(initialEntry.tags || []);
-  const [images, setImages] = useState<string[]>(initialEntry.images || []);
   const [tagInput, setTagInput] = useState('');
   const [imageInput, setImageInput] = useState('');
   const [prompts, setPrompts] = useState<WritingPrompt[]>([]);
@@ -27,6 +28,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
   const [errors, setErrors] = useState({ title: '', content: '', tagInput: '', imageInput: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFiles, setUploadedFiles] = useState<{ file: File; preview: string }[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>(initialEntry.images || []);
 
   useEffect(() => {
     const initialPrompts = Array.from({ length: 5 }, () => getRandomPrompt());
@@ -73,6 +75,10 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
     });
   };
 
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handlePrevPrompt = () => {
     setCurrentPromptIndex((prev) => (prev > 0 ? prev - 1 : prompts.length - 1));
   };
@@ -113,13 +119,16 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
       return;
     }
     
-    const mediaUrls = uploadedFiles.map(file => file.preview);
+    const allImages = [
+      ...existingImages,
+      ...uploadedFiles.map(file => file.preview)
+    ];
     
     onSubmit({
       title,
       content,
       tags,
-      images: [...images, ...mediaUrls],
+      images: allImages,
     });
   };
 
@@ -156,13 +165,9 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
       return;
     }
     
-    setImages([...images, imageInput.trim()]);
+    setExistingImages([...existingImages, imageInput.trim()]);
     setImageInput('');
     setErrors({ ...errors, imageInput: '' });
-  };
-
-  const handleRemoveImage = (urlToRemove: string) => {
-    setImages(images.filter(url => url !== urlToRemove));
   };
 
   return (
@@ -348,35 +353,65 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
               </div>
             </div>
 
-            {/* Uploaded Files Preview */}
-            {uploadedFiles.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className="relative group animate-fade-in">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                      {file.file.type.startsWith('image/') ? (
+            {/* Existing Images */}
+            {existingImages.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Existing Images</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {existingImages.map((image, index) => (
+                    <div key={index} className="relative group animate-fade-in">
+                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
                         <img
-                          src={file.preview}
-                          alt={`Upload ${index + 1}`}
+                          src={image}
+                          alt={`Existing ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
-                      ) : (
-                        <video
-                          src={file.preview}
-                          className="w-full h-full object-cover"
-                          controls
-                        />
-                      )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeExistingImage(index)}
+                        className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Newly Uploaded Files Preview */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">New Uploads</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {uploadedFiles.map((file, index) => (
+                    <div key={index} className="relative group animate-fade-in">
+                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        {file.file.type.startsWith('image/') ? (
+                          <img
+                            src={file.preview}
+                            alt={`Upload ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={file.preview}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -407,37 +442,16 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
                 Add
               </Button>
             </div>
-            
-            {images.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {images.map((url, index) => (
-                  <div key={index} className="relative group animate-fade-in">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                      <img 
-                        src={url} 
-                        alt={`Image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Image+Error';
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(url)}
-                      className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-4 w-4 text-gray-700" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
       
-      <div className="flex justify-end pt-6 animate-fade-in-up [animation-delay:1000ms]">
+      <div className="flex justify-end gap-4 pt-6 animate-fade-in-up [animation-delay:1000ms]">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
         <Button type="submit" size="lg" className="min-w-[200px]">
           {initialEntry.id ? 'Update Entry' : 'Save Entry'}
         </Button>
