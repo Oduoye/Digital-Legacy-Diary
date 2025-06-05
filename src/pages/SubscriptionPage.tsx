@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 
 const SubscriptionPage: React.FC = () => {
   const { currentUser, updateSubscription } = useAuth();
-  const currentPlan = getSubscriptionTier(currentUser?.subscription?.tier || 'free');
+  const currentPlan = getSubscriptionTier(currentUser?.subscription_tier || 'free');
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<string | null>(null);
 
@@ -49,7 +49,7 @@ const SubscriptionPage: React.FC = () => {
 
         <div className="grid md:grid-cols-3 gap-8">
           {subscriptionTiers.map((tier, index) => {
-            const isCurrentPlan = currentUser?.subscription?.tier === tier.id;
+            const isCurrentPlan = currentUser?.subscription_tier === tier.id;
             const isUpgrade = tier.priority > currentPlan.priority;
             
             return (
@@ -69,7 +69,7 @@ const SubscriptionPage: React.FC = () => {
                   </div>
                 )}
                 
-                {isCurrentPlan && tier.id !== 'free' && (
+                {isCurrentPlan && (
                   <div className="absolute -top-4 right-4">
                     <div className="bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-medium animate-pulse">
                       Current Plan
@@ -98,6 +98,7 @@ const SubscriptionPage: React.FC = () => {
                   <Button
                     onClick={() => handleSubscribe(tier.id)}
                     className={`w-full ${
+                      isCurrentPlan ? 'bg-primary-100 text-primary-700 hover:bg-primary-200 cursor-default' :
                       tier.id === 'gold'
                         ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600'
                         : ''
@@ -107,7 +108,7 @@ const SubscriptionPage: React.FC = () => {
                   >
                     {isCurrentPlan ? (
                       'Current Plan'
-                    ) : currentUser?.subscription?.tier === 'free' && tier.id !== 'free' ? (
+                    ) : currentUser?.subscription_tier === 'free' && tier.id !== 'free' ? (
                       'Upgrade Now'
                     ) : tier.id === 'free' ? (
                       'Basic Plan'
