@@ -56,21 +56,26 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
           <p className="text-gray-700 whitespace-pre-line">{truncatedContent}</p>
           
           {entry.images && entry.images.length > 0 && (
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {entry.images.slice(0, 2).map((image, index) => (
-                <div key={index} className="relative aspect-square overflow-hidden rounded-md">
+            <div className={`mt-4 grid ${
+              entry.images.length === 1 ? 'grid-cols-1' :
+              entry.images.length === 2 ? 'grid-cols-2' :
+              entry.images.length === 3 ? 'grid-cols-2' :
+              'grid-cols-2 md:grid-cols-3'
+            } gap-2`}>
+              {entry.images.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={`relative aspect-square overflow-hidden rounded-md ${
+                    entry.images.length === 3 && index === 2 ? 'col-span-2 md:col-span-1' : ''
+                  }`}
+                >
                   <img 
                     src={image} 
-                    alt={`Image for ${entry.title}`} 
-                    className="object-cover w-full h-full"
+                    alt={`Image ${index + 1} for ${entry.title}`} 
+                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
                   />
                 </div>
               ))}
-              {entry.images.length > 2 && (
-                <div className="col-span-2 text-sm text-gray-500 text-center mt-1">
-                  +{entry.images.length - 2} more {entry.images.length === 3 ? 'image' : 'images'}
-                </div>
-              )}
             </div>
           )}
           
