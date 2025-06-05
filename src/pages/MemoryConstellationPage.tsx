@@ -181,16 +181,21 @@ const MemoryConstellationPage: React.FC = () => {
                 cooldownTicks={100}
                 backgroundColor="transparent"
                 nodeCanvasObject={(node, ctx, globalScale) => {
+                  // Check if node coordinates are valid finite numbers
+                  if (!node.x || !node.y || !isFinite(node.x) || !isFinite(node.y)) {
+                    return;
+                  }
+
                   const label = (node as Node).name;
                   const fontSize = 14/globalScale;
                   const isHovered = hoveredNode?.id === node.id;
                   
                   // Draw node circle with 3D effect
                   ctx.beginPath();
-                  ctx.arc(node.x!, node.y!, (node as Node).val * (isHovered ? 1.2 : 1), 0, 2 * Math.PI);
+                  ctx.arc(node.x, node.y, (node as Node).val * (isHovered ? 1.2 : 1), 0, 2 * Math.PI);
                   const gradient = ctx.createRadialGradient(
-                    node.x! - 2, node.y! - 2, 0,
-                    node.x!, node.y!, (node as Node).val * (isHovered ? 1.2 : 1)
+                    node.x - 2, node.y - 2, 0,
+                    node.x, node.y, (node as Node).val * (isHovered ? 1.2 : 1)
                   );
                   gradient.addColorStop(0, (node as Node).color + 'ff');
                   gradient.addColorStop(1, (node as Node).color + '80');
@@ -210,7 +215,7 @@ const MemoryConstellationPage: React.FC = () => {
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
                   ctx.fillStyle = '#ffffff';
-                  ctx.fillText(label, node.x!, node.y! + (node as Node).val * 1.5);
+                  ctx.fillText(label, node.x, node.y + (node as Node).val * 1.5);
                 }}
                 linkCanvasObject={(link, ctx) => {
                   const start = link.source as any;
