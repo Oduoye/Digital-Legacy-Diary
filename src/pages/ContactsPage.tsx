@@ -79,7 +79,7 @@ const ContactsPage: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in">
           <Link 
             to="/dashboard" 
             className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
@@ -87,20 +87,19 @@ const ContactsPage: React.FC = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          <div className="flex flex-col gap-4 mb-8 text-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
             <div>
               <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Trusted Contacts</h1>
               <p className="text-gray-600">People who will receive your legacy</p>
             </div>
             {!showAddForm && !editingContact && (
-              <div className="flex justify-center">
-                <Button
-                  icon={<UserPlus size={18} />}
-                  onClick={() => setShowAddForm(true)}
-                >
-                  Add Contact
-                </Button>
-              </div>
+              <Button
+                icon={<UserPlus size={18} />}
+                onClick={() => setShowAddForm(true)}
+                className="mt-4 sm:mt-0"
+              >
+                Add Contact
+              </Button>
             )}
           </div>
         </div>
@@ -150,7 +149,7 @@ const ContactsPage: React.FC = () => {
                       </div>
                       <Button 
                         variant="primary"
-                        className="w-full text-white bg-red-600 hover:bg-red-700"
+                        className="w-full text-white bg-red-600 hover:bg-red-700 border-2 border-red-600 hover:border-red-700"
                         onClick={handleDeadMansSwitchClick}
                       >
                         <span className="block md:hidden">Switch</span>
@@ -166,6 +165,7 @@ const ContactsPage: React.FC = () => {
                       </div>
                       <Button
                         variant="primary"
+                        className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
                         onClick={() => setShowWillUploadModal(true)}
                       >
                         <span className="block md:hidden">Will</span>
@@ -277,15 +277,9 @@ const ContactsPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
               <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Delete Contact
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Are you sure you want to delete this entry? This action cannot be undone.
                 </h3>
-                <p className="text-gray-600 mb-6">
-                  Are you sure you want to remove {deleteModalContact.name} from your trusted contacts? This action cannot be undone.
-                </p>
                 <div className="flex justify-end space-x-3">
                   <Button
                     variant="outline"
@@ -294,10 +288,11 @@ const ContactsPage: React.FC = () => {
                     Cancel
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="primary"
+                    className="bg-blue-600 hover:bg-blue-700"
                     onClick={handleDelete}
                   >
-                    Delete
+                    OK
                   </Button>
                 </div>
               </div>
