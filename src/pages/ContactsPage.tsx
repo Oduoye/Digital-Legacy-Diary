@@ -139,9 +139,9 @@ const ContactsPage: React.FC = () => {
                   <p className="text-gray-600 mt-1">
                     Set up automated legacy transfer to ensure your memories reach your loved ones.
                   </p>
-                  <div className="mt-8 flex space-x-3">
+                  <div className="mt-4 flex space-x-3">
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-2 -right-2 z-10">
+                      <div className="absolute -top-6 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
@@ -149,15 +149,14 @@ const ContactsPage: React.FC = () => {
                       </div>
                       <Button 
                         variant="outline"
-                        size="sm"
-                        className="w-full bg-gradient-to-r from-accent-50 to-primary-50 border-accent-400 hover:border-accent-500 hover:from-accent-100 hover:to-primary-100 transition-all duration-300 px-3 py-2 text-sm"
+                        className="w-full bg-gradient-to-r from-accent-50 to-primary-50 border-2 border-red-500 hover:border-red-600 hover:from-accent-100 hover:to-primary-100 transition-all duration-300"
                         onClick={handleDeadMansSwitchClick}
                       >
                         Dead Man's Switch
                       </Button>
                     </div>
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-2 -right-2 z-10">
+                      <div className="absolute -top-6 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
@@ -165,8 +164,7 @@ const ContactsPage: React.FC = () => {
                       </div>
                       <Button
                         variant="outline"
-                        size="sm"
-                        className="w-full bg-gradient-to-r from-primary-50 to-accent-50 border-primary-400 hover:border-primary-500 hover:from-primary-100 hover:to-accent-100 transition-all duration-300 px-3 py-2 text-sm"
+                        className="w-full bg-gradient-to-r from-primary-50 to-accent-50 border-2 border-red-500 hover:border-red-600 hover:from-primary-100 hover:to-accent-100 transition-all duration-300"
                         onClick={() => setShowWillUploadModal(true)}
                       >
                         Upload Will
