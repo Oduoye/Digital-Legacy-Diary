@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Book } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col items-center text-center">
           <Link to="/" className="inline-flex items-center">
             <div className="rounded-full bg-black p-1">
-              <img src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" alt="DLD Logo" className="h-6 w-auto" />
+              <Book className="h-6 w-6 text-white" />
             </div>
             <span className="ml-2 text-lg font-serif font-medium text-gray-900">Digital Legacy Diary</span>
           </Link>
