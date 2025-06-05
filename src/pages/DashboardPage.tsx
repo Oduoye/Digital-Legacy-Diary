@@ -43,6 +43,16 @@ const DashboardPage: React.FC = () => {
             <h2 className="text-lg text-gray-600">Welcome back,</h2>
             <h1 className="text-2xl font-serif font-bold text-gray-900">{currentUser?.name}</h1>
             <p className="text-sm text-gray-500 mt-1">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
+            {currentUser?.subscription_tier === 'free' && (
+              <Link to="/subscription" className="mt-4 inline-block">
+                <div className="relative">
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 w-full h-[2px] bg-gradient-to-r from-transparent via-primary-500 to-transparent animate-pulse" />
+                  <div className="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-primary-100 transition-colors">
+                    Upgrade to Premium
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
 
           <Link 
@@ -178,7 +188,6 @@ const DashboardPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Writing Prompt */}
         <div className="mb-10 bg-gradient-to-r from-accent-100 to-primary-100 rounded-lg p-6 border border-accent-200 shadow-sm animate-slide-up">
           <div className="flex flex-col md:flex-row md:items-center justify-between">
             <div className="mb-4 md:mb-0">
@@ -193,9 +202,7 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Stats and Recents Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
-          {/* Stats Cards */}
           <div className="lg:col-span-1">
             <div className="grid grid-cols-1 gap-6">
               <Card>
@@ -249,7 +256,6 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Recent Entries */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader className="flex justify-between items-center">
@@ -308,7 +314,6 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Live Chat Support */}
         <div className="mt-8 p-4 bg-gradient-to-r from-primary-50 to-accent-50 rounded-lg border border-primary-100">
           <div className="flex items-center justify-between">
             <div>
