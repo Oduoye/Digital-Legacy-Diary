@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Sparkles, Tag, ImagePlus, ChevronLeft, ChevronRight, Upload, Trash2 } from 'lucide-react';
 import { DiaryEntry } from '../../types';
 import { useDiary } from '../../context/DiaryContext';
@@ -41,13 +41,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
     return () => clearInterval(interval);
   }, [prompts.length]);
 
-  useEffect(() => {
-    return () => {
-      uploadedFiles.forEach(file => URL.revokeObjectURL(file.preview));
-    };
-  }, [uploadedFiles]);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(file => {
       const isValid = file.type.startsWith('image/') || file.type.startsWith('video/');
@@ -55,9 +49,17 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
       return isValid && isUnder50MB;
     });
 
-    const newFiles = validFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file)
+    const newFiles = await Promise.all(validFiles.map(async file => {
+      return new Promise<{ file: File; preview: string }>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve({
+            file,
+            preview: reader.result as string
+          });
+        };
+        reader.readAsDataURL(file);
+      });
     }));
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
@@ -66,7 +68,6 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
   const removeFile = (index: number) => {
     setUploadedFiles(prev => {
       const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].preview);
       newFiles.splice(index, 1);
       return newFiles;
     });
