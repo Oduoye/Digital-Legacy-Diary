@@ -149,7 +149,7 @@ const ContactsPage: React.FC = () => {
                       </div>
                       <Button 
                         variant="primary"
-                        className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
+                        className="w-full text-white bg-red-600 hover:bg-red-700 border-2 border-red-600 hover:border-red-700"
                         onClick={handleDeadMansSwitchClick}
                       >
                         <span className="block md:hidden">Switch</span>
