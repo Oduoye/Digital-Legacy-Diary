@@ -148,8 +148,8 @@ const ContactsPage: React.FC = () => {
                         </div>
                       </div>
                       <Button 
-                        variant="outline"
-                        className="w-full bg-gradient-to-r from-accent-50 to-primary-50 border-2 border-red-500 hover:border-red-600 hover:from-accent-100 hover:to-primary-100 transition-all duration-300"
+                        variant="primary"
+                        className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
                         onClick={handleDeadMansSwitchClick}
                       >
                         Dead Man's Switch
@@ -163,8 +163,8 @@ const ContactsPage: React.FC = () => {
                         </div>
                       </div>
                       <Button
-                        variant="outline"
-                        className="w-full bg-gradient-to-r from-primary-50 to-accent-50 border-2 border-red-500 hover:border-red-600 hover:from-primary-100 hover:to-accent-100 transition-all duration-300"
+                        variant="primary"
+                        className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
                         onClick={() => setShowWillUploadModal(true)}
                       >
                         Upload Will
