@@ -213,15 +213,22 @@ const MemoryConstellationPage: React.FC = () => {
                   ctx.fillText(label, node.x!, node.y! + (node as Node).val * 1.5);
                 }}
                 linkCanvasObject={(link, ctx) => {
-                  const start = link.source;
-                  const end = link.target;
+                  const start = link.source as any;
+                  const end = link.target as any;
+                  
+                  // Check if coordinates are valid numbers
+                  if (!start || !end || 
+                      !isFinite(start.x) || !isFinite(start.y) || 
+                      !isFinite(end.x) || !isFinite(end.y)) {
+                    return;
+                  }
                   
                   // Draw curved connection line with gradient
                   const gradient = ctx.createLinearGradient(
-                    (start as any).x,
-                    (start as any).y,
-                    (end as any).x,
-                    (end as any).y
+                    start.x,
+                    start.y,
+                    end.x,
+                    end.y
                   );
                   gradient.addColorStop(0, '#3b82f680');
                   gradient.addColorStop(1, '#8b5cf680');
@@ -229,8 +236,8 @@ const MemoryConstellationPage: React.FC = () => {
                   ctx.strokeStyle = gradient;
                   ctx.lineWidth = 2;
                   ctx.beginPath();
-                  ctx.moveTo((start as any).x, (start as any).y);
-                  ctx.lineTo((end as any).x, (end as any).y);
+                  ctx.moveTo(start.x, start.y);
+                  ctx.lineTo(end.x, end.y);
                   ctx.stroke();
                 }}
               />
