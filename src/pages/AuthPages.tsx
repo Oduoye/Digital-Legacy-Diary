@@ -34,11 +34,13 @@ const AuthPages: React.FC = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8 animate-fade-in-up [animation-delay:200ms]">
             <Link to="/" className="inline-flex items-center justify-center">
-              <img 
-                src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000 copy copy copy.png"
-                alt="Digital Legacy Diary"
-                className="h-16 w-16 object-contain hover:scale-105 transition-transform"
-              />
+              <div className="bg-black rounded-full">
+                <img 
+                  src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000 copy copy copy.png"
+                  alt="Digital Legacy Diary"
+                  className="h-16 w-16 object-contain"
+                />
+              </div>
             </Link>
             <div className="relative mt-4">
               <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">
