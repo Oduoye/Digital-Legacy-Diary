@@ -18,6 +18,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -36,11 +37,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setIsLoading(true);
 
     try {
-      await register(name, email, password, selectedTier);
+      const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
       setShowSuccessMessage(true);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      setEmailConfirmationRequired(emailConfirmationRequired);
+      
+      if (!emailConfirmationRequired) {
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      }
     } catch (err) {
       setError('Failed to create account');
       console.error(err);
@@ -59,10 +64,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Registration Successful!
+                {emailConfirmationRequired 
+                  ? 'Check Your Email!'
+                  : 'Registration Successful!'}
               </h3>
               <p className="text-gray-600">
-                Your account has been created. Welcome to Digital Legacy Diary!
+                {emailConfirmationRequired 
+                  ? 'Please check your email to confirm your account before logging in.'
+                  : 'Your account has been created. Welcome to Digital Legacy Diary!'}
               </p>
             </div>
           </div>

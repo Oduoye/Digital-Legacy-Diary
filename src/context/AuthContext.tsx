@@ -6,7 +6,7 @@ interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, subscriptionTier: string) => Promise<void>;
+  register: (name: string, email: string, password: string, subscriptionTier: string) => Promise<{ emailConfirmationRequired: boolean }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   updateProfile: (updates: Partial<User>) => Promise<void>;
@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   loading: true,
   login: async () => {},
-  register: async () => {},
+  register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
   isAuthenticated: false,
   updateProfile: async () => {},
@@ -109,6 +109,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+        },
       });
 
       if (authError) throw authError;
@@ -125,7 +128,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profileError) throw profileError;
 
-      await fetchUserProfile(authData.user.id);
+      // Check if email confirmation is required
+      const emailConfirmationRequired = authData.session === null;
+
+      if (!emailConfirmationRequired) {
+        await fetchUserProfile(authData.user.id);
+      }
+
+      return { emailConfirmationRequired };
     } catch (error) {
       console.error('Error registering:', error);
       throw error;
