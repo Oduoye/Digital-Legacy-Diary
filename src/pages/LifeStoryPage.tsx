@@ -103,7 +103,7 @@ const LifeStoryPage: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
-        <div className="mb-6 animate-fade-in-up">
+        <div className="mb-6">
           <Link 
             to="/dashboard" 
             className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
@@ -114,13 +114,13 @@ const LifeStoryPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-4 mb-8 animate-fade-in-up [animation-delay:200ms]">
-          <div>
+          <div className="text-center">
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Your Life Story</h1>
             <p className="text-gray-600">
               AI-powered analysis of your journal entries
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <Link to="/journal/new">
               <Button 
                 icon={<Plus className="h-5 w-5 mr-2" />}
@@ -330,3 +330,5 @@ const LifeStoryPage: React.FC = () => {
 };
 
 export default LifeStoryPage;
+
+export default LifeStoryPage
