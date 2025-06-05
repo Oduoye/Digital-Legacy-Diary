@@ -448,7 +448,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
       
       <div className="flex justify-end gap-4 pt-6 animate-fade-in-up [animation-delay:1000ms]">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button\" variant="outline\" onClick={onCancel}>
             Cancel
           </Button>
         )}

@@ -72,10 +72,24 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [currentUser]);
 
-  // Save entries to localStorage whenever they change
+  // Save entries to localStorage whenever they change, excluding image data
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem(`diary_entries_${currentUser.id}`, JSON.stringify(entries));
+      try {
+        // Create a new array of entries without the images property
+        const entriesForStorage = entries.map(({ images, ...entry }) => ({
+          ...entry,
+          // Set images to empty array to indicate they were removed for storage
+          images: []
+        }));
+        
+        localStorage.setItem(
+          `diary_entries_${currentUser.id}`, 
+          JSON.stringify(entriesForStorage)
+        );
+      } catch (error) {
+        console.error('Failed to save entries to localStorage:', error);
+      }
     }
   }, [entries, currentUser]);
 
