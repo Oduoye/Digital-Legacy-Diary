@@ -87,7 +87,7 @@ const ContactsPage: React.FC = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Link>
-          <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
               <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Trusted Contacts</h1>
               <p className="text-gray-600">People who will receive your legacy</p>
@@ -141,7 +141,7 @@ const ContactsPage: React.FC = () => {
                   </p>
                   <div className="mt-4 flex space-x-3">
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-2 -right-2 z-10">
+                      <div className="absolute -top-6 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
@@ -157,7 +157,7 @@ const ContactsPage: React.FC = () => {
                       </Button>
                     </div>
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-2 -right-2 z-10">
+                      <div className="absolute -top-6 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
