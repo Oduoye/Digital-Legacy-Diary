@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
 import LiveChatButton from '../components/ui/LiveChatButton';
+import Input from '../components/ui/Input';
+import Textarea from '../components/ui/Textarea';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
 const DashboardPage: React.FC = () => {
@@ -15,6 +17,9 @@ const DashboardPage: React.FC = () => {
   const { entries, trustedContacts } = useDiary();
   const [currentDate] = useState(new Date());
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -23,6 +28,22 @@ const DashboardPage: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowContactModal(false);
+      }
+    };
+
+    if (showContactModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showContactModal]);
   
   const totalEntries = entries.length;
   const recentEntries = entries.slice(0, 3);
@@ -34,6 +55,15 @@ const DashboardPage: React.FC = () => {
     const entryDate = new Date(entry.createdAt);
     return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
   }).length;
+
+  const handleSubmitContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowContactModal(false);
+    setShowSuccessModal(true);
+    setTimeout(() => {
+      setShowSuccessModal(false);
+    }, 3000);
+  };
 
   return (
     <Layout>
@@ -323,6 +353,97 @@ const DashboardPage: React.FC = () => {
             <LiveChatButton variant="inline" />
           </div>
         </div>
+
+        <div className="mt-8 animate-fade-in">
+          <Card className="bg-gradient-to-br from-secondary-50 to-primary-50">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between">
+                <div className="mb-4 md:mb-0">
+                  <h2 className="text-xl font-serif font-semibold text-gray-900 flex items-center">
+                    <MessageSquare className="h-5 w-5 mr-2 text-secondary-600" />
+                    Get in Touch
+                  </h2>
+                  <p className="text-gray-600 mt-1">Have questions or feedback? We'd love to hear from you.</p>
+                </div>
+                <Button 
+                  onClick={() => setShowContactModal(true)}
+                  className="bg-secondary-600 hover:bg-secondary-700"
+                >
+                  Contact Us
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Contact Form Modal */}
+        {showContactModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              ref={modalRef}
+              className="bg-white rounded-xl max-w-lg w-full p-6 animate-scale-in"
+            >
+              <h3 className="text-2xl font-serif font-semibold text-gray-900 mb-6">Contact Us</h3>
+              <form onSubmit={handleSubmitContact} className="space-y-6">
+                <Input
+                  label="Name"
+                  placeholder="Your name"
+                  icon={<Users className="h-5 w-5 text-gray-400" />}
+                  required
+                />
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  icon={<Mail className="h-5 w-5 text-gray-400" />}
+                  required
+                />
+                <Input
+                  label="Phone"
+                  type="tel"
+                  placeholder="Your phone number (optional)"
+                  icon={<Phone className="h-5 w-5 text-gray-400" />}
+                />
+                <Textarea
+                  label="Message"
+                  placeholder="How can we help you?"
+                  required
+                  className="h-32"
+                />
+                <div className="flex justify-end space-x-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowContactModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Send Message
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-md w-full p-6 animate-scale-in">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Message Sent Successfully!
+                </h3>
+                <p className="text-gray-600">
+                  Thank you for reaching out. We'll get back to you as soon as possible.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
