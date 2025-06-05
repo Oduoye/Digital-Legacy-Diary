@@ -330,5 +330,3 @@ const LifeStoryPage: React.FC = () => {
 };
 
 export default LifeStoryPage;
-
-export default LifeStoryPage
