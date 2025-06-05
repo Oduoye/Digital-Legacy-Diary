@@ -74,7 +74,8 @@ const LifeStoryPage: React.FC = () => {
                   icon={<Plus className="h-5 w-5 mr-2" />}
                   className="w-full sm:w-auto transform transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  Create New Entry
+                  <span className="block md:hidden">New</span>
+                  <span className="hidden md:block">Create New Entry</span>
                 </Button>
               </Link>
               
@@ -86,7 +87,8 @@ const LifeStoryPage: React.FC = () => {
                   variant="outline"
                   className="w-full sm:w-auto transform transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  Generate Insights
+                  <span className="block md:hidden">Generate</span>
+                  <span className="hidden md:block">Generate Insights</span>
                 </Button>
               )}
             </div>
@@ -111,21 +113,22 @@ const LifeStoryPage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="flex justify-between items-start mb-8 animate-fade-in-up [animation-delay:200ms]">
+        <div className="flex flex-col gap-4 mb-8 animate-fade-in-up [animation-delay:200ms]">
           <div>
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Your Life Story</h1>
             <p className="text-gray-600">
               AI-powered analysis of your journal entries
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link to="/journal/new">
               <Button 
                 icon={<Plus className="h-5 w-5 mr-2" />}
                 variant="outline"
                 className="transform transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                New Entry
+                <span className="block md:hidden">New</span>
+                <span className="hidden md:block">New Entry</span>
               </Button>
             </Link>
             <Button
@@ -134,7 +137,8 @@ const LifeStoryPage: React.FC = () => {
               icon={<RefreshCw className="h-5 w-5 mr-2" />}
               className="transform transition-all duration-200 hover:scale-105 active:scale-95"
             >
-              Refresh Analysis
+              <span className="block md:hidden">Refresh</span>
+              <span className="hidden md:block">Refresh Analysis</span>
             </Button>
           </div>
         </div>
