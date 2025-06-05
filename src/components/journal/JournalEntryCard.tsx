@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DiaryEntry } from '../../types';
 import Card, { CardHeader, CardContent, CardFooter } from '../ui/Card';
 import Button from '../ui/Button';
@@ -15,6 +15,8 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
   const navigate = useNavigate();
   const { deleteEntry } = useDiary();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const handleEdit = () => {
     navigate(`/journal/edit/${entry.id}`);
@@ -32,6 +34,54 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
   const cancelDelete = () => {
     setShowDeleteModal(false);
   };
+
+  const openImageViewer = (index: number) => {
+    setCurrentImageIndex(index);
+    setShowImageViewer(true);
+  };
+
+  const closeImageViewer = () => {
+    setShowImageViewer(false);
+  };
+
+  const showNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => 
+      prev === entry.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const showPrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? entry.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!showImageViewer) return;
+    
+    switch (e.key) {
+      case 'ArrowLeft':
+        setCurrentImageIndex((prev) => 
+          prev === 0 ? entry.images.length - 1 : prev - 1
+        );
+        break;
+      case 'ArrowRight':
+        setCurrentImageIndex((prev) => 
+          prev === entry.images.length - 1 ? 0 : prev + 1
+        );
+        break;
+      case 'Escape':
+        closeImageViewer();
+        break;
+    }
+  };
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showImageViewer]);
 
   const truncatedContent = entry.content.length > 200
     ? `${entry.content.substring(0, 200)}...`
@@ -65,15 +115,17 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
               {entry.images.map((image, index) => (
                 <div 
                   key={index} 
-                  className={`relative aspect-square overflow-hidden rounded-md ${
+                  className={`relative aspect-square overflow-hidden rounded-md cursor-pointer group ${
                     entry.images.length === 3 && index === 2 ? 'col-span-2 md:col-span-1' : ''
                   }`}
+                  onClick={() => openImageViewer(index)}
                 >
                   <img 
                     src={image} 
                     alt={`Image ${index + 1} for ${entry.title}`} 
-                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                   />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300" />
                 </div>
               ))}
             </div>
@@ -111,6 +163,46 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Image Viewer Modal */}
+      {showImageViewer && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          onClick={closeImageViewer}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            onClick={closeImageViewer}
+          >
+            <X size={24} />
+          </button>
+          
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors p-2 rounded-full bg-black/50 hover:bg-black/70"
+            onClick={showPrevImage}
+          >
+            <ChevronLeft size={24} />
+          </button>
+
+          <div className="relative max-w-4xl max-h-[80vh] w-full mx-4">
+            <img
+              src={entry.images[currentImageIndex]}
+              alt={`Image ${currentImageIndex + 1} of ${entry.images.length}`}
+              className="w-full h-full object-contain animate-fade-in"
+            />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+              {currentImageIndex + 1} / {entry.images.length}
+            </div>
+          </div>
+
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors p-2 rounded-full bg-black/50 hover:bg-black/70"
+            onClick={showNextImage}
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
