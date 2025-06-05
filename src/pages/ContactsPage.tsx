@@ -277,15 +277,9 @@ const ContactsPage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
               <div className="text-center">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Remove Trusted Contact
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Are you sure you want to delete this entry? This action cannot be undone.
                 </h3>
-                <p className="text-gray-600 mb-6">
-                  Are you sure you want to remove {deleteModalContact.name} from your trusted contacts? This action cannot be undone.
-                </p>
                 <div className="flex justify-end space-x-3">
                   <Button
                     variant="outline"
@@ -294,10 +288,11 @@ const ContactsPage: React.FC = () => {
                     Cancel
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="primary"
+                    className="bg-blue-600 hover:bg-blue-700"
                     onClick={handleDelete}
                   >
-                    Remove Contact
+                    OK
                   </Button>
                 </div>
               </div>
