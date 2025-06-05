@@ -1,15 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Send } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
 import LiveChatButton from '../components/ui/LiveChatButton';
-import Input from '../components/ui/Input';
-import Textarea from '../components/ui/Textarea';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
 const DashboardPage: React.FC = () => {
@@ -17,9 +15,6 @@ const DashboardPage: React.FC = () => {
   const { entries, trustedContacts } = useDiary();
   const [currentDate] = useState(new Date());
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [contactFormSubmitted, setContactFormSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -28,21 +23,6 @@ const DashboardPage: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
-
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setContactFormSubmitted(true);
-    setTimeout(() => {
-      setShowContactForm(false);
-      setContactFormSubmitted(false);
-    }, 3000);
-  };
   
   const totalEntries = entries.length;
   const recentEntries = entries.slice(0, 3);
@@ -334,69 +314,14 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-8 p-4 bg-gradient-to-r from-primary-50 to-accent-50 rounded-lg border border-primary-100 relative overflow-hidden">
+        <div className="mt-8 p-4 bg-gradient-to-r from-primary-50 to-accent-50 rounded-lg border border-primary-100">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-medium text-gray-900">Need Help?</h2>
               <p className="text-sm text-gray-600">Our support team is here to assist you</p>
             </div>
-            <Button 
-              variant="primary"
-              onClick={() => setShowContactForm(true)}
-              className="relative z-10"
-            >
-              Contact Support
-            </Button>
+            <LiveChatButton variant="inline" />
           </div>
-
-          {/* Animated Contact Form */}
-          {showContactForm && (
-            <div className="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-              {contactFormSubmitted ? (
-                <div className="text-center animate-scale-in">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Send className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Message Sent!</h3>
-                  <p className="text-gray-600">We'll get back to you soon.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleContactSubmit} className="w-full max-w-lg bg-white p-6 rounded-lg shadow-lg animate-slide-up">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">Contact Support</h3>
-                    <button
-                      type="button"
-                      onClick={() => setShowContactForm(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    <Input
-                      label="Subject"
-                      required
-                      placeholder="How can we help?"
-                    />
-                    <Textarea
-                      label="Message"
-                      required
-                      placeholder="Describe your issue or question..."
-                      rows={4}
-                    />
-                    <Button
-                      type="submit"
-                      isLoading={isSubmitting}
-                      className="w-full"
-                      icon={<Mail className="h-4 w-4" />}
-                    >
-                      Send Message
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </Layout>
