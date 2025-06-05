@@ -103,9 +103,9 @@ const MemoryConstellationPage: React.FC = () => {
         <div className="mb-6">
           <Link 
             to="/dashboard" 
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </Link>
         </div>
