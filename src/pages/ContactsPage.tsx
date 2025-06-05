@@ -152,7 +152,8 @@ const ContactsPage: React.FC = () => {
                         className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
                         onClick={handleDeadMansSwitchClick}
                       >
-                        Dead Man's Switch
+                        <span className="block md:hidden">Switch</span>
+                        <span className="hidden md:block">Dead Man's Switch</span>
                       </Button>
                     </div>
                     <div className="relative flex-1 group">
@@ -167,7 +168,8 @@ const ContactsPage: React.FC = () => {
                         className="w-full text-white border-2 border-primary-600 hover:border-primary-700"
                         onClick={() => setShowWillUploadModal(true)}
                       >
-                        Upload Will
+                        <span className="block md:hidden">Will</span>
+                        <span className="hidden md:block">Upload Will</span>
                       </Button>
                     </div>
                   </div>
