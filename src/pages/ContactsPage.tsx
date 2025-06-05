@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, UserPlus, X, ArrowLeft, Shield, Crown, AlertTriangle } from 'lucide-react';
+import { Users, UserPlus, X, ArrowLeft, Shield, Crown } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
@@ -141,7 +141,7 @@ const ContactsPage: React.FC = () => {
                   </p>
                   <div className="mt-4 flex space-x-3">
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-8 -right-2 z-10">
+                      <div className="absolute -top-7 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
@@ -157,7 +157,7 @@ const ContactsPage: React.FC = () => {
                       </Button>
                     </div>
                     <div className="relative flex-1 group">
-                      <div className="absolute -top-8 -right-2 z-10">
+                      <div className="absolute -top-7 -right-2 z-10">
                         <div className="bg-yellow-400 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-sm">
                           <Crown className="h-3 w-3 mr-1" />
                           Premium
