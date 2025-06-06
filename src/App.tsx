@@ -162,7 +162,7 @@ function App() {
             />
             
             {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/\" replace />} />
           </Routes>
         </DiaryProvider>
       </AuthProvider>
