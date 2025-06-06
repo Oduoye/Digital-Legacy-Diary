@@ -199,6 +199,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userProfile) {
           console.log('User profile loaded after login:', userProfile);
           setCurrentUser(userProfile);
+        } else {
+          // If no profile exists, create one from auth data
+          console.log('No profile found, creating from auth data...');
+          const newUserData = {
+            id: data.user.id,
+            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+            email: data.user.email || '',
+            profile_picture: null,
+            bio: null,
+            social_links: {},
+            subscription_tier: data.user.user_metadata?.subscription_tier || 'free',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert(newUserData);
+
+          if (!insertError) {
+            const newProfile = {
+              id: newUserData.id,
+              name: newUserData.name,
+              email: newUserData.email,
+              profilePicture: newUserData.profile_picture,
+              bio: newUserData.bio,
+              socialLinks: newUserData.social_links,
+              subscription_tier: newUserData.subscription_tier,
+              created_at: new Date(newUserData.created_at),
+              updated_at: new Date(newUserData.updated_at),
+            };
+            setCurrentUser(newProfile);
+          }
         }
       }
     } catch (error) {
