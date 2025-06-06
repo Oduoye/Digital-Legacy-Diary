@@ -223,21 +223,35 @@ const SettingsPage: React.FC = () => {
                 Need to take a break or leave the service? You can temporarily deactivate your account or permanently delete all your data.
               </p>
               
-              <div className="flex flex-col space-y-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDeactivateModal(true)}
-                  className="transform transition-all duration-200 hover:bg-gray-100 hover:scale-105 active:scale-95"
-                >
-                  Deactivate Account
-                </Button>
-                <Button 
-                  variant="danger" 
-                  onClick={() => setShowDeleteModal(true)}
-                  className="transform transition-all duration-200 hover:bg-red-700 hover:scale-105 active:scale-95"
-                >
-                  Delete Account Permanently
-                </Button>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowDeactivateModal(true)}
+                    className="flex-1 bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100 transform transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
+                    Deactivate Account
+                  </Button>
+                  
+                  <Button 
+                    variant="danger" 
+                    onClick={() => setShowDeleteModal(true)}
+                    className="flex-1 transform transition-all duration-200 hover:bg-red-700 hover:scale-105 active:scale-95"
+                  >
+                    Delete Account Permanently
+                  </Button>
+                </div>
+                
+                <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-gray-600">
+                      <p className="font-medium mb-1">Important:</p>
+                      <p><strong>Deactivate:</strong> Temporarily disables your account. You can reactivate by logging back in.</p>
+                      <p><strong>Delete:</strong> Permanently removes all your data. This action cannot be undone.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="bg-gray-50">
