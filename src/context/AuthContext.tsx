@@ -41,8 +41,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   // Function to fetch user profile from database
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<User | null> => {
     try {
+      console.log('Fetching user profile for ID:', userId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -51,8 +53,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        
+        // If user doesn't exist in database, try to get from auth and create profile
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.id === userId) {
+          console.log('Creating missing user profile from auth data');
+          
+          const newUserData = {
+            id: user.id,
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            email: user.email || '',
+            profile_picture: null,
+            bio: null,
+            social_links: {},
+            subscription_tier: user.user_metadata?.subscription_tier || 'free',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert(newUserData);
+
+          if (insertError) {
+            console.error('Error creating user profile:', insertError);
+            return null;
+          }
+
+          return {
+            id: newUserData.id,
+            name: newUserData.name,
+            email: newUserData.email,
+            profilePicture: newUserData.profile_picture,
+            bio: newUserData.bio,
+            socialLinks: newUserData.social_links,
+            subscription_tier: newUserData.subscription_tier,
+            created_at: new Date(newUserData.created_at),
+            updated_at: new Date(newUserData.updated_at),
+          };
+        }
         return null;
       }
+
+      console.log('User profile data from database:', data);
 
       return {
         id: data.id,
@@ -83,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check active session on mount
     const getSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -92,10 +136,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (session?.user) {
+          console.log('Found active session for user:', session.user.id);
           const userProfile = await fetchUserProfile(session.user.id);
           if (userProfile) {
+            console.log('Setting user profile:', userProfile);
             setCurrentUser(userProfile);
           }
+        } else {
+          console.log('No active session found');
         }
       } catch (error) {
         console.error('Error in getSession:', error);
@@ -111,11 +159,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth state changed:', event, session?.user?.id);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in, fetching profile...');
         const userProfile = await fetchUserProfile(session.user.id);
         if (userProfile) {
+          console.log('Setting user profile after sign in:', userProfile);
           setCurrentUser(userProfile);
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out, clearing profile');
         setCurrentUser(null);
       }
       
@@ -130,6 +181,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -141,8 +194,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
+        console.log('Login successful, fetching user profile...');
         const userProfile = await fetchUserProfile(data.user.id);
         if (userProfile) {
+          console.log('User profile loaded after login:', userProfile);
           setCurrentUser(userProfile);
         }
       }
@@ -157,6 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     try {
       setLoading(true);
+      console.log('Attempting registration for:', email);
       
       // First, sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -176,30 +232,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (authData.user) {
+        console.log('Auth user created, creating database profile...');
+        
         // Create user profile in database
+        const userProfileData = {
+          id: authData.user.id,
+          name: name.trim(),
+          email: email.trim(),
+          profile_picture: null,
+          bio: null,
+          social_links: {},
+          subscription_tier: subscriptionTier,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
         const { error: profileError } = await supabase
           .from('users')
-          .insert({
-            id: authData.user.id,
-            name: name.trim(),
-            email: email.trim(),
-            subscription_tier: subscriptionTier,
-          });
+          .insert(userProfileData);
 
         if (profileError) {
           console.error('Profile creation error:', profileError);
           // Don't throw here as the auth user was created successfully
+        } else {
+          console.log('Database profile created successfully');
         }
 
-        // If email confirmation is not required, fetch and set user profile
-        if (!authData.user.email_confirmed_at && authData.user.confirmation_sent_at) {
-          return { emailConfirmationRequired: true };
-        } else {
+        // Check if email confirmation is required
+        if (authData.user.email_confirmed_at) {
+          // Email is already confirmed, set user profile
           const userProfile = await fetchUserProfile(authData.user.id);
           if (userProfile) {
             setCurrentUser(userProfile);
           }
           return { emailConfirmationRequired: false };
+        } else {
+          // Email confirmation required
+          return { emailConfirmationRequired: true };
         }
       }
 
@@ -215,11 +284,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       setLoading(true);
+      console.log('Logging out user...');
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Logout error:', error);
         throw error;
       }
+      
+      console.log('User logged out successfully');
       setCurrentUser(null);
     } catch (error) {
       console.error('Error during logout:', error);
@@ -233,38 +306,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       if (!currentUser) throw new Error('No user logged in');
 
-      // Update auth user metadata if needed
-      const authUpdates: any = {};
-      if (updates.name) authUpdates.name = updates.name;
-      
-      if (Object.keys(authUpdates).length > 0) {
-        const { error: authError } = await supabase.auth.updateUser({
-          data: authUpdates,
-        });
-        if (authError) throw authError;
-      }
+      console.log('Updating profile with:', updates);
 
-      // Update user profile in database
+      // Prepare database updates
       const dbUpdates: any = {};
-      if (updates.name) dbUpdates.name = updates.name;
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
       if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
       if (updates.socialLinks !== undefined) dbUpdates.social_links = updates.socialLinks;
-      if (updates.subscription_tier) dbUpdates.subscription_tier = updates.subscription_tier;
+      if (updates.subscription_tier !== undefined) dbUpdates.subscription_tier = updates.subscription_tier;
 
-      if (Object.keys(dbUpdates).length > 0) {
-        dbUpdates.updated_at = new Date().toISOString();
-        
-        const { error: dbError } = await supabase
-          .from('users')
-          .update(dbUpdates)
-          .eq('id', currentUser.id);
+      // Always update the updated_at timestamp
+      dbUpdates.updated_at = new Date().toISOString();
 
-        if (dbError) throw dbError;
+      console.log('Database updates to apply:', dbUpdates);
+
+      // Update user profile in database
+      const { error: dbError } = await supabase
+        .from('users')
+        .update(dbUpdates)
+        .eq('id', currentUser.id);
+
+      if (dbError) {
+        console.error('Database update error:', dbError);
+        throw dbError;
+      }
+
+      console.log('Database profile updated successfully');
+
+      // Update auth user metadata if name changed
+      if (updates.name) {
+        const { error: authError } = await supabase.auth.updateUser({
+          data: { name: updates.name },
+        });
+        if (authError) {
+          console.error('Auth metadata update error:', authError);
+          // Don't throw here as the database was updated successfully
+        }
       }
 
       // Update local state
-      setCurrentUser(prev => prev ? { ...prev, ...updates, updated_at: new Date() } : null);
+      const updatedUser = { 
+        ...currentUser, 
+        ...updates, 
+        updated_at: new Date() 
+      };
+      
+      console.log('Updated user state:', updatedUser);
+      setCurrentUser(updatedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
