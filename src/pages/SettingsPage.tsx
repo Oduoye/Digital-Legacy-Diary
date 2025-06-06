@@ -1,6 +1,6 @@
 import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, LogOut, AlertTriangle } from 'lucide-react';
+import { User, Mail, Lock, LogOut, AlertTriangle, CheckCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Card, { CardHeader, CardContent, CardFooter } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -15,6 +15,8 @@ const SettingsPage: React.FC = () => {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAction, setSuccessAction] = useState<'deactivate' | 'delete' | ''>('');
   
   const handleLogout = () => {
     logout();
@@ -35,10 +37,10 @@ const SettingsPage: React.FC = () => {
       };
 
       if (updates.email !== currentUser?.email) {
-        await updateEmail(updates.email, 'password');
+        await updateEmail(updates.email);
       }
 
-      updateProfile(updates);
+      await updateProfile(updates);
       setShowSuccessMessage('Profile updated successfully!');
       setTimeout(() => setShowSuccessMessage(''), 3000);
     } catch (err) {
@@ -56,7 +58,6 @@ const SettingsPage: React.FC = () => {
     try {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
-      const currentPassword = formData.get('currentPassword') as string;
       const newPassword = formData.get('newPassword') as string;
       const confirmPassword = formData.get('confirmPassword') as string;
 
@@ -64,7 +65,7 @@ const SettingsPage: React.FC = () => {
         throw new Error('New passwords do not match');
       }
 
-      await updatePassword(currentPassword, newPassword);
+      await updatePassword(newPassword);
       setShowSuccessMessage('Password updated successfully!');
       setTimeout(() => setShowSuccessMessage(''), 3000);
       form.reset();
@@ -77,8 +78,15 @@ const SettingsPage: React.FC = () => {
 
   const handleDeactivateAccount = async () => {
     try {
+      setShowDeactivateModal(false);
       await deactivateAccount();
-      navigate('/login');
+      setSuccessAction('deactivate');
+      setShowSuccessModal(true);
+      
+      // Redirect after showing success message
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (err) {
       setError('Failed to deactivate account. Please try again.');
     }
@@ -86,8 +94,15 @@ const SettingsPage: React.FC = () => {
 
   const handleDeleteAccount = async () => {
     try {
+      setShowDeleteModal(false);
       await deleteAccount();
-      navigate('/login');
+      setSuccessAction('delete');
+      setShowSuccessModal(true);
+      
+      // Redirect after showing success message
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (err) {
       setError('Failed to delete account. Please try again.');
     }
@@ -208,7 +223,7 @@ const SettingsPage: React.FC = () => {
                 Need to take a break or leave the service? You can temporarily deactivate your account or permanently delete all your data.
               </p>
               
-              <div className="flex flex-col space-y-6">
+              <div className="flex flex-col space-y-4">
                 <Button 
                   variant="outline" 
                   onClick={() => setShowDeactivateModal(true)}
@@ -221,7 +236,7 @@ const SettingsPage: React.FC = () => {
                   onClick={() => setShowDeleteModal(true)}
                   className="transform transition-all duration-200 hover:bg-red-700 hover:scale-105 active:scale-95"
                 >
-                  Delete Account
+                  Delete Account Permanently
                 </Button>
               </div>
             </CardContent>
@@ -240,7 +255,7 @@ const SettingsPage: React.FC = () => {
 
         {/* Deactivate Account Modal */}
         {showDeactivateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
             <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
               <div className="text-center">
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -250,7 +265,7 @@ const SettingsPage: React.FC = () => {
                   Deactivate Account
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Your account will be temporarily deactivated. You can reactivate it at any time by logging back in.
+                  Your account will be temporarily deactivated. You can reactivate it at any time by logging back in. Your data will be preserved.
                 </p>
                 <div className="flex justify-end space-x-3">
                   <Button
@@ -261,11 +276,11 @@ const SettingsPage: React.FC = () => {
                     Cancel
                   </Button>
                   <Button
-                    variant="danger"
+                    variant="outline"
+                    className="bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100 transform transition-all duration-200 hover:scale-105 active:scale-95"
                     onClick={handleDeactivateAccount}
-                    className="transform transition-all duration-200 hover:scale-105 active:scale-95"
                   >
-                    Deactivate
+                    Deactivate Account
                   </Button>
                 </div>
               </div>
@@ -275,7 +290,7 @@ const SettingsPage: React.FC = () => {
 
         {/* Delete Account Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
             <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
               <div className="text-center">
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -285,8 +300,20 @@ const SettingsPage: React.FC = () => {
                   Delete Account Permanently
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  This action cannot be undone. All your data, including journal entries and contacts, will be permanently deleted.
+                  This action cannot be undone. All your data, including journal entries, trusted contacts, and personal information will be permanently deleted from our servers.
                 </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <AlertTriangle className="h-5 w-5 text-red-400" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">
+                        <strong>Warning:</strong> This will permanently delete all your memories, stories, and legacy content. This action is irreversible.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <div className="flex justify-end space-x-3">
                   <Button
                     variant="outline"
@@ -298,11 +325,36 @@ const SettingsPage: React.FC = () => {
                   <Button
                     variant="danger"
                     onClick={handleDeleteAccount}
-                    className="transform transition-all duration-200 hover:scale-105 active:scale-95 animate-pulse"
+                    className="transform transition-all duration-200 hover:scale-105 active:scale-95"
                   >
                     Delete Forever
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+            <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {successAction === 'deactivate' ? 'Account Deactivated' : 'Account Deleted'}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {successAction === 'deactivate' 
+                    ? 'Your account has been successfully deactivated. You can reactivate it anytime by logging back in.'
+                    : 'Your account and all associated data have been permanently deleted. Thank you for using Digital Legacy Diary.'
+                  }
+                </p>
+                <p className="text-sm text-gray-500">
+                  Redirecting to login page...
+                </p>
               </div>
             </div>
           </div>
