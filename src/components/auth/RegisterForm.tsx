@@ -18,7 +18,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -40,23 +39,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
     try {
       const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
-      setEmailConfirmationRequired(emailConfirmationRequired);
       setShowSuccessMessage(true);
       
       if (!emailConfirmationRequired) {
-        // Auto-redirect to dashboard after 2 seconds if no email confirmation needed
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
       } else {
         // Auto-redirect to login after 10 seconds if email confirmation is required
         setTimeout(() => {
-          navigate('/login', {
-            state: {
-              message: 'Please check your email and click the verification link to complete your registration.',
-              type: 'info'
-            }
-          });
+          navigate('/login');
         }, 10000);
       }
     } catch (err) {
@@ -69,16 +61,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
   const handleCloseSuccess = () => {
     setShowSuccessMessage(false);
-    if (emailConfirmationRequired) {
-      navigate('/login', {
-        state: {
-          message: 'Please check your email and click the verification link to complete your registration.',
-          type: 'info'
-        }
-      });
-    } else {
-      navigate('/dashboard');
-    }
+    navigate('/login');
   };
 
   return (
@@ -99,13 +82,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {emailConfirmationRequired ? 'Check Your Email!' : 'Account Created Successfully!'}
+                Account Created Successfully!
               </h3>
               <p className="text-gray-600 mb-6">
-                {emailConfirmationRequired 
-                  ? 'We\'ve sent you a verification email. Please check your email and click the verification link to complete your registration.'
-                  : 'Welcome to Digital Legacy Diary! You can now start preserving your memories and creating your digital legacy.'
-                }
+                Welcome to Digital Legacy Diary! You can now start preserving your memories and creating your digital legacy.
               </p>
               
               <div className="space-y-3">
@@ -113,14 +93,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                   onClick={handleCloseSuccess}
                   className="w-full"
                 >
-                  {emailConfirmationRequired ? 'Continue to Sign In' : 'Go to Dashboard'}
+                  Continue to Sign In
                 </Button>
                 
                 <p className="text-xs text-gray-500">
-                  {emailConfirmationRequired 
-                    ? 'Redirecting to sign in in 10 seconds...'
-                    : 'Redirecting to dashboard in a few seconds...'
-                  }
+                  Redirecting automatically in 10 seconds...
                 </p>
               </div>
             </div>

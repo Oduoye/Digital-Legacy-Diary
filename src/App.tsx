@@ -10,7 +10,6 @@ import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import AuthPages from './pages/AuthPages';
-import EmailVerificationPage from './pages/EmailVerificationPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import SubscriptionPage from './pages/SubscriptionPage';
@@ -61,7 +60,6 @@ function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/login" element={<AuthPages />} />
             <Route path="/register" element={<AuthPages />} />
-            <Route path="/verify-email" element={<EmailVerificationPage />} />
             
             {/* Protected routes */}
             <Route 
