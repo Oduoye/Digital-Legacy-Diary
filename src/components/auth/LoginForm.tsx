@@ -82,7 +82,7 @@ const LoginForm: React.FC = () => {
 
       <form onSubmit={isOtpSent ? handleVerifyOtp : handleSendOtp} className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
             {error}
           </div>
         )}
@@ -107,6 +107,8 @@ const LoginForm: React.FC = () => {
               onChange={(e) => setOtp(e.target.value)}
               required
               placeholder="Enter the code sent to your email"
+              className="text-center tracking-[0.5em] font-mono text-lg"
+              maxLength={6}
             />
             <p className="mt-2 text-sm text-gray-500">
               Please check your email for the verification code.
@@ -120,16 +122,17 @@ const LoginForm: React.FC = () => {
             isLoading={isLoading} 
             className="w-full"
           >
-            {isOtpSent ? 'Verify OTP' : 'Send OTP'}
+            {isOtpSent ? 'Verify Code' : 'Send Code'}
           </Button>
         </div>
 
         {isOtpSent && (
-          <div className="text-center">
+          <div className="text-center animate-fade-in">
             <button
               type="button"
               onClick={handleSendOtp}
-              className="text-sm text-primary-600 hover:text-primary-700"
+              disabled={isLoading}
+              className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
             >
               Didn't receive the code? Send again
             </button>
