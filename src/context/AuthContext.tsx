@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -164,12 +165,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userProfile) {
           console.log('Setting user profile after sign in:', userProfile);
           setCurrentUser(userProfile);
-          
-          // Check if this is an email verification event
-          if (event === 'SIGNED_IN' && window.location.hash.includes('type=signup')) {
-            // Redirect to dashboard after email verification
-            window.location.href = '/dashboard';
-          }
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');

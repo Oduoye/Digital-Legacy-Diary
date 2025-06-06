@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DiaryProvider } from './context/DiaryContext';
@@ -24,6 +24,39 @@ import SettingsPage from './pages/SettingsPage';
 import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
+
+// Email verification handler component
+const EmailVerificationHandler: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    // Check if this is an email verification callback
+    const hash = location.hash;
+    if (hash.includes('type=signup') && hash.includes('access_token')) {
+      console.log('Email verification detected, waiting for authentication...');
+      
+      // Wait for authentication to complete, then redirect
+      const checkAuth = setInterval(() => {
+        if (!loading && isAuthenticated) {
+          console.log('User authenticated after email verification, redirecting to dashboard...');
+          clearInterval(checkAuth);
+          navigate('/dashboard', { replace: true });
+        }
+      }, 100);
+
+      // Clear interval after 10 seconds to prevent infinite checking
+      setTimeout(() => {
+        clearInterval(checkAuth);
+      }, 10000);
+
+      return () => clearInterval(checkAuth);
+    }
+  }, [location.hash, isAuthenticated, loading, navigate]);
+
+  return null;
+};
 
 // Protected route component
 const ProtectedRoute: React.FC<{ 
@@ -51,6 +84,7 @@ function App() {
     <Router>
       <AuthProvider>
         <DiaryProvider>
+          <EmailVerificationHandler />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
@@ -160,7 +194,7 @@ function App() {
             />
             
             {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </DiaryProvider>
       </AuthProvider>
