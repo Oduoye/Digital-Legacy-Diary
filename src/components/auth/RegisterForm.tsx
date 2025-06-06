@@ -63,7 +63,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     <>
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-lg max-w-sm w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in relative">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in relative">
             <button
               onClick={handleCloseSuccess}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -77,9 +77,26 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Account Created Successfully!
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-4">
                 Welcome to Digital Legacy Diary! You can now start preserving your memories and stories.
               </p>
+              
+              {/* Email Verification Notice */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-left">
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Email Verification
+                    </h4>
+                    <p className="text-sm text-blue-700">
+                      We've sent a verification email to <strong>{email}</strong>. 
+                      Please check your inbox and click the verification link to activate your account.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <Button onClick={handleCloseSuccess} className="w-full">
                 Continue to Login
               </Button>
