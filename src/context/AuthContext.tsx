@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, testSupabaseConnection } from '../lib/supabase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -45,6 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Fetching user profile for ID:', userId);
       
+      // Test connection first
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        throw new Error('Unable to connect to Supabase. Please check your internet connection and Supabase configuration.');
+      }
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -77,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (insertError) {
             console.error('Error creating user profile:', insertError);
-            return null;
+            throw new Error(`Failed to create user profile: ${insertError.message}`);
           }
 
           return {
@@ -92,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updated_at: new Date(newUserData.updated_at),
           };
         }
-        return null;
+        throw new Error(`Failed to fetch user profile: ${error.message}`);
       }
 
       console.log('User profile data from database:', data);
@@ -118,7 +124,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      return null;
+      
+      // Provide more specific error messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to the database. Please check your internet connection and try again.');
+      }
+      
+      throw error;
     }
   };
 
@@ -127,6 +139,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getSession = async () => {
       try {
         console.log('Getting initial session...');
+        
+        // Test connection first
+        const connectionOk = await testSupabaseConnection();
+        if (!connectionOk) {
+          console.error('Supabase connection failed during initialization');
+          setLoading(false);
+          return;
+        }
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -137,10 +158,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session?.user) {
           console.log('Found active session for user:', session.user.id);
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (userProfile) {
-            console.log('Setting user profile:', userProfile);
-            setCurrentUser(userProfile);
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            if (userProfile) {
+              console.log('Setting user profile:', userProfile);
+              setCurrentUser(userProfile);
+            }
+          } catch (profileError) {
+            console.error('Error fetching user profile during session restore:', profileError);
+            // Don't throw here, just log the error
           }
         } else {
           console.log('No active session found');
@@ -160,10 +186,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('User signed in, fetching profile...');
-        const userProfile = await fetchUserProfile(session.user.id);
-        if (userProfile) {
-          console.log('Setting user profile after sign in:', userProfile);
-          setCurrentUser(userProfile);
+        try {
+          const userProfile = await fetchUserProfile(session.user.id);
+          if (userProfile) {
+            console.log('Setting user profile after sign in:', userProfile);
+            setCurrentUser(userProfile);
+          }
+        } catch (profileError) {
+          console.error('Error fetching user profile after sign in:', profileError);
+          // Don't throw here, but we might want to show an error to the user
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
@@ -183,6 +214,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       console.log('Attempting login for:', email);
       
+      // Test connection first
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        throw new Error('Unable to connect to the database. Please check your internet connection and try again.');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -195,47 +232,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         console.log('Login successful, fetching user profile...');
-        const userProfile = await fetchUserProfile(data.user.id);
-        if (userProfile) {
-          console.log('User profile loaded after login:', userProfile);
-          setCurrentUser(userProfile);
-        } else {
-          // If no profile exists, create one from auth data
-          console.log('No profile found, creating from auth data...');
-          const newUserData = {
-            id: data.user.id,
-            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-            email: data.user.email || '',
-            profile_picture: null,
-            bio: null,
-            social_links: {},
-            subscription_tier: data.user.user_metadata?.subscription_tier || 'free',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert(newUserData);
-
-          if (!insertError) {
-            const newProfile = {
-              id: newUserData.id,
-              name: newUserData.name,
-              email: newUserData.email,
-              profilePicture: newUserData.profile_picture,
-              bio: newUserData.bio,
-              socialLinks: newUserData.social_links,
-              subscription_tier: newUserData.subscription_tier,
-              created_at: new Date(newUserData.created_at),
-              updated_at: new Date(newUserData.updated_at),
+        try {
+          const userProfile = await fetchUserProfile(data.user.id);
+          if (userProfile) {
+            console.log('User profile loaded after login:', userProfile);
+            setCurrentUser(userProfile);
+          } else {
+            // If no profile exists, create one from auth data
+            console.log('No profile found, creating from auth data...');
+            const newUserData = {
+              id: data.user.id,
+              name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+              email: data.user.email || '',
+              profile_picture: null,
+              bio: null,
+              social_links: {},
+              subscription_tier: data.user.user_metadata?.subscription_tier || 'free',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
             };
-            setCurrentUser(newProfile);
+
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert(newUserData);
+
+            if (!insertError) {
+              const newProfile = {
+                id: newUserData.id,
+                name: newUserData.name,
+                email: newUserData.email,
+                profilePicture: newUserData.profile_picture,
+                bio: newUserData.bio,
+                socialLinks: newUserData.social_links,
+                subscription_tier: newUserData.subscription_tier,
+                created_at: new Date(newUserData.created_at),
+                updated_at: new Date(newUserData.updated_at),
+              };
+              setCurrentUser(newProfile);
+            } else {
+              console.error('Error creating user profile:', insertError);
+              throw new Error(`Failed to create user profile: ${insertError.message}`);
+            }
           }
+        } catch (profileError) {
+          console.error('Error handling user profile after login:', profileError);
+          throw profileError;
         }
       }
     } catch (error) {
       console.error('Error during login:', error);
+      
+      // Provide more user-friendly error messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to the authentication service. Please check your internet connection and try again.');
+      }
+      
       throw error;
     } finally {
       setLoading(false);
@@ -246,6 +297,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       console.log('Attempting registration for:', email);
+      
+      // Test connection first
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        throw new Error('Unable to connect to the database. Please check your internet connection and try again.');
+      }
       
       // First, sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -286,7 +343,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (profileError) {
           console.error('Profile creation error:', profileError);
-          // Don't throw here as the auth user was created successfully
+          throw new Error(`Failed to create user profile: ${profileError.message}`);
         } else {
           console.log('Database profile created successfully');
         }
@@ -308,6 +365,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { emailConfirmationRequired: false };
     } catch (error) {
       console.error('Error during registration:', error);
+      
+      // Provide more user-friendly error messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to the registration service. Please check your internet connection and try again.');
+      }
+      
       throw error;
     } finally {
       setLoading(false);
@@ -341,6 +404,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Updating profile with:', updates);
 
+      // Test connection first
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        throw new Error('Unable to connect to the database. Please check your internet connection and try again.');
+      }
+
       // Prepare database updates
       const dbUpdates: any = {};
       if (updates.name !== undefined) dbUpdates.name = updates.name;
@@ -362,7 +431,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (dbError) {
         console.error('Database update error:', dbError);
-        throw dbError;
+        throw new Error(`Failed to update profile: ${dbError.message}`);
       }
 
       console.log('Database profile updated successfully');
@@ -389,6 +458,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(updatedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
+      
+      // Provide more user-friendly error messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to the database. Please check your internet connection and try again.');
+      }
+      
       throw error;
     }
   };
