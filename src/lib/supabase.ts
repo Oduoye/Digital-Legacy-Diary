@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: window.sessionStorage,
-    persistSession: true,
+    persistSession: false,
     detectSessionInUrl: true,
     flowType: 'pkce'
   }
