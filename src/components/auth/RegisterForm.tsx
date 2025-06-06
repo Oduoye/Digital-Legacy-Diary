@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -45,6 +45,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
+      } else {
+        // Auto-redirect to login after 10 seconds if email confirmation is required
+        setTimeout(() => {
+          navigate('/login');
+        }, 10000);
       }
     } catch (err) {
       setError('Failed to create account. Please try again.');
@@ -54,21 +59,47 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     }
   };
 
+  const handleCloseSuccess = () => {
+    setShowSuccessMessage(false);
+    navigate('/login');
+  };
+
   return (
     <>
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-lg max-w-sm w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in relative">
+            {/* Close button */}
+            <button
+              onClick={handleCloseSuccess}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Check Your Email!
+                Account Created Successfully!
               </h3>
-              <p className="text-gray-600">
-                We've sent you a confirmation email. Please check your email to complete your registration.
+              <p className="text-gray-600 mb-6">
+                Welcome to Digital Legacy Diary! You can now start preserving your memories and creating your digital legacy.
               </p>
+              
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleCloseSuccess}
+                  className="w-full"
+                >
+                  Continue to Sign In
+                </Button>
+                
+                <p className="text-xs text-gray-500">
+                  Redirecting automatically in 10 seconds...
+                </p>
+              </div>
             </div>
           </div>
         </div>
