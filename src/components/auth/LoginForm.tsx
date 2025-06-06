@@ -50,6 +50,11 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setOtp(value);
+  };
+
   return (
     <>
       <div className="mb-6">
@@ -96,48 +101,55 @@ const LoginForm: React.FC = () => {
           required
           placeholder="your.email@example.com"
           disabled={isOtpSent}
+          className={isOtpSent ? 'bg-gray-50' : ''}
         />
 
         {isOtpSent && (
           <div className="animate-fade-in">
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-600">
+                We've sent a verification code to
+              </p>
+              <p className="font-medium text-gray-900">{email}</p>
+            </div>
+
             <Input
-              label="One-Time Password"
+              label="Verification Code"
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={handleOtpChange}
               required
-              placeholder="Enter the code sent to your email"
+              placeholder="000000"
               className="text-center tracking-[0.5em] font-mono text-lg"
               maxLength={6}
+              pattern="\d{6}"
+              inputMode="numeric"
+              autoComplete="one-time-code"
             />
-            <p className="mt-2 text-sm text-gray-500">
-              Please check your email for the verification code.
-            </p>
+            
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                Enter the 6-digit code sent to your email
+              </p>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={isLoading}
+                className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
+              >
+                Send again
+              </button>
+            </div>
           </div>
         )}
 
-        <div>
-          <Button 
-            type="submit" 
-            isLoading={isLoading} 
-            className="w-full"
-          >
-            {isOtpSent ? 'Verify Code' : 'Send Code'}
-          </Button>
-        </div>
-
-        {isOtpSent && (
-          <div className="text-center animate-fade-in">
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              disabled={isLoading}
-              className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
-            >
-              Didn't receive the code? Send again
-            </button>
-          </div>
-        )}
+        <Button 
+          type="submit" 
+          isLoading={isLoading} 
+          className="w-full"
+        >
+          {isOtpSent ? 'Verify Code' : 'Send Code'}
+        </Button>
       </form>
     </>
   );

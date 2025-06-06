@@ -80,9 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
       });
       if (error) throw error;
     } catch (error) {
@@ -114,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name,
             subscription_tier: subscriptionTier,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) throw error;
