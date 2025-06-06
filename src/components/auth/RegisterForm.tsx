@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -13,6 +13,8 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -22,10 +24,21 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { emailConfirmationRequired } = await register(name, email, selectedTier);
+      const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
       setShowSuccessMessage(true);
       
       if (!emailConfirmationRequired) {
@@ -54,7 +67,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 Check Your Email!
               </h3>
               <p className="text-gray-600">
-                We've sent you a verification code. Please check your email to complete your registration.
+                We've sent you a confirmation email. Please check your email to complete your registration.
               </p>
             </div>
           </div>
@@ -84,6 +97,24 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           icon={<Mail className="h-5 w-5 text-gray-400" />}
           required
           placeholder="your.email@example.com"
+        />
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          icon={<Lock className="h-5 w-5 text-gray-400" />}
+          required
+          placeholder="••••••••"
+        />
+        <Input
+          label="Confirm Password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          icon={<Lock className="h-5 w-5 text-gray-400" />}
+          required
+          placeholder="••••••••"
         />
         <div>
           <Button type="submit" isLoading={isLoading} className="w-full">

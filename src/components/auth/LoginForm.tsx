@@ -1,58 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const { sendOtp, verifyOtp } = useAuth();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSendOtp = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      await sendOtp(email);
-      setIsOtpSent(true);
-    } catch (err) {
-      setError('Failed to send OTP. Please check your email and try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      await verifyOtp(email, otp);
+      await login(email, password);
       setShowSuccessMessage(true);
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
     } catch (err) {
-      setError('Invalid OTP. Please try again.');
+      setError('Invalid email or password. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setOtp(value);
   };
 
   return (
@@ -85,7 +65,7 @@ const LoginForm: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={isOtpSent ? handleVerifyOtp : handleSendOtp} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
             {error}
@@ -100,57 +80,42 @@ const LoginForm: React.FC = () => {
           icon={<Mail className="h-5 w-5 text-gray-400" />}
           required
           placeholder="your.email@example.com"
-          disabled={isOtpSent}
-          className={isOtpSent ? 'bg-gray-50' : ''}
         />
 
-        {isOtpSent && (
-          <div className="animate-fade-in">
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-600">
-                We've sent a verification code to
-              </p>
-              <p className="font-medium text-gray-900">{email}</p>
-            </div>
-
-            <Input
-              label="Verification Code"
-              type="text"
-              value={otp}
-              onChange={handleOtpChange}
-              required
-              placeholder="000000"
-              className="text-center tracking-[0.5em] font-mono text-lg"
-              maxLength={6}
-              pattern="\d{6}"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-            />
-            
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                Enter the 6-digit code sent to your email
-              </p>
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={isLoading}
-                className="text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
-              >
-                Send again
-              </button>
-            </div>
+        <div className="space-y-1">
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            icon={<Lock className="h-5 w-5 text-gray-400" />}
+            required
+            placeholder="••••••••"
+          />
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-sm text-primary-600 hover:text-primary-700"
+            >
+              Forgot password?
+            </button>
           </div>
-        )}
+        </div>
 
         <Button 
           type="submit" 
           isLoading={isLoading} 
           className="w-full"
         >
-          {isOtpSent ? 'Verify Code' : 'Send Code'}
+          Sign In
         </Button>
       </form>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </>
   );
 };
