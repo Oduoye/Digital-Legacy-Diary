@@ -190,7 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
       console.log('Attempting login for:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -216,8 +215,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
