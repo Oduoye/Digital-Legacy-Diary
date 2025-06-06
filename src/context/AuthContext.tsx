@@ -122,6 +122,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Function to handle email verification redirect
+  const handleEmailVerification = async () => {
+    try {
+      // Check if there's a session after email verification
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session after verification:', error);
+        return;
+      }
+
+      if (session?.user) {
+        console.log('Email verified, user session found:', session.user.id);
+        
+        // Fetch or create user profile
+        const userProfile = await fetchUserProfile(session.user.id);
+        if (userProfile) {
+          console.log('Setting user profile after email verification:', userProfile);
+          setCurrentUser(userProfile);
+          
+          // Redirect to dashboard
+          window.location.href = '/dashboard';
+        }
+      }
+    } catch (error) {
+      console.error('Error handling email verification:', error);
+    }
+  };
+
   useEffect(() => {
     // Check active session on mount
     const getSession = async () => {
@@ -164,10 +193,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userProfile) {
           console.log('Setting user profile after sign in:', userProfile);
           setCurrentUser(userProfile);
+        } else {
+          // If no profile exists, create one from auth data
+          console.log('No profile found, creating from auth data...');
+          const newUserData = {
+            id: session.user.id,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            email: session.user.email || '',
+            profile_picture: null,
+            bio: null,
+            social_links: {},
+            subscription_tier: session.user.user_metadata?.subscription_tier || 'free',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert(newUserData);
+
+          if (!insertError) {
+            const newProfile = {
+              id: newUserData.id,
+              name: newUserData.name,
+              email: newUserData.email,
+              profilePicture: newUserData.profile_picture,
+              bio: newUserData.bio,
+              socialLinks: newUserData.social_links,
+              subscription_tier: newUserData.subscription_tier,
+              created_at: new Date(newUserData.created_at),
+              updated_at: new Date(newUserData.updated_at),
+            };
+            setCurrentUser(newProfile);
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
         setCurrentUser(null);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        console.log('Token refreshed for user:', session.user.id);
+        // Handle token refresh if needed
+      }
+      
+      // Handle email verification
+      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+        console.log('Email verification detected, handling redirect...');
+        await handleEmailVerification();
       }
       
       setLoading(false);
