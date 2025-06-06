@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle } from 'lucide-react';
+import { User, Mail, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -13,33 +13,20 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (password !== confirmPassword) {
-      return setError('Passwords do not match');
-    }
-
-    if (password.length < 8) {
-      return setError('Password must be at least 8 characters long');
-    }
-
     setIsLoading(true);
 
     try {
-      const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
+      const { emailConfirmationRequired } = await register(name, email, selectedTier);
       setShowSuccessMessage(true);
-      setEmailConfirmationRequired(emailConfirmationRequired);
       
       if (!emailConfirmationRequired) {
         setTimeout(() => {
@@ -47,7 +34,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         }, 2000);
       }
     } catch (err) {
-      setError('Failed to create account');
+      setError('Failed to create account. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -64,14 +51,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 <CheckCircle className="h-8 w-8 text-green-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {emailConfirmationRequired 
-                  ? 'Check Your Email!'
-                  : 'Registration Successful!'}
+                Check Your Email!
               </h3>
               <p className="text-gray-600">
-                {emailConfirmationRequired 
-                  ? 'Please check your email to confirm your account before logging in.'
-                  : 'Your account has been created. Welcome to Digital Legacy Diary!'}
+                We've sent you a verification code. Please check your email to complete your registration.
               </p>
             </div>
           </div>
@@ -101,24 +84,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           icon={<Mail className="h-5 w-5 text-gray-400" />}
           required
           placeholder="your.email@example.com"
-        />
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          icon={<Lock className="h-5 w-5 text-gray-400" />}
-          required
-          placeholder="••••••••"
-        />
-        <Input
-          label="Confirm Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          icon={<Lock className="h-5 w-5 text-gray-400" />}
-          required
-          placeholder="••••••••"
         />
         <div>
           <Button type="submit" isLoading={isLoading} className="w-full">

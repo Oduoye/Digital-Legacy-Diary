@@ -1,34 +1,49 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import ForgotPasswordModal from './ForgotPasswordModal';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const { login } = useAuth();
+  const { sendOtp, verifyOtp } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await sendOtp(email);
+      setIsOtpSent(true);
+    } catch (err) {
+      setError('Failed to send OTP. Please check your email and try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await verifyOtp(email, otp);
       setShowSuccessMessage(true);
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
     } catch (err) {
-      setError('Failed to log in. Please check your credentials.');
+      setError('Invalid OTP. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -65,12 +80,13 @@ const LoginForm: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={isOtpSent ? handleVerifyOtp : handleSendOtp} className="space-y-6">
         {error && (
           <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
             {error}
           </div>
         )}
+
         <Input
           label="Email"
           type="email"
@@ -79,38 +95,47 @@ const LoginForm: React.FC = () => {
           icon={<Mail className="h-5 w-5 text-gray-400" />}
           required
           placeholder="your.email@example.com"
+          disabled={isOtpSent}
         />
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          icon={<Lock className="h-5 w-5 text-gray-400" />}
-          required
-          placeholder="••••••••"
-        />
-        
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowForgotPasswordModal(true)}
-            className="text-sm text-primary-600 hover:text-primary-700"
-          >
-            Forgot your password?
-          </button>
-        </div>
+
+        {isOtpSent && (
+          <div className="animate-fade-in">
+            <Input
+              label="One-Time Password"
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+              placeholder="Enter the code sent to your email"
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              Please check your email for the verification code.
+            </p>
+          </div>
+        )}
 
         <div>
-          <Button type="submit" isLoading={isLoading} className="w-full">
-            Log In
+          <Button 
+            type="submit" 
+            isLoading={isLoading} 
+            className="w-full"
+          >
+            {isOtpSent ? 'Verify OTP' : 'Send OTP'}
           </Button>
         </div>
-      </form>
 
-      <ForgotPasswordModal
-        isOpen={showForgotPasswordModal}
-        onClose={() => setShowForgotPasswordModal(false)}
-      />
+        {isOtpSent && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              className="text-sm text-primary-600 hover:text-primary-700"
+            >
+              Didn't receive the code? Send again
+            </button>
+          </div>
+        )}
+      </form>
     </>
   );
 };
