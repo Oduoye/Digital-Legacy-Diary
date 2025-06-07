@@ -20,14 +20,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const { register, resendVerificationEmail } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
@@ -75,48 +74,24 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     e.preventDefault();
     setError('');
 
-    console.log('Form submitted with data:', { name, email, selectedTier });
-
     if (!validateForm()) {
-      console.log('Form validation failed');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Starting registration process...');
-      const result = await register(name, email, password, selectedTier);
-      console.log('Registration result:', result);
-      
+      const result = await register(name.trim(), email.trim(), password, selectedTier);
       setShowSuccessMessage(true);
       
-      if (!result.emailConfirmationRequired) {
-        console.log('No email confirmation required, redirecting to dashboard');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      } else {
-        console.log('Email confirmation required');
-      }
+      // Always redirect to login after successful registration
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
     } catch (err: any) {
-      console.error('Registration error:', err);
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    setIsResendingVerification(true);
-    try {
-      await resendVerificationEmail();
-      setError('');
-      // Show success message for resend
-    } catch (err: any) {
-      setError('Failed to resend verification email. Please try again.');
-    } finally {
-      setIsResendingVerification(false);
     }
   };
 
@@ -173,7 +148,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 Account Created Successfully!
               </h3>
               <p className="text-gray-600 mb-4">
-                Welcome to Digital Legacy Diary! You can now start preserving your memories and stories.
+                Welcome to Digital Legacy Diary! Please check your email to verify your account.
               </p>
               
               {/* Email Verification Notice */}
@@ -184,24 +159,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                     <h4 className="text-sm font-medium text-blue-900 mb-1">
                       Email Verification Required
                     </h4>
-                    <p className="text-sm text-blue-700 mb-3">
+                    <p className="text-sm text-blue-700">
                       We've sent a verification email to <strong>{email}</strong>. 
                       Please check your inbox and click the verification link to activate your account.
                     </p>
-                    <button
-                      onClick={handleResendVerification}
-                      disabled={isResendingVerification}
-                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      {isResendingVerification ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        'Resend verification email'
-                      )}
-                    </button>
                   </div>
                 </div>
               </div>
