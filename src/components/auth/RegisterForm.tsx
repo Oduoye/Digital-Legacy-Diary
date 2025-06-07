@@ -75,7 +75,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     e.preventDefault();
     setError('');
 
+    console.log('Form submitted with data:', { name, email, selectedTier });
+
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
@@ -83,15 +86,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
     try {
       console.log('Starting registration process...');
-      const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
-      console.log('Registration successful, email confirmation required:', emailConfirmationRequired);
+      const result = await register(name, email, password, selectedTier);
+      console.log('Registration result:', result);
       
       setShowSuccessMessage(true);
       
-      if (!emailConfirmationRequired) {
+      if (!result.emailConfirmationRequired) {
+        console.log('No email confirmation required, redirecting to dashboard');
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
+      } else {
+        console.log('Email confirmation required');
       }
     } catch (err: any) {
       console.error('Registration error:', err);

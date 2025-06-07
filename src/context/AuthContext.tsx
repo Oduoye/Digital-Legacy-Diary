@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       if (session?.user) {
         await fetchUserProfile(session.user);
       } else {
@@ -68,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('Fetching user profile for:', supabaseUser.id);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -78,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error fetching user profile:', error);
         setCurrentUser(null);
       } else if (data) {
+        console.log('User profile fetched successfully:', data);
         setCurrentUser({
           ...data,
           created_at: new Date(data.created_at),
@@ -103,6 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      console.log('Attempting login for:', email);
+      
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -120,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        console.error('Login error:', error);
         // Handle specific Supabase auth errors
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials and try again.');
@@ -133,9 +139,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
+        console.log('Login successful for user:', data.user.id);
         await fetchUserProfile(data.user);
       }
     } catch (error: any) {
+      console.error('Login process error:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -143,7 +151,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
+    console.log('Starting registration process...');
     setLoading(true);
+    
     try {
       // Validate inputs
       if (!name.trim()) {
@@ -160,8 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const cleanEmail = email.trim().toLowerCase();
+      const cleanName = name.trim();
 
-      // Check if user already exists in our users table
+      console.log('Registration data:', { cleanName, cleanEmail, subscriptionTier });
+
+      // Check if user already exists in auth
+      console.log('Checking if user already exists...');
       const { data: existingUser } = await supabase
         .from('users')
         .select('email')
@@ -173,53 +187,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Create auth user
-      const { data, error } = await supabase.auth.signUp({
+      console.log('Creating auth user...');
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           data: {
-            name: name.trim(),
+            name: cleanName,
             subscription_tier: subscriptionTier,
           }
         }
       });
 
-      if (error) {
-        if (error.message.includes('User already registered')) {
+      if (authError) {
+        console.error('Auth signup error:', authError);
+        if (authError.message.includes('User already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.');
-        } else if (error.message.includes('Password should be at least 6 characters')) {
+        } else if (authError.message.includes('Password should be at least 6 characters')) {
           throw new Error('Password must be at least 6 characters long');
         } else {
-          throw new Error(error.message || 'Registration failed. Please try again.');
+          throw new Error(authError.message || 'Registration failed. Please try again.');
         }
       }
 
-      if (data.user) {
-        // Create user profile in our users table
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            name: name.trim(),
-            email: cleanEmail,
-            subscription_tier: subscriptionTier,
-            subscription_start_date: new Date().toISOString(),
-          });
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          // If profile creation fails, we should clean up the auth user
-          // But for now, we'll just log the error and continue
-        }
-
-        // If user is immediately confirmed (no email verification required), fetch their profile
-        if (data.session) {
-          await fetchUserProfile(data.user);
-        }
+      if (!authData.user) {
+        throw new Error('Failed to create user account. Please try again.');
       }
 
-      return { emailConfirmationRequired: !data.session };
+      console.log('Auth user created successfully:', authData.user.id);
+
+      // Create user profile in our users table
+      console.log('Creating user profile...');
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          name: cleanName,
+          email: cleanEmail,
+          subscription_tier: subscriptionTier,
+          subscription_start_date: new Date().toISOString(),
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw here - the auth user was created successfully
+        // We'll handle profile creation issues gracefully
+      } else {
+        console.log('User profile created successfully');
+      }
+
+      // If user is immediately confirmed (no email verification required), fetch their profile
+      if (authData.session) {
+        console.log('User session created, fetching profile...');
+        await fetchUserProfile(authData.user);
+      }
+
+      console.log('Registration completed successfully');
+      return { emailConfirmationRequired: !authData.session };
+      
     } catch (error: any) {
+      console.error('Registration error:', error);
       throw error;
     } finally {
       setLoading(false);
