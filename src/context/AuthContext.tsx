@@ -17,6 +17,7 @@ interface AuthContextType {
   deactivateAccount: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateSubscription: (tierId: string) => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -33,6 +34,7 @@ const AuthContext = createContext<AuthContextType>({
   deactivateAccount: async () => {},
   deleteAccount: async () => {},
   updateSubscription: async () => {},
+  resendVerificationEmail: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -101,18 +103,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific Supabase auth errors
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+        } else if (error.message.includes('Too many requests')) {
+          throw new Error('Too many login attempts. Please wait a few minutes before trying again.');
+        } else {
+          throw new Error(error.message || 'Login failed. Please try again.');
+        }
+      }
 
       if (data.user) {
         await fetchUserProfile(data.user);
       }
     } catch (error: any) {
-      throw new Error(error.message || 'Login failed');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -121,35 +145,78 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     setLoading(true);
     try {
+      // Validate inputs
+      if (!name.trim()) {
+        throw new Error('Name is required');
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email.trim().toLowerCase())
+        .single();
+
+      if (existingUser) {
+        throw new Error('An account with this email already exists. Please sign in instead.');
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
+        options: {
+          data: {
+            name: name.trim(),
+            subscription_tier: subscriptionTier,
+          }
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          throw new Error('An account with this email already exists. Please sign in instead.');
+        } else if (error.message.includes('Password should be at least 6 characters')) {
+          throw new Error('Password must be at least 6 characters long');
+        } else {
+          throw new Error(error.message || 'Registration failed. Please try again.');
+        }
+      }
 
       if (data.user) {
-        // Create user profile
+        // Create user profile in our users table
         const { error: profileError } = await supabase
           .from('users')
           .insert({
             id: data.user.id,
             name: name.trim(),
-            email: email.trim(),
+            email: email.trim().toLowerCase(),
             subscription_tier: subscriptionTier,
+            subscription_start_date: new Date().toISOString(),
           });
 
         if (profileError) {
           console.error('Error creating user profile:', profileError);
-          throw new Error('Failed to create user profile');
+          // Don't throw here as the auth user was created successfully
         }
 
-        await fetchUserProfile(data.user);
+        // If user is immediately confirmed, fetch their profile
+        if (data.session) {
+          await fetchUserProfile(data.user);
+        }
       }
 
       return { emailConfirmationRequired: !data.session };
     } catch (error: any) {
-      throw new Error(error.message || 'Registration failed');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -178,19 +245,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateEmail = async (newEmail: string) => {
-    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      throw new Error('Please enter a valid email address');
+    }
+
+    const { error } = await supabase.auth.updateUser({ 
+      email: newEmail.trim().toLowerCase() 
+    });
     if (error) throw error;
     
-    await updateProfile({ email: newEmail });
+    await updateProfile({ email: newEmail.trim().toLowerCase() });
   };
 
   const updatePassword = async (newPassword: string) => {
+    if (newPassword.length < 6) {
+      throw new Error('Password must be at least 6 characters long');
+    }
+
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Please enter a valid email address');
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      {
+        redirectTo: `${window.location.origin}/reset-password`,
+      }
+    );
+    if (error) throw error;
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!currentUser?.email) {
+      throw new Error('No email address found');
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: currentUser.email,
+    });
+
     if (error) throw error;
   };
 
@@ -213,7 +314,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateSubscription = async (tierId: string) => {
-    await updateProfile({ subscription_tier: tierId });
+    await updateProfile({ 
+      subscription_tier: tierId,
+      subscription_start_date: new Date(),
+    });
   };
 
   const value = {
@@ -230,6 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deactivateAccount,
     deleteAccount,
     updateSubscription,
+    resendVerificationEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

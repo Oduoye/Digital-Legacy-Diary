@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Heart, Check, Crown } from 'lucide-react';
+import { ArrowLeft, Heart, Check, Crown, Shield, Zap } from 'lucide-react';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
 import { subscriptionTiers } from '../utils/subscriptions';
@@ -16,7 +16,10 @@ const AuthPages: React.FC = () => {
 
   useEffect(() => {
     setShowSubscription(!isLoginPage);
-  }, [location.pathname]);
+    if (isLoginPage) {
+      setSelectedTier(subscriptionTiers[0].id);
+    }
+  }, [location.pathname, isLoginPage]);
 
   const handleTierSelect = (tierId: string) => {
     if (tierId !== 'free') {
@@ -24,6 +27,28 @@ const AuthPages: React.FC = () => {
     } else {
       setSelectedTier(tierId);
       setShowSubscription(false);
+    }
+  };
+
+  const getTierIcon = (tierId: string) => {
+    switch (tierId) {
+      case 'premium':
+        return <Shield className="h-5 w-5" />;
+      case 'gold':
+        return <Crown className="h-5 w-5" />;
+      default:
+        return <Zap className="h-5 w-5" />;
+    }
+  };
+
+  const getTierColor = (tierId: string) => {
+    switch (tierId) {
+      case 'premium':
+        return 'from-blue-500 to-purple-600';
+      case 'gold':
+        return 'from-yellow-400 to-orange-500';
+      default:
+        return 'from-green-500 to-blue-500';
     }
   };
 
@@ -67,58 +92,76 @@ const AuthPages: React.FC = () => {
                   {subscriptionTiers.map((tier, index) => (
                     <div
                       key={tier.id}
-                      className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 ${
+                      className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 transform ${
                         selectedTier === tier.id
-                          ? 'border-primary-600 bg-primary-50'
-                          : 'border-gray-200 hover:border-primary-300'
+                          ? 'border-primary-600 bg-primary-50 shadow-lg'
+                          : 'border-gray-200 hover:border-primary-300 hover:shadow-md'
                       }`}
                       style={{ animationDelay: `${400 + index * 100}ms` }}
                       onClick={() => handleTierSelect(tier.id)}
                     >
                       {tier.id === 'gold' && (
                         <div className="absolute -top-3 -right-3">
-                          <div className="bg-yellow-400 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center shadow-sm">
+                          <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center shadow-lg">
                             <Crown className="h-3 w-3 mr-1" />
-                            Popular
+                            Most Popular
                           </div>
                         </div>
                       )}
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{tier.name}</h3>
-                          <p className="text-sm text-gray-500">${tier.price}/month</p>
+                      
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className={`p-2 rounded-lg bg-gradient-to-r ${getTierColor(tier.id)} text-white`}>
+                            {getTierIcon(tier.id)}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-900">{tier.name}</h3>
+                            <p className="text-sm text-gray-500">
+                              ${tier.price}{tier.price > 0 ? '/month' : ' forever'}
+                            </p>
+                          </div>
                         </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                           selectedTier === tier.id
                             ? 'border-primary-600 bg-primary-600'
                             : 'border-gray-300'
                         }`}>
                           {selectedTier === tier.id && (
-                            <Check className="h-3 w-3 text-white" />
+                            <Check className="h-4 w-4 text-white" />
                           )}
                         </div>
                       </div>
-                      <ul className="mt-2 space-y-1">
-                        {tier.features.slice(0, 3).map((feature, index) => (
+                      
+                      <ul className="space-y-2">
+                        {tier.features.slice(0, 4).map((feature, index) => (
                           <li key={index} className="text-sm text-gray-600 flex items-center">
-                            <Check className="h-4 w-4 text-primary-600 mr-2" />
+                            <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                             {feature}
                           </li>
                         ))}
+                        {tier.features.length > 4 && (
+                          <li className="text-sm text-gray-500 italic">
+                            +{tier.features.length - 4} more features
+                          </li>
+                        )}
                       </ul>
                     </div>
                   ))}
                 </div>
+                
                 <div className="flex flex-col space-y-4 animate-fade-in-up [animation-delay:700ms]">
-                  <Button onClick={() => setShowSubscription(false)}>
+                  <Button 
+                    onClick={() => setShowSubscription(false)}
+                    className="w-full bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 transform transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
                     Continue with {subscriptionTiers.find(t => t.id === selectedTier)?.name}
                   </Button>
                   <button
                     type="button"
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                     onClick={() => setShowSubscription(false)}
                   >
-                    Back to registration
+                    Skip plan selection
                   </button>
                 </div>
               </div>
@@ -135,7 +178,7 @@ const AuthPages: React.FC = () => {
               {' '}
               <Link
                 to={isLoginPage ? '/register' : '/login'}
-                className="text-primary-600 hover:text-primary-700 font-medium"
+                className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
                 {isLoginPage ? 'Sign Up' : 'Sign In'}
               </Link>
@@ -168,6 +211,27 @@ const AuthPages: React.FC = () => {
                 <p className="text-sm">Families Connected</p>
               </div>
             </div>
+            
+            <div className="mt-8 space-y-4 animate-fade-in-up [animation-delay:800ms]">
+              <div className="flex items-center space-x-3 text-left">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4" />
+                </div>
+                <span className="text-sm">Bank-level security for your memories</span>
+              </div>
+              <div className="flex items-center space-x-3 text-left">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4" />
+                </div>
+                <span className="text-sm">AI-powered writing assistance</span>
+              </div>
+              <div className="flex items-center space-x-3 text-left">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4" />
+                </div>
+                <span className="text-sm">Seamless legacy transfer</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -177,7 +241,7 @@ const AuthPages: React.FC = () => {
         isOpen={showComingSoonModal}
         onClose={() => setShowComingSoonModal(false)}
         title="Premium Plans Coming Soon!"
-        message="We're working hard to bring you our premium subscription plans. Stay tuned for exciting features and enhanced capabilities!"
+        message="We're working hard to bring you our premium subscription plans with advanced features like unlimited storage, AI assistance, and premium support. Stay tuned for exciting updates!"
       />
     </div>
   );
