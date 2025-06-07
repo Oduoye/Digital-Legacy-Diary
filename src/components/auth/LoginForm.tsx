@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
@@ -7,6 +7,7 @@ import Button from '../ui/Button';
 import ForgotPasswordModal from './ForgotPasswordModal';
 
 const LoginForm: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,12 +16,25 @@ const LoginForm: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
+  const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     email: '',
     password: '',
   });
   const { login, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
+
+  // Check if user just verified their email
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    if (verified === 'true') {
+      setShowVerificationSuccess(true);
+      // Remove the parameter from URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('verified');
+      navigate(`/login?${newSearchParams.toString()}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,6 +67,7 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setError('');
     setShowResendVerification(false);
+    setShowVerificationSuccess(false);
     
     if (!validateForm()) {
       return;
@@ -149,6 +164,15 @@ const LoginForm: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {showVerificationSuccess && (
+          <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm animate-slide-down">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4" />
+              <span>Email verified successfully! You can now sign in to your account.</span>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className={`p-3 rounded-md text-sm animate-shake ${
             error.includes('Verification email sent') 

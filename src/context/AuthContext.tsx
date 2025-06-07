@@ -188,12 +188,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
 
+      // Get the current origin for redirect URL
+      const redirectTo = `${window.location.origin}/login?verified=true`;
+
       // Create auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: redirectTo,
           data: {
             name: cleanName,
             subscription_tier: subscriptionTier,
@@ -295,6 +298,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: user.email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+      }
     });
 
     if (error) throw error;

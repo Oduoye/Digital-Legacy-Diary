@@ -110,6 +110,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
   const handleResendVerification = async () => {
     try {
+      setIsLoading(true);
       await resendVerificationEmail();
       setError('');
       // Show a temporary success message
@@ -120,6 +121,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       }, 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to resend verification email.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -187,13 +190,26 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                         </h4>
                         <p className="text-sm text-blue-700 mb-3">
                           We've sent a verification email to <strong>{email}</strong>. 
-                          Please check your inbox and click the verification link to activate your account.
+                          Please check your inbox (and spam folder) and click the verification link to activate your account.
                         </p>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                          <p className="text-xs text-yellow-700">
+                            <strong>Important:</strong> The verification link will redirect you back to the login page where you can sign in with your new account.
+                          </p>
+                        </div>
                         <button
                           onClick={handleResendVerification}
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium underline"
+                          disabled={isLoading}
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium underline flex items-center"
                         >
-                          Didn't receive the email? Resend verification
+                          {isLoading ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            "Didn't receive the email? Resend verification"
+                          )}
                         </button>
                       </div>
                     </div>
