@@ -46,9 +46,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
+    // Test database connection
+    const testConnection = async () => {
+      try {
+        console.log('Testing Supabase connection...');
+        const { data, error } = await supabase.from('users').select('count').limit(1);
+        if (error) {
+          console.error('Database connection test failed:', error);
+        } else {
+          console.log('Database connection successful');
+        }
+      } catch (error) {
+        console.error('Database connection error:', error);
+      }
+    };
+
+    testConnection();
+
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -58,6 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           return;
         }
+
+        console.log('Initial session:', session?.user?.id || 'No session');
 
         if (session?.user && mounted) {
           await fetchUserProfile(session.user);
@@ -76,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
+      console.log('Auth state changed:', event, session?.user?.id || 'No user');
       
       if (!mounted) return;
 
@@ -112,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        console.log('User profile fetched successfully:', data);
+        console.log('User profile fetched successfully');
         setCurrentUser({
           ...data,
           created_at: new Date(data.created_at),
@@ -217,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('An account with this email already exists. Please sign in instead.');
       }
 
-      // Create auth user
+      // Create auth user first
       console.log('Creating auth user...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
@@ -247,6 +267,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Auth user created successfully:', authData.user.id);
 
+      // Wait a moment for auth to settle
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Create user profile in our users table
       console.log('Creating user profile...');
       const { error: profileError } = await supabase
@@ -263,6 +286,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Profile creation error:', profileError);
         // Don't throw here - the auth user was created successfully
         // We'll handle profile creation issues gracefully
+        console.log('Profile creation failed, but auth user exists. User can still log in.');
       } else {
         console.log('User profile created successfully');
       }
