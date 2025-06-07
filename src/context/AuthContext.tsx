@@ -44,18 +44,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user);
-      } else {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (session?.user && mounted) {
+          await fetchUserProfile(session.user);
+        } else if (mounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (!mounted) return;
+
       if (session?.user) {
         await fetchUserProfile(session.user);
       } else {
@@ -64,12 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
       console.log('Fetching user profile for:', supabaseUser.id);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -79,7 +107,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('Error fetching user profile:', error);
         setCurrentUser(null);
-      } else if (data) {
+        setLoading(false);
+        return;
+      }
+
+      if (data) {
         console.log('User profile fetched successfully:', data);
         setCurrentUser({
           ...data,
@@ -107,7 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       console.log('Attempting login for:', email);
       
@@ -143,19 +174,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         console.log('Login successful for user:', data.user.id);
-        await fetchUserProfile(data.user);
+        // The auth state change listener will handle fetching the profile
       }
     } catch (error: any) {
       console.error('Login process error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     console.log('Starting registration process...');
-    setLoading(true);
     
     try {
       // Validate inputs
@@ -239,20 +267,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('User profile created successfully');
       }
 
-      // If user is immediately confirmed (no email verification required), fetch their profile
-      if (authData.session) {
-        console.log('User session created, fetching profile...');
-        await fetchUserProfile(authData.user);
-      }
-
       console.log('Registration completed successfully');
       return { emailConfirmationRequired: !authData.session };
       
     } catch (error: any) {
       console.error('Registration error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
