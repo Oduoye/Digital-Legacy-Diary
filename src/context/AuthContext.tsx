@@ -54,45 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        
-        // If user doesn't exist in database, try to get from auth and create profile
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.id === userId) {
-          console.log('Creating missing user profile from auth data');
-          
-          const newUserData = {
-            id: user.id,
-            name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-            email: user.email || '',
-            profile_picture: null,
-            bio: null,
-            social_links: {},
-            subscription_tier: user.user_metadata?.subscription_tier || 'free',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert(newUserData);
-
-          if (insertError) {
-            console.error('Error creating user profile:', insertError);
-            return null;
-          }
-
-          return {
-            id: newUserData.id,
-            name: newUserData.name,
-            email: newUserData.email,
-            profilePicture: newUserData.profile_picture,
-            bio: newUserData.bio,
-            socialLinks: newUserData.social_links,
-            subscription_tier: newUserData.subscription_tier,
-            created_at: new Date(newUserData.created_at),
-            updated_at: new Date(newUserData.updated_at),
-          };
-        }
         return null;
       }
 
@@ -123,6 +84,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Function to create user profile in database
+  const createUserProfile = async (userId: string, name: string, email: string, subscriptionTier: string): Promise<void> => {
+    try {
+      console.log('Creating user profile for:', userId);
+      
+      const userProfileData = {
+        id: userId,
+        name: name.trim(),
+        email: email.trim(),
+        profile_picture: null,
+        bio: null,
+        social_links: {},
+        subscription_tier: subscriptionTier,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('users')
+        .insert(userProfileData);
+
+      if (error) {
+        console.error('Profile creation error:', error);
+        throw new Error(`Failed to create user profile: ${error.message}`);
+      }
+      
+      console.log('Database profile created successfully');
+    } catch (error) {
+      console.error('Error creating user profile:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     // Check active session on mount
     const getSession = async () => {
@@ -138,10 +132,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session?.user) {
           console.log('Found active session for user:', session.user.id);
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (userProfile) {
-            console.log('Setting user profile:', userProfile);
-            setCurrentUser(userProfile);
+          
+          // Only fetch profile if email is confirmed
+          if (session.user.email_confirmed_at) {
+            const userProfile = await fetchUserProfile(session.user.id);
+            if (userProfile) {
+              console.log('Setting user profile:', userProfile);
+              setCurrentUser(userProfile);
+            }
+          } else {
+            console.log('User email not confirmed yet');
           }
         } else {
           console.log('No active session found');
@@ -160,18 +160,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth state changed:', event, session?.user?.id);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in, fetching profile...');
-        const userProfile = await fetchUserProfile(session.user.id);
-        if (userProfile) {
-          console.log('Setting user profile after sign in:', userProfile);
-          setCurrentUser(userProfile);
+        console.log('User signed in, checking email confirmation...');
+        
+        // Only proceed if email is confirmed
+        if (session.user.email_confirmed_at) {
+          console.log('Email confirmed, fetching profile...');
+          const userProfile = await fetchUserProfile(session.user.id);
+          if (userProfile) {
+            console.log('Setting user profile after sign in:', userProfile);
+            setCurrentUser(userProfile);
+          }
+        } else {
+          console.log('Email not confirmed, waiting for verification');
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
         setCurrentUser(null);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         // Handle token refresh - ensure user profile is still loaded
-        if (!currentUser) {
+        if (!currentUser && session.user.email_confirmed_at) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (userProfile) {
             setCurrentUser(userProfile);
@@ -203,44 +210,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
+        // Check if email is confirmed
+        if (!data.user.email_confirmed_at) {
+          throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
+        }
+
         console.log('Login successful, fetching user profile...');
         const userProfile = await fetchUserProfile(data.user.id);
         if (userProfile) {
           console.log('User profile loaded after login:', userProfile);
           setCurrentUser(userProfile);
         } else {
-          // If no profile exists, create one from auth data
-          console.log('No profile found, creating from auth data...');
-          const newUserData = {
-            id: data.user.id,
-            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-            email: data.user.email || '',
-            profile_picture: null,
-            bio: null,
-            social_links: {},
-            subscription_tier: data.user.user_metadata?.subscription_tier || 'free',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert(newUserData);
-
-          if (!insertError) {
-            const newProfile = {
-              id: newUserData.id,
-              name: newUserData.name,
-              email: newUserData.email,
-              profilePicture: newUserData.profile_picture,
-              bio: newUserData.bio,
-              socialLinks: newUserData.social_links,
-              subscription_tier: newUserData.subscription_tier,
-              created_at: new Date(newUserData.created_at),
-              updated_at: new Date(newUserData.updated_at),
-            };
-            setCurrentUser(newProfile);
-          }
+          throw new Error('User profile not found. Please contact support.');
         }
       }
     } catch (error) {
@@ -256,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       console.log('Attempting registration for:', email);
       
-      // First, sign up the user
+      // First, sign up the user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -274,67 +255,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (authData.user) {
-        console.log('Auth user created, handling database profile...');
+        console.log('Auth user created:', authData.user.id);
         
-        // Check if user profile already exists
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('id', authData.user.id)
-          .single();
-
-        const userProfileData = {
-          id: authData.user.id,
-          name: name.trim(),
-          email: email.trim(),
-          profile_picture: null,
-          bio: null,
-          social_links: {},
-          subscription_tier: subscriptionTier,
-          updated_at: new Date().toISOString(),
-        };
-
-        if (existingProfile) {
-          // Profile exists, update it
-          console.log('Profile exists, updating...');
-          const { error: updateError } = await supabase
-            .from('users')
-            .update(userProfileData)
-            .eq('id', authData.user.id);
-
-          if (updateError) {
-            console.error('Profile update error:', updateError);
-            throw new Error(`Failed to update user profile: ${updateError.message}`);
-          }
-          console.log('Database profile updated successfully');
-        } else {
-          // Profile doesn't exist, create it
-          console.log('Profile does not exist, creating...');
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert({
-              ...userProfileData,
-              created_at: new Date().toISOString(),
-            });
-
-          if (insertError) {
-            console.error('Profile creation error:', insertError);
-            throw new Error(`Failed to create user profile: ${insertError.message}`);
-          }
-          console.log('Database profile created successfully');
-        }
-
         // Check if email confirmation is required
-        if (authData.user.email_confirmed_at) {
-          // Email is already confirmed, set user profile
+        const emailConfirmationRequired = !authData.user.email_confirmed_at;
+        
+        if (emailConfirmationRequired) {
+          console.log('Email confirmation required');
+          // Don't create profile yet - wait for email confirmation
+          return { emailConfirmationRequired: true };
+        } else {
+          // Email is already confirmed, create profile immediately
+          console.log('Email already confirmed, creating profile...');
+          await createUserProfile(authData.user.id, name, email, subscriptionTier);
+          
           const userProfile = await fetchUserProfile(authData.user.id);
           if (userProfile) {
             setCurrentUser(userProfile);
           }
+          
           return { emailConfirmationRequired: false };
-        } else {
-          // Email confirmation required
-          return { emailConfirmationRequired: true };
         }
       }
 

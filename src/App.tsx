@@ -24,6 +24,7 @@ import SettingsPage from './pages/SettingsPage';
 import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
+import { supabase } from './lib/supabase';
 
 // Email verification handler component
 const EmailVerificationHandler: React.FC = () => {
@@ -35,25 +36,59 @@ const EmailVerificationHandler: React.FC = () => {
     // Check if this is an email verification callback
     const hash = location.hash;
     if (hash.includes('type=signup') && hash.includes('access_token')) {
-      console.log('Email verification detected, waiting for authentication...');
+      console.log('Email verification detected, processing...');
       
-      // Wait for authentication to complete, then redirect
-      const checkAuth = setInterval(() => {
-        if (!loading && isAuthenticated) {
-          console.log('User authenticated after email verification, redirecting to dashboard...');
-          clearInterval(checkAuth);
-          navigate('/dashboard', { replace: true });
+      // Handle the email verification
+      const handleEmailVerification = async () => {
+        try {
+          // Get the current session after email verification
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error getting session after verification:', error);
+            return;
+          }
+
+          if (session?.user && session.user.email_confirmed_at) {
+            console.log('Email verified successfully, creating user profile...');
+            
+            // Create user profile in database now that email is confirmed
+            const userMetadata = session.user.user_metadata;
+            const userProfileData = {
+              id: session.user.id,
+              name: userMetadata?.name || session.user.email?.split('@')[0] || 'User',
+              email: session.user.email || '',
+              profile_picture: null,
+              bio: null,
+              social_links: {},
+              subscription_tier: userMetadata?.subscription_tier || 'free',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert(userProfileData);
+
+            if (insertError && insertError.code !== '23505') { // Ignore duplicate key error
+              console.error('Error creating user profile after verification:', insertError);
+            } else {
+              console.log('User profile created successfully after email verification');
+            }
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 2000);
+          }
+        } catch (error) {
+          console.error('Error handling email verification:', error);
         }
-      }, 100);
+      };
 
-      // Clear interval after 10 seconds to prevent infinite checking
-      setTimeout(() => {
-        clearInterval(checkAuth);
-      }, 10000);
-
-      return () => clearInterval(checkAuth);
+      handleEmailVerification();
     }
-  }, [location.hash, isAuthenticated, loading, navigate]);
+  }, [location.hash, navigate]);
 
   return null;
 };
@@ -194,7 +229,7 @@ function App() {
             />
             
             {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </DiaryProvider>
       </AuthProvider>
