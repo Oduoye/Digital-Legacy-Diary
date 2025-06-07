@@ -134,30 +134,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      // Validate password length
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
-      }
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        // Handle specific Supabase auth errors
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
           throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
-        } else if (error.message.includes('Too many requests')) {
-          throw new Error('Too many login attempts. Please wait a few minutes before trying again.');
         } else {
           throw new Error(error.message || 'Login failed. Please try again.');
         }
@@ -171,52 +157,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     try {
-      // Validate inputs
-      if (!name.trim()) {
-        throw new Error('Name is required');
-      }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
-      }
-
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
 
-      // Check if user already exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', cleanEmail)
-        .maybeSingle();
-
-      if (existingUser) {
-        throw new Error('An account with this email already exists. Please sign in instead.');
-      }
-
-      // Create auth user
+      // Create auth user first
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            name: cleanName,
-            subscription_tier: subscriptionTier,
-          }
         }
       });
 
       if (authError) {
         if (authError.message.includes('User already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.');
-        } else if (authError.message.includes('Password should be at least 6 characters')) {
-          throw new Error('Password must be at least 6 characters long');
         } else {
           throw new Error(authError.message || 'Registration failed. Please try again.');
         }
@@ -239,8 +194,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        // If profile creation fails, we still have a valid auth user
-        // The user can still log in and we'll handle profile creation later
+        // Don't throw here - the user account was created successfully
+        // The profile can be created later when they log in
       }
 
       return { emailConfirmationRequired: !authData.session };
@@ -273,11 +228,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateEmail = async (newEmail: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail)) {
-      throw new Error('Please enter a valid email address');
-    }
-
     const { error } = await supabase.auth.updateUser({ 
       email: newEmail.trim().toLowerCase() 
     });
@@ -287,20 +237,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePassword = async (newPassword: string) => {
-    if (newPassword.length < 6) {
-      throw new Error('Password must be at least 6 characters long');
-    }
-
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new Error('Please enter a valid email address');
-    }
-
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),
       {
