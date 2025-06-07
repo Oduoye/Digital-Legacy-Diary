@@ -207,19 +207,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         console.log('Login successful, fetching user profile...');
         
-        // Try to fetch user profile
+        // Try to fetch user profile first
         const userProfile = await fetchUserProfile(data.user.id);
         if (userProfile) {
           console.log('User profile loaded after login:', userProfile);
           setCurrentUser(userProfile);
         } else {
-          // If no profile exists but user is authenticated, check if email is confirmed
+          // No profile found - this means either:
+          // 1. User hasn't verified email yet, OR
+          // 2. There's a data inconsistency
+          
+          console.log('No profile found for user:', data.user.id);
+          console.log('Email confirmed:', !!data.user.email_confirmed_at);
+          
           if (!data.user.email_confirmed_at) {
+            // User hasn't verified email yet
             throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
           } else {
-            // Email is confirmed but no profile exists - this shouldn't happen but let's handle it
-            console.log('Email confirmed but no profile found. This may be a data inconsistency.');
-            throw new Error('Account setup incomplete. Please contact support or try registering again.');
+            // Email is confirmed but no profile exists - this is unusual
+            // Let's try to create the profile from auth metadata
+            console.log('Email confirmed but no profile found. Creating profile from auth data...');
+            
+            try {
+              const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
+              const subscriptionTier = data.user.user_metadata?.subscription_tier || 'free';
+              
+              await createUserProfile(data.user.id, name, data.user.email || '', subscriptionTier);
+              
+              // Now fetch the newly created profile
+              const newProfile = await fetchUserProfile(data.user.id);
+              if (newProfile) {
+                setCurrentUser(newProfile);
+              } else {
+                throw new Error('Failed to create user profile. Please contact support.');
+              }
+            } catch (profileError) {
+              console.error('Error creating profile during login:', profileError);
+              throw new Error('Account setup incomplete. Please contact support.');
+            }
           }
         }
       }
