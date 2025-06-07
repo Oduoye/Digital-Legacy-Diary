@@ -17,7 +17,7 @@ interface AuthContextType {
   deactivateAccount: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   updateSubscription: (tierId: string) => Promise<void>;
-  resendVerificationEmail: () => Promise<void>;
+  resendVerificationEmail: (email?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -288,22 +288,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  const resendVerificationEmail = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user?.email) {
-      throw new Error('No email address found');
-    }
-
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: user.email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+  const resendVerificationEmail = async (email?: string) => {
+    try {
+      let targetEmail = email;
+      
+      if (!targetEmail) {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetEmail = user?.email;
       }
-    });
+      
+      if (!targetEmail) {
+        throw new Error('No email address found');
+      }
 
-    if (error) throw error;
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: targetEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      throw error;
+    }
   };
 
   const deactivateAccount = async () => {

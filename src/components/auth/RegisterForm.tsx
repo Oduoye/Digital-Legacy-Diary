@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, RefreshCw, AlertTriangle, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -111,11 +111,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const handleResendVerification = async () => {
     try {
       setIsLoading(true);
-      await resendVerificationEmail();
+      await resendVerificationEmail(email);
       setError('');
       // Show a temporary success message
       const originalError = error;
-      setError('Verification email sent! Please check your inbox.');
+      setError('New verification email sent! Please check your inbox.');
       setTimeout(() => {
         setError(originalError);
       }, 3000);
@@ -177,7 +177,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
               {emailConfirmationRequired ? (
                 <>
                   <p className="text-gray-600 mb-4">
-                    Welcome to Digital Legacy Diary! Please check your email to verify your account.
+                    Welcome to Digital Legacy Diary! Please verify your email to complete your registration.
                   </p>
                   
                   {/* Email Verification Notice */}
@@ -190,13 +190,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                         </h4>
                         <p className="text-sm text-blue-700 mb-3">
                           We've sent a verification email to <strong>{email}</strong>. 
-                          Please check your inbox (and spam folder) and click the verification link to activate your account.
+                          Please check your inbox (and spam folder) and click the verification link.
                         </p>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
-                          <p className="text-xs text-yellow-700">
-                            <strong>Important:</strong> The verification link will redirect you back to the login page where you can sign in with your new account.
-                          </p>
+                        
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+                          <div className="flex items-start space-x-2">
+                            <Clock className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs text-yellow-700 font-medium mb-1">
+                                Important: Verification links expire in 24 hours
+                              </p>
+                              <p className="text-xs text-yellow-700">
+                                The verification link will redirect you back to the login page where you can sign in with your new account.
+                              </p>
+                            </div>
+                          </div>
                         </div>
+                        
                         <button
                           onClick={handleResendVerification}
                           disabled={isLoading}
@@ -208,7 +218,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                               Sending...
                             </>
                           ) : (
-                            "Didn't receive the email? Resend verification"
+                            "Didn't receive the email? Send a new one"
                           )}
                         </button>
                       </div>
@@ -237,12 +247,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className={`p-3 rounded-md text-sm animate-shake ${
-            error.includes('Verification email sent') 
+            error.includes('verification email sent') || error.includes('New verification email sent')
               ? 'bg-green-50 text-green-700' 
               : 'bg-red-50 text-red-700'
           }`}>
             <div className="flex items-start space-x-2">
-              {error.includes('Verification email sent') ? (
+              {error.includes('verification email sent') || error.includes('New verification email sent') ? (
                 <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               ) : (
                 <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
