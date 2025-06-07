@@ -38,14 +38,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setIsLoading(true);
 
     try {
-      const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
+      await register(name, email, password, selectedTier);
       setShowSuccessMessage(true);
       
-      if (!emailConfirmationRequired) {
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      }
+      // Redirect to dashboard after successful registration
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (err) {
       setError('Failed to create account. Please try again.');
       console.error(err);
@@ -56,7 +55,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
   const handleCloseSuccess = () => {
     setShowSuccessMessage(false);
-    navigate('/login');
+    navigate('/dashboard');
   };
 
   return (
@@ -81,24 +80,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
                 Welcome to Digital Legacy Diary! You can now start preserving your memories and stories.
               </p>
               
-              {/* Email Verification Notice */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start space-x-3">
-                  <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-left">
-                    <h4 className="text-sm font-medium text-blue-900 mb-1">
-                      Email Verification
-                    </h4>
-                    <p className="text-sm text-blue-700">
-                      We've sent a verification email to <strong>{email}</strong>. 
-                      Please check your inbox and click the verification link to activate your account.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
               <Button onClick={handleCloseSuccess} className="w-full">
-                Continue to Login
+                Continue to Dashboard
               </Button>
             </div>
           </div>

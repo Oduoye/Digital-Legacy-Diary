@@ -132,38 +132,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Helper function to handle user session
-  const handleUserSession = async (authUser: any, skipEmailCheck = false) => {
+  // Helper function to handle user session - DATABASE ONLY
+  const handleUserSession = async (authUser: any) => {
     try {
-      // Check if email is confirmed (skip this check during login)
-      if (!skipEmailCheck && !authUser.email_confirmed_at) {
-        console.log('Email not confirmed, signing out');
-        await supabase.auth.signOut();
-        return;
-      }
+      console.log('Handling user session for:', authUser.id);
 
-      // Try to fetch existing user profile
+      // Try to fetch existing user profile from database
       let userProfile = await fetchUserProfile(authUser.id);
       
       if (!userProfile) {
-        console.log('No profile found, creating new profile...');
+        console.log('No profile found in database, creating new profile...');
         userProfile = await createUserProfile(authUser);
       }
 
       if (userProfile) {
-        console.log('Setting user profile:', userProfile);
+        console.log('Setting user profile from database:', userProfile);
         setCurrentUser(userProfile);
       } else {
-        console.error('Failed to get or create user profile');
-        if (!skipEmailCheck) {
-          await supabase.auth.signOut();
-        }
+        console.error('Failed to get or create user profile in database');
+        // Don't sign out - just log the error
       }
     } catch (error) {
       console.error('Error handling user session:', error);
-      if (!skipEmailCheck) {
-        await supabase.auth.signOut();
-      }
+      // Don't sign out - just log the error
     }
   };
 
@@ -201,8 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('User signed in, handling session...');
-        // Skip email check during sign in as we've already verified it in login
-        await handleUserSession(session.user, true);
+        await handleUserSession(session.user);
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
         setCurrentUser(null);
@@ -237,18 +227,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        console.log('Login successful for user:', data.user.id);
-        console.log('Email confirmed:', !!data.user.email_confirmed_at);
+        console.log('Auth login successful for user:', data.user.id);
         
-        // Check if email is confirmed
-        if (!data.user.email_confirmed_at) {
-          console.log('Email not confirmed');
+        // Check if user exists in database
+        const userProfile = await fetchUserProfile(data.user.id);
+        
+        if (!userProfile) {
+          console.log('User not found in database, signing out');
           await supabase.auth.signOut();
-          throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
+          throw new Error('Account not found. Please contact support or register a new account.');
         }
 
-        // The auth state change listener will handle the rest with skipEmailCheck = true
-        console.log('Login process completed, waiting for auth state change...');
+        console.log('User found in database, login successful');
+        // The auth state change listener will handle setting the user profile
       }
     } catch (error) {
       console.error('Error during login:', error);
@@ -272,6 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: name.trim(),
             subscription_tier: subscriptionTier,
           },
+          emailRedirectTo: undefined, // Disable email confirmation
         },
       });
 
@@ -283,24 +275,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (authData.user) {
         console.log('Auth user created:', authData.user.id);
         
-        // Check if email confirmation is required
-        const emailConfirmationRequired = !authData.user.email_confirmed_at;
+        // Always create profile immediately - no email confirmation required
+        console.log('Creating profile in database...');
+        const userProfile = await createUserProfile(authData.user);
         
-        if (emailConfirmationRequired) {
-          console.log('Email confirmation required');
-          // Don't create profile yet - wait for email confirmation
-          return { emailConfirmationRequired: true };
-        } else {
-          // Email is already confirmed, create profile immediately
-          console.log('Email already confirmed, creating profile...');
-          const userProfile = await createUserProfile(authData.user);
-          
-          if (userProfile) {
-            setCurrentUser(userProfile);
-          }
-          
-          return { emailConfirmationRequired: false };
+        if (userProfile) {
+          setCurrentUser(userProfile);
         }
+        
+        return { emailConfirmationRequired: false };
       }
 
       return { emailConfirmationRequired: false };

@@ -24,74 +24,6 @@ import SettingsPage from './pages/SettingsPage';
 import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
-import { supabase } from './lib/supabase';
-
-// Email verification handler component
-const EmailVerificationHandler: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated, loading } = useAuth();
-
-  useEffect(() => {
-    // Check if this is an email verification callback
-    const hash = location.hash;
-    if (hash.includes('type=signup') && hash.includes('access_token')) {
-      console.log('Email verification detected, processing...');
-      
-      // Handle the email verification
-      const handleEmailVerification = async () => {
-        try {
-          // Get the current session after email verification
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Error getting session after verification:', error);
-            return;
-          }
-
-          if (session?.user && session.user.email_confirmed_at) {
-            console.log('Email verified successfully, creating user profile...');
-            
-            // Create user profile in database now that email is confirmed
-            const userMetadata = session.user.user_metadata;
-            const userProfileData = {
-              id: session.user.id,
-              name: userMetadata?.name || session.user.email?.split('@')[0] || 'User',
-              email: session.user.email || '',
-              profile_picture: null,
-              bio: null,
-              social_links: {},
-              subscription_tier: userMetadata?.subscription_tier || 'free',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            };
-
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert(userProfileData);
-
-            if (insertError && insertError.code !== '23505') { // Ignore duplicate key error
-              console.error('Error creating user profile after verification:', insertError);
-            } else {
-              console.log('User profile created successfully after email verification');
-            }
-            
-            // Redirect to dashboard
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 2000);
-          }
-        } catch (error) {
-          console.error('Error handling email verification:', error);
-        }
-      };
-
-      handleEmailVerification();
-    }
-  }, [location.hash, navigate]);
-
-  return null;
-};
 
 // Protected route component
 const ProtectedRoute: React.FC<{ 
@@ -119,7 +51,6 @@ function App() {
     <Router>
       <AuthProvider>
         <DiaryProvider>
-          <EmailVerificationHandler />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
@@ -229,7 +160,7 @@ function App() {
             />
             
             {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </DiaryProvider>
       </AuthProvider>
