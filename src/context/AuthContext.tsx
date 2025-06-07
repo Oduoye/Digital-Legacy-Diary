@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
 
-      // Get the current origin for redirect URL - redirect to root instead of /login
+      // Get the current origin for redirect URL - redirect to root with verified parameter
       const redirectTo = `${window.location.origin}/?verified=true`;
 
       // Create auth user with metadata

@@ -22,19 +22,24 @@ const HomePage: React.FC = () => {
       {verified === 'true' && (
         <div className="bg-green-50 border border-green-200 p-4 animate-slide-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <div className="flex-grow">
                 <h3 className="text-sm font-medium text-green-800">Email Verified Successfully!</h3>
                 <p className="text-sm text-green-700">
                   Your email has been verified. You can now sign in to your account.
                 </p>
               </div>
-              <Link to="/login" className="ml-auto">
-                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                  Sign In Now
-                </Button>
-              </Link>
+              <div className="w-full sm:w-auto">
+                <Link to="/login" className="block w-full sm:w-auto">
+                  <Button 
+                    size="sm" 
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 whitespace-nowrap"
+                  >
+                    Sign In Now
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
