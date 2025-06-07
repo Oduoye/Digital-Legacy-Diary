@@ -10,11 +10,9 @@ export interface User {
     facebook?: string;
     instagram?: string;
   };
-  subscription?: {
-    tier: string;
-    startDate: Date;
-    endDate?: Date;
-  };
+  subscription_tier?: string;
+  created_at: Date;
+  updated_at: Date;
   lifeStory?: {
     lastGenerated: Date;
     narrative: string;
