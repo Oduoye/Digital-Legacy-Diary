@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Book, Shield, Users, Lock, ArrowRight, Heart, Star, Sparkles } from 'lucide-react';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Book, Shield, Users, Lock, ArrowRight, Heart, Star, Sparkles, CheckCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import LiveChatButton from '../components/ui/LiveChatButton';
@@ -8,13 +8,38 @@ import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
+  const verified = searchParams.get('verified');
 
+  // If user is authenticated, redirect to dashboard
   if (currentUser) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
     <Layout>
+      {/* Email Verification Success Message */}
+      {verified === 'true' && (
+        <div className="bg-green-50 border border-green-200 p-4 animate-slide-down">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <h3 className="text-sm font-medium text-green-800">Email Verified Successfully!</h3>
+                <p className="text-sm text-green-700">
+                  Your email has been verified. You can now sign in to your account.
+                </p>
+              </div>
+              <Link to="/login" className="ml-auto">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                  Sign In Now
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 overflow-hidden animate-fade-in">
         <div className="absolute inset-0">
