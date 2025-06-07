@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -59,8 +59,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       errors.password = 'Password is required';
     } else if (password.length < 6) {
       errors.password = 'Password must be at least 6 characters long';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
 
     if (!confirmPassword) {
@@ -84,7 +82,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setIsLoading(true);
 
     try {
+      console.log('Starting registration process...');
       const { emailConfirmationRequired } = await register(name, email, password, selectedTier);
+      console.log('Registration successful, email confirmation required:', emailConfirmationRequired);
+      
       setShowSuccessMessage(true);
       
       if (!emailConfirmationRequired) {
@@ -93,8 +94,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         }, 2000);
       }
     } catch (err: any) {
+      console.error('Registration error:', err);
       setError(err.message || 'Failed to create account. Please try again.');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -210,7 +211,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
-            {error}
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
           </div>
         )}
 
@@ -261,11 +265,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           {password && (
             <div className="mt-2 text-xs text-gray-500">
               Password strength: {
-                password.length >= 6 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
-                  ? <span className="text-green-600 font-medium">Strong</span>
-                  : password.length >= 6
-                  ? <span className="text-yellow-600 font-medium">Medium</span>
-                  : <span className="text-red-600 font-medium">Weak</span>
+                password.length >= 6
+                  ? <span className="text-green-600 font-medium">Good</span>
+                  : <span className="text-red-600 font-medium">Too short</span>
               }
             </div>
           )}
@@ -318,6 +320,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
+        </div>
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            >
+              Sign in here
+            </button>
+          </p>
         </div>
       </form>
     </>

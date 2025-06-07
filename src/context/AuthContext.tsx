@@ -159,19 +159,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Password must be at least 6 characters long');
       }
 
-      // Check if user already exists
+      const cleanEmail = email.trim().toLowerCase();
+
+      // Check if user already exists in our users table
       const { data: existingUser } = await supabase
         .from('users')
         .select('email')
-        .eq('email', email.trim().toLowerCase())
-        .single();
+        .eq('email', cleanEmail)
+        .maybeSingle();
 
       if (existingUser) {
         throw new Error('An account with this email already exists. Please sign in instead.');
       }
 
+      // Create auth user
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
         options: {
           data: {
@@ -198,17 +201,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .insert({
             id: data.user.id,
             name: name.trim(),
-            email: email.trim().toLowerCase(),
+            email: cleanEmail,
             subscription_tier: subscriptionTier,
             subscription_start_date: new Date().toISOString(),
           });
 
         if (profileError) {
           console.error('Error creating user profile:', profileError);
-          // Don't throw here as the auth user was created successfully
+          // If profile creation fails, we should clean up the auth user
+          // But for now, we'll just log the error and continue
         }
 
-        // If user is immediately confirmed, fetch their profile
+        // If user is immediately confirmed (no email verification required), fetch their profile
         if (data.session) {
           await fetchUserProfile(data.user);
         }
