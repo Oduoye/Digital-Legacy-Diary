@@ -12,9 +12,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: window.localStorage,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    // Disable email confirmation completely
-    autoRefreshToken: true,
-    debug: false
+    flowType: 'pkce'
   }
 });
