@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User } from '../types';
+import { supabase } from '../lib/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -37,60 +39,80 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        const user = JSON.parse(savedUser);
-        // Convert date strings back to Date objects
-        if (user.created_at) user.created_at = new Date(user.created_at);
-        if (user.updated_at) user.updated_at = new Date(user.updated_at);
-        if (user.lifeStory?.lastGenerated) {
-          user.lifeStory.lastGenerated = new Date(user.lifeStory.lastGenerated);
-        }
-        setCurrentUser(user);
-      } catch (error) {
-        console.error('Error loading user from localStorage:', error);
-        localStorage.removeItem('currentUser');
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserProfile(session.user);
+      } else {
+        setLoading(false);
       }
-    }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchUserProfile(session.user);
+      } else {
+        setCurrentUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Save user to localStorage whenever it changes
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('currentUser');
+  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        setCurrentUser(null);
+      } else if (data) {
+        setCurrentUser({
+          ...data,
+          created_at: new Date(data.created_at),
+          updated_at: new Date(data.updated_at),
+          lifeStory: data.life_story_narrative ? {
+            lastGenerated: new Date(data.life_story_last_generated),
+            narrative: data.life_story_narrative,
+            themes: data.life_story_themes || [],
+            timeline: data.life_story_timeline || [],
+            relationships: data.life_story_relationships || [],
+            values: data.life_story_values || [],
+          } : undefined,
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      setCurrentUser(null);
+    } finally {
+      setLoading(false);
     }
-  }, [currentUser]);
+  };
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user exists in localStorage
-      const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      const user = users.find((u: any) => u.email === email && u.password === password);
-      
-      if (!user) {
-        throw new Error('Invalid email or password');
-      }
-
-      // Create user object without password
-      const { password: _, ...userWithoutPassword } = user;
-      setCurrentUser({
-        ...userWithoutPassword,
-        created_at: new Date(userWithoutPassword.created_at),
-        updated_at: new Date(userWithoutPassword.updated_at),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } catch (error) {
-      throw error;
+
+      if (error) throw error;
+
+      if (data.user) {
+        await fetchUserProfile(data.user);
+      }
+    } catch (error: any) {
+      throw new Error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -99,90 +121,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     setLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      if (users.find((u: any) => u.email === email)) {
-        throw new Error('User with this email already exists');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            name: name.trim(),
+            email: email.trim(),
+            subscription_tier: subscriptionTier,
+          });
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          throw new Error('Failed to create user profile');
+        }
+
+        await fetchUserProfile(data.user);
       }
 
-      // Create new user
-      const newUser = {
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        email: email.trim(),
-        password, // Store password for demo purposes
-        profilePicture: null,
-        bio: null,
-        socialLinks: {},
-        subscription_tier: subscriptionTier,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-
-      // Save to localStorage
-      users.push(newUser);
-      localStorage.setItem('registeredUsers', JSON.stringify(users));
-
-      // Set current user (without password)
-      const { password: _, ...userWithoutPassword } = newUser;
-      setCurrentUser(userWithoutPassword);
-
-      return { emailConfirmationRequired: false };
-    } catch (error) {
-      throw error;
+      return { emailConfirmationRequired: !data.session };
+    } catch (error: any) {
+      throw new Error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setCurrentUser(null);
   };
 
   const updateProfile = async (updates: Partial<User>) => {
     if (!currentUser) throw new Error('No user logged in');
 
-    const updatedUser = { 
-      ...currentUser, 
-      ...updates, 
-      updated_at: new Date() 
-    };
-    
-    setCurrentUser(updatedUser);
+    const { error } = await supabase
+      .from('users')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', currentUser.id);
 
-    // Update in registered users list
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const userIndex = users.findIndex((u: any) => u.id === currentUser.id);
-    if (userIndex !== -1) {
-      users[userIndex] = { ...users[userIndex], ...updates, updated_at: new Date() };
-      localStorage.setItem('registeredUsers', JSON.stringify(users));
-    }
+    if (error) throw error;
+
+    setCurrentUser(prev => prev ? { ...prev, ...updates, updated_at: new Date() } : null);
   };
 
   const updateEmail = async (newEmail: string) => {
-    if (!currentUser) throw new Error('No user logged in');
-    await updateProfile({ email: newEmail.trim() });
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if (error) throw error;
+    
+    await updateProfile({ email: newEmail });
   };
 
   const updatePassword = async (newPassword: string) => {
-    if (!currentUser) throw new Error('No user logged in');
-    
-    // Update password in registered users list
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const userIndex = users.findIndex((u: any) => u.id === currentUser.id);
-    if (userIndex !== -1) {
-      users[userIndex].password = newPassword;
-      localStorage.setItem('registeredUsers', JSON.stringify(users));
-    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    // Simulate password reset
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Password reset email sent to:', email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   };
 
   const deactivateAccount = async () => {
@@ -192,14 +201,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteAccount = async () => {
     if (!currentUser) throw new Error('No user logged in');
 
-    // Remove from registered users
-    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const filteredUsers = users.filter((u: any) => u.id !== currentUser.id);
-    localStorage.setItem('registeredUsers', JSON.stringify(filteredUsers));
+    // Delete user data
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', currentUser.id);
 
-    // Remove diary entries
-    localStorage.removeItem(`diaryEntries_${currentUser.id}`);
-    localStorage.removeItem(`trustedContacts_${currentUser.id}`);
+    if (error) throw error;
 
     await logout();
   };
