@@ -205,47 +205,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        console.log('Login successful, fetching user profile...');
+        console.log('Login successful for user:', data.user.id);
+        console.log('Email confirmed:', !!data.user.email_confirmed_at);
         
-        // Try to fetch user profile first
+        // Wait a moment for the auth state to settle
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Try to fetch user profile
         const userProfile = await fetchUserProfile(data.user.id);
+        
         if (userProfile) {
-          console.log('User profile loaded after login:', userProfile);
+          console.log('User profile found, login successful:', userProfile);
           setCurrentUser(userProfile);
-        } else {
-          // No profile found - this means either:
-          // 1. User hasn't verified email yet, OR
-          // 2. There's a data inconsistency
+          return;
+        }
+        
+        // If no profile exists, check email confirmation
+        if (!data.user.email_confirmed_at) {
+          console.log('Email not confirmed and no profile exists');
+          // Sign out the user since they haven't verified
+          await supabase.auth.signOut();
+          throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
+        }
+        
+        // Email is confirmed but no profile exists - create it
+        console.log('Email confirmed but no profile found. Creating profile from auth data...');
+        try {
+          const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
+          const subscriptionTier = data.user.user_metadata?.subscription_tier || 'free';
           
-          console.log('No profile found for user:', data.user.id);
-          console.log('Email confirmed:', !!data.user.email_confirmed_at);
+          await createUserProfile(data.user.id, name, data.user.email || '', subscriptionTier);
           
-          if (!data.user.email_confirmed_at) {
-            // User hasn't verified email yet
-            throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
+          // Fetch the newly created profile
+          const newProfile = await fetchUserProfile(data.user.id);
+          if (newProfile) {
+            console.log('Profile created and loaded successfully:', newProfile);
+            setCurrentUser(newProfile);
           } else {
-            // Email is confirmed but no profile exists - this is unusual
-            // Let's try to create the profile from auth metadata
-            console.log('Email confirmed but no profile found. Creating profile from auth data...');
-            
-            try {
-              const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
-              const subscriptionTier = data.user.user_metadata?.subscription_tier || 'free';
-              
-              await createUserProfile(data.user.id, name, data.user.email || '', subscriptionTier);
-              
-              // Now fetch the newly created profile
-              const newProfile = await fetchUserProfile(data.user.id);
-              if (newProfile) {
-                setCurrentUser(newProfile);
-              } else {
-                throw new Error('Failed to create user profile. Please contact support.');
-              }
-            } catch (profileError) {
-              console.error('Error creating profile during login:', profileError);
-              throw new Error('Account setup incomplete. Please contact support.');
-            }
+            throw new Error('Failed to load newly created profile');
           }
+        } catch (profileError) {
+          console.error('Error creating profile during login:', profileError);
+          await supabase.auth.signOut();
+          throw new Error('Account setup incomplete. Please try logging in again or contact support.');
         }
       }
     } catch (error) {
