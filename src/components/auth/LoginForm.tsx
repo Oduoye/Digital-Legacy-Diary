@@ -26,9 +26,9 @@ const LoginForm: React.FC = () => {
       setShowSuccessMessage(true);
       setTimeout(() => {
         navigate('/dashboard');
-      }, 2000);
-    } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Invalid email or password. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -107,6 +107,7 @@ const LoginForm: React.FC = () => {
           type="submit" 
           isLoading={isLoading} 
           className="w-full"
+          disabled={isLoading}
         >
           Sign In
         </Button>

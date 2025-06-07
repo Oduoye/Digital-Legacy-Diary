@@ -200,7 +200,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      setLoading(true);
       console.log('Attempting login for:', email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -223,9 +222,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await supabase.auth.signOut();
           throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
         }
-        
-        // Wait a moment for the auth state to settle
-        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Try to fetch user profile
         const userProfile = await fetchUserProfile(data.user.id);
@@ -261,14 +257,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error during login:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
     try {
-      setLoading(true);
       console.log('Attempting registration for:', email);
       
       // First, sign up the user with Supabase Auth
@@ -316,14 +309,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error during registration:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      setLoading(true);
       console.log('Logging out user...');
       
       const { error } = await supabase.auth.signOut();
@@ -337,8 +327,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error during logout:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
