@@ -50,10 +50,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      if (!data) {
+        console.log('No user profile found for ID:', userId);
         return null;
       }
 
@@ -84,6 +89,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Function to fetch user profile by email
+  const fetchUserProfileByEmail = async (email: string): Promise<User | null> => {
+    try {
+      console.log('Fetching user profile by email:', email);
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user profile by email:', error);
+        return null;
+      }
+
+      if (!data) {
+        console.log('No user profile found for email:', email);
+        return null;
+      }
+
+      console.log('User profile data found by email:', data);
+
+      return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        profilePicture: data.profile_picture,
+        bio: data.bio,
+        socialLinks: data.social_links || {},
+        subscription_tier: data.subscription_tier || 'free',
+        created_at: new Date(data.created_at),
+        updated_at: new Date(data.updated_at),
+        lifeStory: data.life_story_narrative ? {
+          lastGenerated: new Date(data.life_story_last_generated),
+          narrative: data.life_story_narrative,
+          themes: data.life_story_themes || [],
+          timeline: data.life_story_timeline || [],
+          relationships: data.life_story_relationships || [],
+          values: data.life_story_values || [],
+        } : undefined,
+      };
+    } catch (error) {
+      console.error('Error in fetchUserProfileByEmail:', error);
+      return null;
+    }
+  };
+
   // Function to create user profile in database
   const createUserProfile = async (userId: string, name: string, email: string, subscriptionTier: string): Promise<void> => {
     try {
@@ -106,6 +159,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .insert(userProfileData);
 
       if (error) {
+        // Handle duplicate email constraint error gracefully
+        if (error.code === '23505' && error.message.includes('users_email_key')) {
+          console.warn('Profile with this email already exists, skipping creation');
+          return;
+        }
+        
         console.error('Profile creation error:', error);
         throw new Error(`Failed to create user profile: ${error.message}`);
       }
@@ -113,6 +172,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Database profile created successfully');
     } catch (error) {
       console.error('Error creating user profile:', error);
+      throw error;
+    }
+  };
+
+  // Function to update user profile ID
+  const updateUserProfileId = async (currentId: string, newId: string): Promise<void> => {
+    try {
+      console.log('Updating user profile ID from', currentId, 'to', newId);
+      
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          id: newId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentId);
+
+      if (error) {
+        console.error('Error updating user profile ID:', error);
+        throw error;
+      }
+      
+      console.log('User profile ID updated successfully');
+    } catch (error) {
+      console.error('Error in updateUserProfileId:', error);
       throw error;
     }
   };
@@ -223,8 +307,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
         }
         
-        // Try to fetch user profile
-        const userProfile = await fetchUserProfile(data.user.id);
+        // Try to fetch user profile by ID
+        let userProfile = await fetchUserProfile(data.user.id);
         
         if (userProfile) {
           console.log('User profile found, login successful:', userProfile);
@@ -232,27 +316,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        // If no profile exists but email is confirmed, create it
-        console.log('Email confirmed but no profile found. Creating profile from auth data...');
+        // If no profile exists by ID, try to create it
+        console.log('No profile found by ID. Attempting to create profile...');
         try {
           const name = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User';
           const subscriptionTier = data.user.user_metadata?.subscription_tier || 'free';
           
           await createUserProfile(data.user.id, name, data.user.email || '', subscriptionTier);
           
-          // Fetch the newly created profile
-          const newProfile = await fetchUserProfile(data.user.id);
-          if (newProfile) {
-            console.log('Profile created and loaded successfully:', newProfile);
-            setCurrentUser(newProfile);
-          } else {
-            throw new Error('Failed to load newly created profile');
+          // Try to fetch the newly created profile
+          userProfile = await fetchUserProfile(data.user.id);
+          if (userProfile) {
+            console.log('Profile created and loaded successfully:', userProfile);
+            setCurrentUser(userProfile);
+            return;
           }
         } catch (profileError) {
-          console.error('Error creating profile during login:', profileError);
-          await supabase.auth.signOut();
-          throw new Error('Account setup incomplete. Please try logging in again or contact support.');
+          console.log('Profile creation failed, checking for existing profile by email...');
         }
+        
+        // If still no profile by ID, check if one exists by email
+        const profileByEmail = await fetchUserProfileByEmail(data.user.email || '');
+        if (profileByEmail && profileByEmail.id !== data.user.id) {
+          console.log('Found profile by email with different ID, updating ID...');
+          try {
+            await updateUserProfileId(profileByEmail.id, data.user.id);
+            
+            // Fetch the updated profile
+            userProfile = await fetchUserProfile(data.user.id);
+            if (userProfile) {
+              console.log('Profile ID updated and loaded successfully:', userProfile);
+              setCurrentUser(userProfile);
+              return;
+            }
+          } catch (updateError) {
+            console.error('Error updating profile ID:', updateError);
+          }
+        }
+        
+        // If we still don't have a profile, sign out and throw error
+        console.error('Unable to load or create user profile');
+        await supabase.auth.signOut();
+        throw new Error('Account setup incomplete. Please try logging in again or contact support.');
       }
     } catch (error) {
       console.error('Error during login:', error);
