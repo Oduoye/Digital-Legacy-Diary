@@ -133,15 +133,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log('Found active session for user:', session.user.id);
           
-          // Only fetch profile if email is confirmed
-          if (session.user.email_confirmed_at) {
-            const userProfile = await fetchUserProfile(session.user.id);
-            if (userProfile) {
-              console.log('Setting user profile:', userProfile);
-              setCurrentUser(userProfile);
-            }
+          // Try to fetch user profile regardless of email confirmation status
+          const userProfile = await fetchUserProfile(session.user.id);
+          if (userProfile) {
+            console.log('Setting user profile:', userProfile);
+            setCurrentUser(userProfile);
           } else {
-            console.log('User email not confirmed yet');
+            console.log('No user profile found in database');
           }
         } else {
           console.log('No active session found');
@@ -160,25 +158,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth state changed:', event, session?.user?.id);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in, checking email confirmation...');
+        console.log('User signed in, fetching profile...');
         
-        // Only proceed if email is confirmed
-        if (session.user.email_confirmed_at) {
-          console.log('Email confirmed, fetching profile...');
-          const userProfile = await fetchUserProfile(session.user.id);
-          if (userProfile) {
-            console.log('Setting user profile after sign in:', userProfile);
-            setCurrentUser(userProfile);
-          }
+        // Try to fetch profile for any signed-in user
+        const userProfile = await fetchUserProfile(session.user.id);
+        if (userProfile) {
+          console.log('Setting user profile after sign in:', userProfile);
+          setCurrentUser(userProfile);
         } else {
-          console.log('Email not confirmed, waiting for verification');
+          console.log('No profile found for signed-in user');
         }
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
         setCurrentUser(null);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         // Handle token refresh - ensure user profile is still loaded
-        if (!currentUser && session.user.email_confirmed_at) {
+        if (!currentUser) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (userProfile) {
             setCurrentUser(userProfile);
@@ -210,18 +205,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Check if email is confirmed
-        if (!data.user.email_confirmed_at) {
-          throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
-        }
-
         console.log('Login successful, fetching user profile...');
+        
+        // Try to fetch user profile
         const userProfile = await fetchUserProfile(data.user.id);
         if (userProfile) {
           console.log('User profile loaded after login:', userProfile);
           setCurrentUser(userProfile);
         } else {
-          throw new Error('User profile not found. Please contact support.');
+          // If no profile exists but user is authenticated, check if email is confirmed
+          if (!data.user.email_confirmed_at) {
+            throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
+          } else {
+            // Email is confirmed but no profile exists - this shouldn't happen but let's handle it
+            console.log('Email confirmed but no profile found. This may be a data inconsistency.');
+            throw new Error('Account setup incomplete. Please contact support or try registering again.');
+          }
         }
       }
     } catch (error) {
