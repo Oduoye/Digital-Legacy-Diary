@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -14,11 +14,12 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     email: '',
     password: '',
   });
-  const { login } = useAuth();
+  const { login, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
@@ -51,6 +52,7 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowResendVerification(false);
     
     if (!validateForm()) {
       return;
@@ -65,8 +67,28 @@ const LoginForm: React.FC = () => {
         navigate('/dashboard');
       }, 1500);
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password. Please try again.');
+      const errorMessage = err.message || 'Invalid email or password. Please try again.';
+      setError(errorMessage);
+      
+      // Show resend verification option if email not confirmed
+      if (errorMessage.includes('verify your email') || errorMessage.includes('Email not confirmed')) {
+        setShowResendVerification(true);
+      }
+      
       console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setIsLoading(true);
+      await resendVerificationEmail();
+      setError('Verification email sent! Please check your inbox and click the verification link.');
+      setShowResendVerification(false);
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend verification email.');
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +100,10 @@ const LoginForm: React.FC = () => {
     if (validationErrors.email) {
       setValidationErrors(prev => ({ ...prev, email: '' }));
     }
+    if (error) {
+      setError('');
+      setShowResendVerification(false);
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +111,10 @@ const LoginForm: React.FC = () => {
     setPassword(value);
     if (validationErrors.password) {
       setValidationErrors(prev => ({ ...prev, password: '' }));
+    }
+    if (error) {
+      setError('');
+      setShowResendVerification(false);
     }
   };
 
@@ -120,8 +150,31 @@ const LoginForm: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
-            {error}
+          <div className={`p-3 rounded-md text-sm animate-shake ${
+            error.includes('Verification email sent') 
+              ? 'bg-green-50 text-green-700' 
+              : 'bg-red-50 text-red-700'
+          }`}>
+            <div className="flex flex-col space-y-2">
+              <span>{error}</span>
+              {showResendVerification && (
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={isLoading}
+                  className="text-left text-blue-600 hover:text-blue-700 font-medium underline text-sm flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Resend verification email'
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

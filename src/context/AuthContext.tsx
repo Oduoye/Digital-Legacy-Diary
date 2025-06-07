@@ -78,10 +78,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (session?.user) {
+      console.log('Auth state changed:', event, session?.user?.email);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        await fetchUserProfile(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         await fetchUserProfile(session.user);
       } else {
-        setCurrentUser(null);
         setLoading(false);
       }
     });
@@ -94,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      // Check if user profile exists
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -108,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
+        // Profile exists, set user
         setCurrentUser({
           ...data,
           created_at: new Date(data.created_at),
@@ -122,7 +130,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } : undefined,
         });
       } else {
-        setCurrentUser(null);
+        // Profile doesn't exist, create it
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: supabaseUser.id,
+            name: supabaseUser.user_metadata?.name || 'User',
+            email: supabaseUser.email || '',
+            subscription_tier: supabaseUser.user_metadata?.subscription_tier || 'free',
+            subscription_start_date: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          console.error('Error creating user profile:', insertError);
+          setCurrentUser(null);
+        } else {
+          // Fetch the newly created profile
+          await fetchUserProfile(supabaseUser);
+          return;
+        }
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -144,6 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
           throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+        } else if (error.message.includes('Email link is invalid or has expired')) {
+          throw new Error('Your verification link has expired. Please request a new one.');
         } else {
           throw new Error(error.message || 'Login failed. Please try again.');
         }
@@ -160,12 +188,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
 
-      // Create auth user first
+      // Create auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            name: cleanName,
+            subscription_tier: subscriptionTier,
+          }
         }
       });
 
@@ -181,21 +213,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Failed to create user account. Please try again.');
       }
 
-      // Create user profile in our users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          name: cleanName,
-          email: cleanEmail,
-          subscription_tier: subscriptionTier,
-          subscription_start_date: new Date().toISOString(),
-        });
+      // If user is immediately confirmed (no email verification required)
+      if (authData.session) {
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            name: cleanName,
+            email: cleanEmail,
+            subscription_tier: subscriptionTier,
+            subscription_start_date: new Date().toISOString(),
+          });
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw here - the user account was created successfully
-        // The profile can be created later when they log in
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          // Don't throw here - the user account was created successfully
+        }
       }
 
       return { emailConfirmationRequired: !authData.session };
@@ -252,13 +286,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resendVerificationEmail = async () => {
-    if (!currentUser?.email) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user?.email) {
       throw new Error('No email address found');
     }
 
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email: currentUser.email,
+      email: user.email,
     });
 
     if (error) throw error;
