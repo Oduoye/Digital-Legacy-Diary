@@ -132,6 +132,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Helper function to handle user session
+  const handleUserSession = async (authUser: any, skipEmailCheck = false) => {
+    try {
+      // Check if email is confirmed (skip this check during login)
+      if (!skipEmailCheck && !authUser.email_confirmed_at) {
+        console.log('Email not confirmed, signing out');
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // Try to fetch existing user profile
+      let userProfile = await fetchUserProfile(authUser.id);
+      
+      if (!userProfile) {
+        console.log('No profile found, creating new profile...');
+        userProfile = await createUserProfile(authUser);
+      }
+
+      if (userProfile) {
+        console.log('Setting user profile:', userProfile);
+        setCurrentUser(userProfile);
+      } else {
+        console.error('Failed to get or create user profile');
+        if (!skipEmailCheck) {
+          await supabase.auth.signOut();
+        }
+      }
+    } catch (error) {
+      console.error('Error handling user session:', error);
+      if (!skipEmailCheck) {
+        await supabase.auth.signOut();
+      }
+    }
+  };
+
   useEffect(() => {
     // Check active session on mount
     const getSession = async () => {
@@ -166,7 +201,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('User signed in, handling session...');
-        await handleUserSession(session.user);
+        // Skip email check during sign in as we've already verified it in login
+        await handleUserSession(session.user, true);
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out, clearing profile');
         setCurrentUser(null);
@@ -184,37 +220,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, []);
-
-  // Helper function to handle user session
-  const handleUserSession = async (authUser: any) => {
-    try {
-      // Check if email is confirmed
-      if (!authUser.email_confirmed_at) {
-        console.log('Email not confirmed, signing out');
-        await supabase.auth.signOut();
-        return;
-      }
-
-      // Try to fetch existing user profile
-      let userProfile = await fetchUserProfile(authUser.id);
-      
-      if (!userProfile) {
-        console.log('No profile found, creating new profile...');
-        userProfile = await createUserProfile(authUser);
-      }
-
-      if (userProfile) {
-        console.log('Setting user profile:', userProfile);
-        setCurrentUser(userProfile);
-      } else {
-        console.error('Failed to get or create user profile');
-        await supabase.auth.signOut();
-      }
-    } catch (error) {
-      console.error('Error handling user session:', error);
-      await supabase.auth.signOut();
-    }
-  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -242,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('Please verify your email address before logging in. Check your inbox for a verification link.');
         }
 
-        // The auth state change listener will handle the rest
+        // The auth state change listener will handle the rest with skipEmailCheck = true
         console.log('Login process completed, waiting for auth state change...');
       }
     } catch (error) {
