@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('*')
         .eq('id', supabaseUser.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -94,6 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             values: data.life_story_values || [],
           } : undefined,
         });
+      } else {
+        console.log('No user profile found for:', supabaseUser.id);
+        setCurrentUser(null);
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
