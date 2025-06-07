@@ -274,9 +274,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (authData.user) {
-        console.log('Auth user created, creating database profile...');
+        console.log('Auth user created, handling database profile...');
         
-        // Create user profile in database
+        // Check if user profile already exists
+        const { data: existingProfile, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', authData.user.id)
+          .single();
+
         const userProfileData = {
           id: authData.user.id,
           name: name.trim(),
@@ -285,18 +291,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           bio: null,
           social_links: {},
           subscription_tier: subscriptionTier,
-          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
 
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert(userProfileData);
+        if (existingProfile) {
+          // Profile exists, update it
+          console.log('Profile exists, updating...');
+          const { error: updateError } = await supabase
+            .from('users')
+            .update(userProfileData)
+            .eq('id', authData.user.id);
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          // Don't throw here as the auth user was created successfully
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+            throw new Error(`Failed to update user profile: ${updateError.message}`);
+          }
+          console.log('Database profile updated successfully');
         } else {
+          // Profile doesn't exist, create it
+          console.log('Profile does not exist, creating...');
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              ...userProfileData,
+              created_at: new Date().toISOString(),
+            });
+
+          if (insertError) {
+            console.error('Profile creation error:', insertError);
+            throw new Error(`Failed to create user profile: ${insertError.message}`);
+          }
           console.log('Database profile created successfully');
         }
 
