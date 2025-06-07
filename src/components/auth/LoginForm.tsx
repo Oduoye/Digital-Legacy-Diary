@@ -189,7 +189,7 @@ const LoginForm: React.FC = () => {
               to="/register"
               className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
             >
-              Sign up here
+              Create one here
             </Link>
           </p>
         </div>
