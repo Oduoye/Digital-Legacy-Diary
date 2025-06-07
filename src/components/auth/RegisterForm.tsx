@@ -327,19 +327,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </div>
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
-            >
-              Sign in here
-            </button>
-          </p>
-        </div>
       </form>
     </>
   );
