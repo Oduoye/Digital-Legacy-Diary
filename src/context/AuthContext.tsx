@@ -254,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       console.log('Attempting registration for:', email);
       
-      // First, sign up the user with Supabase Auth
+      // First, sign up the user with Supabase Auth - NO EMAIL CONFIRMATION
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -263,7 +263,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: name.trim(),
             subscription_tier: subscriptionTier,
           },
-          emailRedirectTo: undefined, // Disable email confirmation
+          // Explicitly disable email confirmation
+          emailRedirectTo: undefined,
         },
       });
 

@@ -9,9 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: window.sessionStorage,
-    persistSession: false,
+    storage: window.localStorage,
+    persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    // Disable email confirmation completely
+    autoRefreshToken: true,
+    debug: false
   }
 });
