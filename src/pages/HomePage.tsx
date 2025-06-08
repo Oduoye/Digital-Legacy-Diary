@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
                 <Link to="/login" className="block w-full sm:w-auto">
                   <Button 
                     size="sm" 
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 whitespace-nowrap"
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2 whitespace-nowrap"
                   >
                     Sign In Now
                   </Button>

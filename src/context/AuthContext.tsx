@@ -100,6 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('Fetching user profile for:', supabaseUser.id);
+      
       // Check if user profile exists
       const { data, error } = await supabase
         .from('users')
@@ -115,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
+        console.log('User profile found:', data);
         // Profile exists, set user
         setCurrentUser({
           ...data,
@@ -130,8 +133,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } : undefined,
         });
       } else {
+        console.log('No user profile found, creating one...');
         // Profile doesn't exist, create it
-        const { error: insertError } = await supabase
+        const { data: newProfile, error: insertError } = await supabase
           .from('users')
           .insert({
             id: supabaseUser.id,
@@ -139,15 +143,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: supabaseUser.email || '',
             subscription_tier: supabaseUser.user_metadata?.subscription_tier || 'free',
             subscription_start_date: new Date().toISOString(),
-          });
+          })
+          .select()
+          .single();
 
         if (insertError) {
           console.error('Error creating user profile:', insertError);
           setCurrentUser(null);
         } else {
-          // Fetch the newly created profile
-          await fetchUserProfile(supabaseUser);
-          return;
+          console.log('User profile created:', newProfile);
+          setCurrentUser({
+            ...newProfile,
+            created_at: new Date(newProfile.created_at),
+            updated_at: new Date(newProfile.updated_at),
+          });
         }
       }
     } catch (error) {
@@ -160,12 +169,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
@@ -177,8 +188,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
+      console.log('Login successful:', data.user?.email);
       // The auth state change listener will handle fetching the profile
     } catch (error: any) {
+      console.error('Login error:', error);
       throw error;
     }
   };
@@ -187,6 +200,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
+
+      console.log('Attempting registration for:', cleanEmail);
 
       // Get the current origin for redirect URL - redirect to root with verified parameter
       const redirectTo = `${window.location.origin}/?verified=true`;
@@ -205,6 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (authError) {
+        console.error('Registration error:', authError);
         if (authError.message.includes('User already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.');
         } else {
@@ -215,6 +231,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!authData.user) {
         throw new Error('Failed to create user account. Please try again.');
       }
+
+      console.log('Registration successful:', authData.user.email, 'Session:', !!authData.session);
 
       // If user is immediately confirmed (no email verification required)
       if (authData.session) {
@@ -238,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { emailConfirmationRequired: !authData.session };
       
     } catch (error: any) {
+      console.error('Registration error:', error);
       throw error;
     }
   };
@@ -322,7 +341,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteAccount = async () => {
     if (!currentUser) throw new Error('No user logged in');
 
-    // Delete user data
+    // Delete user data from public.users table
     const { error } = await supabase
       .from('users')
       .delete()
@@ -330,6 +349,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (error) throw error;
 
+    // Sign out the user
     await logout();
   };
 
