@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Book, Shield, Users, Lock, ArrowRight, Heart, Star, Sparkles, CheckCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
@@ -8,8 +8,32 @@ import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const verified = searchParams.get('verified');
+
+  // Handle email verification redirect
+  useEffect(() => {
+    const handleEmailVerification = () => {
+      // Check if this is an email verification redirect
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
+      
+      if (accessToken && refreshToken && type === 'signup') {
+        console.log('📧 Email verification detected, processing...');
+        
+        // Set verified parameter and clean up URL
+        const newSearchParams = new URLSearchParams();
+        newSearchParams.set('verified', 'true');
+        
+        // Replace current URL with clean version
+        navigate(`/?${newSearchParams.toString()}`, { replace: true });
+      }
+    };
+
+    handleEmailVerification();
+  }, [searchParams, navigate]);
 
   // If user is authenticated, redirect to dashboard
   if (currentUser) {
