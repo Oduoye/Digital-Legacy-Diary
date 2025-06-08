@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, RefreshCw, AlertTriangle, Clock } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -20,14 +20,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const { register, resendVerificationEmail } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
@@ -82,16 +81,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setIsLoading(true);
 
     try {
-      const result = await register(name.trim(), email.trim(), password, selectedTier);
-      setEmailConfirmationRequired(result.emailConfirmationRequired);
+      await register(name.trim(), email.trim(), password, selectedTier);
       setShowSuccessMessage(true);
       
-      if (!result.emailConfirmationRequired) {
-        // User is automatically logged in, redirect to dashboard
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      }
+      // User is automatically logged in, redirect to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
@@ -101,29 +97,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
   const handleCloseSuccess = () => {
     setShowSuccessMessage(false);
-    if (emailConfirmationRequired) {
-      navigate('/login');
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleResendVerification = async () => {
-    try {
-      setIsLoading(true);
-      await resendVerificationEmail(email);
-      setError('');
-      // Show a temporary success message
-      const originalError = error;
-      setError('New verification email sent! Please check your inbox.');
-      setTimeout(() => {
-        setError(originalError);
-      }, 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend verification email.');
-    } finally {
-      setIsLoading(false);
-    }
+    navigate('/dashboard');
   };
 
   const handleFieldChange = (field: string, value: string) => {
@@ -173,72 +147,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Account Created Successfully!
               </h3>
-              
-              {emailConfirmationRequired ? (
-                <>
-                  <p className="text-gray-600 mb-4">
-                    Welcome to Digital Legacy Diary! Please verify your email to complete your registration.
-                  </p>
-                  
-                  {/* Email Verification Notice */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start space-x-3">
-                      <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-left">
-                        <h4 className="text-sm font-medium text-blue-900 mb-1">
-                          Email Verification Required
-                        </h4>
-                        <p className="text-sm text-blue-700 mb-3">
-                          We've sent a verification email to <strong>{email}</strong>. 
-                          Please check your inbox (and spam folder) and click the verification link.
-                        </p>
-                        
-                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
-                          <div className="flex items-start space-x-2">
-                            <Clock className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-xs text-yellow-700 font-medium mb-1">
-                                Important: Verification links expire in 24 hours
-                              </p>
-                              <p className="text-xs text-yellow-700">
-                                The verification link will redirect you back to the login page where you can sign in with your new account.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <button
-                          onClick={handleResendVerification}
-                          disabled={isLoading}
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium underline flex items-center"
-                        >
-                          {isLoading ? (
-                            <>
-                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                              Sending...
-                            </>
-                          ) : (
-                            "Didn't receive the email? Send a new one"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button onClick={handleCloseSuccess} className="w-full">
-                    Continue to Login
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-600 mb-4">
-                    Welcome to Digital Legacy Diary! You're now logged in and ready to start preserving your memories.
-                  </p>
-                  <Button onClick={handleCloseSuccess} className="w-full">
-                    Go to Dashboard
-                  </Button>
-                </>
-              )}
+              <p className="text-gray-600 mb-4">
+                Welcome to Digital Legacy Diary! You're now logged in and ready to start preserving your memories.
+              </p>
+              <Button onClick={handleCloseSuccess} className="w-full">
+                Go to Dashboard
+              </Button>
             </div>
           </div>
         </div>
@@ -246,17 +160,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className={`p-3 rounded-md text-sm animate-shake ${
-            error.includes('verification email sent') || error.includes('New verification email sent')
-              ? 'bg-green-50 text-green-700' 
-              : 'bg-red-50 text-red-700'
-          }`}>
+          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
             <div className="flex items-start space-x-2">
-              {error.includes('verification email sent') || error.includes('New verification email sent') ? (
-                <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              ) : (
-                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              )}
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
           </div>

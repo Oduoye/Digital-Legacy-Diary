@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
-import { Book, Shield, Users, Lock, ArrowRight, Heart, Star, Sparkles, CheckCircle } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
+import { Book, Shield, Users, ArrowRight, Heart, Star, Sparkles, CheckCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import LiveChatButton from '../components/ui/LiveChatButton';
@@ -8,8 +8,6 @@ import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
-  const [searchParams] = useSearchParams();
-  const verified = searchParams.get('verified');
 
   // If user is authenticated, redirect to dashboard
   if (currentUser) {
@@ -18,33 +16,6 @@ const HomePage: React.FC = () => {
 
   return (
     <Layout>
-      {/* Email Verification Success Message */}
-      {verified === 'true' && (
-        <div className="bg-green-50 border border-green-200 p-4 animate-slide-down">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-              <div className="flex-grow">
-                <h3 className="text-sm font-medium text-green-800">Email Verified Successfully!</h3>
-                <p className="text-sm text-green-700">
-                  Your email has been verified. You can now sign in to your account.
-                </p>
-              </div>
-              <div className="w-full sm:w-auto">
-                <Link to="/login" className="block w-full sm:w-auto">
-                  <Button 
-                    size="sm" 
-                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2 whitespace-nowrap"
-                  >
-                    Sign In Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 overflow-hidden animate-fade-in">
         <div className="absolute inset-0">

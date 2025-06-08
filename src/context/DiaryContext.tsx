@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DiaryEntry, TrustedContact } from '../types';
 import { useAuth } from './AuthContext';
 import { generateLifeStory } from '../utils/lifeStoryWeaver';
-import { supabase } from '../lib/supabase';
 
 interface DiaryContextType {
   entries: DiaryEntry[];
@@ -32,6 +31,10 @@ const DiaryContext = createContext<DiaryContextType>({
 
 export const useDiary = () => useContext(DiaryContext);
 
+// Local storage keys
+const ENTRIES_KEY = 'digital_legacy_entries';
+const CONTACTS_KEY = 'digital_legacy_contacts';
+
 export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, updateProfile } = useAuth();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
@@ -48,109 +51,71 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [currentUser]);
 
-  const loadEntries = async () => {
+  const getUserKey = (key: string) => `${key}_${currentUser?.id}`;
+
+  const loadEntries = () => {
     if (!currentUser) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('diary_entries')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedEntries = data.map(entry => ({
+    
+    const stored = localStorage.getItem(getUserKey(ENTRIES_KEY));
+    if (stored) {
+      const parsedEntries = JSON.parse(stored).map((entry: any) => ({
         ...entry,
-        createdAt: new Date(entry.created_at),
-        updatedAt: new Date(entry.updated_at),
-        userId: entry.user_id,
+        createdAt: new Date(entry.createdAt),
+        updatedAt: new Date(entry.updatedAt),
       }));
-
-      setEntries(formattedEntries);
-    } catch (error) {
-      console.error('Error loading entries:', error);
+      setEntries(parsedEntries);
     }
   };
 
-  const loadTrustedContacts = async () => {
+  const saveEntries = (newEntries: DiaryEntry[]) => {
     if (!currentUser) return;
+    localStorage.setItem(getUserKey(ENTRIES_KEY), JSON.stringify(newEntries));
+  };
 
-    try {
-      const { data, error } = await supabase
-        .from('trusted_contacts')
-        .select('*')
-        .eq('user_id', currentUser.id);
-
-      if (error) throw error;
-
-      setTrustedContacts(data || []);
-    } catch (error) {
-      console.error('Error loading trusted contacts:', error);
+  const loadTrustedContacts = () => {
+    if (!currentUser) return;
+    
+    const stored = localStorage.getItem(getUserKey(CONTACTS_KEY));
+    if (stored) {
+      setTrustedContacts(JSON.parse(stored));
     }
+  };
+
+  const saveTrustedContacts = (newContacts: TrustedContact[]) => {
+    if (!currentUser) return;
+    localStorage.setItem(getUserKey(CONTACTS_KEY), JSON.stringify(newContacts));
   };
 
   const addEntry = async (entry: Omit<DiaryEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
     if (!currentUser) throw new Error('No user logged in');
     
-    const { data, error } = await supabase
-      .from('diary_entries')
-      .insert({
-        user_id: currentUser.id,
-        title: entry.title,
-        content: entry.content,
-        tags: entry.tags,
-        images: entry.images,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
     const newEntry: DiaryEntry = {
-      id: data.id,
-      title: data.title,
-      content: data.content,
-      tags: data.tags,
-      images: data.images,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
-      userId: data.user_id,
+      id: crypto.randomUUID(),
+      ...entry,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: currentUser.id,
     };
 
-    setEntries(prev => [newEntry, ...prev]);
+    const newEntries = [newEntry, ...entries];
+    setEntries(newEntries);
+    saveEntries(newEntries);
   };
 
   const updateEntry = async (id: string, updates: Partial<DiaryEntry>) => {
-    const { error } = await supabase
-      .from('diary_entries')
-      .update({
-        title: updates.title,
-        content: updates.content,
-        tags: updates.tags,
-        images: updates.images,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-
-    setEntries(prev => prev.map(entry => 
+    const newEntries = entries.map(entry => 
       entry.id === id 
         ? { ...entry, ...updates, updatedAt: new Date() }
         : entry
-    ));
+    );
+    setEntries(newEntries);
+    saveEntries(newEntries);
   };
 
   const deleteEntry = async (id: string) => {
-    const { error } = await supabase
-      .from('diary_entries')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    setEntries(prev => prev.filter(entry => entry.id !== id));
+    const newEntries = entries.filter(entry => entry.id !== id);
+    setEntries(newEntries);
+    saveEntries(newEntries);
   };
 
   const getEntry = (id: string) => {
@@ -160,51 +125,28 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addTrustedContact = async (contact: Omit<TrustedContact, 'id'>) => {
     if (!currentUser) throw new Error('No user logged in');
 
-    const { data, error } = await supabase
-      .from('trusted_contacts')
-      .insert({
-        user_id: currentUser.id,
-        name: contact.name,
-        email: contact.email,
-        relationship: contact.relationship,
-        picture: contact.picture,
-      })
-      .select()
-      .single();
+    const newContact: TrustedContact = {
+      id: crypto.randomUUID(),
+      ...contact,
+    };
 
-    if (error) throw error;
-
-    setTrustedContacts(prev => [...prev, data]);
+    const newContacts = [...trustedContacts, newContact];
+    setTrustedContacts(newContacts);
+    saveTrustedContacts(newContacts);
   };
 
   const removeTrustedContact = async (id: string) => {
-    const { error } = await supabase
-      .from('trusted_contacts')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    setTrustedContacts(prev => prev.filter(contact => contact.id !== id));
+    const newContacts = trustedContacts.filter(contact => contact.id !== id);
+    setTrustedContacts(newContacts);
+    saveTrustedContacts(newContacts);
   };
 
   const updateTrustedContact = async (id: string, updates: Partial<TrustedContact>) => {
-    const { error } = await supabase
-      .from('trusted_contacts')
-      .update({
-        name: updates.name,
-        email: updates.email,
-        relationship: updates.relationship,
-        picture: updates.picture,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-
-    setTrustedContacts(prev => prev.map(contact => 
+    const newContacts = trustedContacts.map(contact => 
       contact.id === id ? { ...contact, ...updates } : contact
-    ));
+    );
+    setTrustedContacts(newContacts);
+    saveTrustedContacts(newContacts);
   };
 
   const generateLifeStoryInsights = async () => {
@@ -212,25 +154,7 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const lifeStory = generateLifeStory(entries);
     
-    // Update the database
-    const { error } = await supabase
-      .from('users')
-      .update({
-        life_story_last_generated: lifeStory.lastGenerated.toISOString(),
-        life_story_narrative: lifeStory.narrative,
-        life_story_themes: lifeStory.themes,
-        life_story_timeline: lifeStory.timeline,
-        life_story_relationships: lifeStory.relationships,
-        life_story_values: lifeStory.values,
-      })
-      .eq('id', currentUser.id);
-
-    if (error) {
-      console.error('Error updating life story:', error);
-      throw error;
-    }
-
-    // Update local state
+    // Update local user profile
     updateProfile({ lifeStory });
   };
 
