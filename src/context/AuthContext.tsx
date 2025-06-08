@@ -118,11 +118,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         console.log('User profile found:', data);
-        // Profile exists, set user - map database fields to frontend fields
+        // Profile exists, set user - map database fields to frontend fields safely
         setCurrentUser({
           ...data,
-          profilePicture: data.profile_picture, // Map database field to frontend field
-          socialLinks: data.social_links,
+          profilePicture: data.profile_picture || undefined, // Safe mapping with fallback
+          socialLinks: data.social_links || undefined, // Safe mapping with fallback
           created_at: new Date(data.created_at),
           updated_at: new Date(data.updated_at),
           lifeStory: data.life_story_narrative ? {
@@ -156,8 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('User profile created:', newProfile);
           setCurrentUser({
             ...newProfile,
-            profilePicture: newProfile.profile_picture, // Map database field to frontend field
-            socialLinks: newProfile.social_links,
+            profilePicture: newProfile.profile_picture || undefined, // Safe mapping with fallback
+            socialLinks: newProfile.social_links || undefined, // Safe mapping with fallback
             created_at: new Date(newProfile.created_at),
             updated_at: new Date(newProfile.updated_at),
           });
