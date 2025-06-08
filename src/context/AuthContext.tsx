@@ -209,8 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('📝 Attempting registration for:', cleanEmail);
 
-      // Get the current origin for redirect URL
-      const redirectTo = `${window.location.origin}/login?verified=true`;
+      // Get the current origin for redirect URL - redirect to root for SPA
+      const redirectTo = `${window.location.origin}/?verified=true`;
       console.log('🔗 Redirect URL:', redirectTo);
 
       // Create auth user with metadata
@@ -337,7 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         type: 'signup',
         email: targetEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/login?verified=true`,
+          emailRedirectTo: `${window.location.origin}/?verified=true`,
         }
       });
 
