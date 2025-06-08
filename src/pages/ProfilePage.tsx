@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Twitter, Linkedin, Facebook, Instagram, ArrowLeft } from 'lucide-react';
+import { Camera, Twitter, Linkedin, Facebook, Instagram, ArrowLeft, CheckCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -12,6 +12,9 @@ const ProfilePage: React.FC = () => {
   const { currentUser, updateProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
     bio: currentUser?.bio || '',
@@ -23,22 +26,66 @@ const ProfilePage: React.FC = () => {
     }
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, this would upload to a storage service
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateProfile({ profilePicture: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+      try {
+        setIsLoading(true);
+        setError('');
+        
+        // In a real app, this would upload to a storage service
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            await updateProfile({ profilePicture: reader.result as string });
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+          } catch (err: any) {
+            setError('Failed to update profile picture. Please try again.');
+            console.error('Profile picture update error:', err);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err: any) {
+        setError('Failed to process image. Please try again.');
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile(formData);
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      await updateProfile(formData);
+      setIsEditing(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err: any) {
+      setError('Failed to update profile. Please try again.');
+      console.error('Profile update error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
     setIsEditing(false);
+    setError('');
+    setFormData({
+      name: currentUser?.name || '',
+      bio: currentUser?.bio || '',
+      socialLinks: {
+        twitter: currentUser?.socialLinks?.twitter || '',
+        linkedin: currentUser?.socialLinks?.linkedin || '',
+        facebook: currentUser?.socialLinks?.facebook || '',
+        instagram: currentUser?.socialLinks?.instagram || '',
+      }
+    });
   };
 
   return (
@@ -58,6 +105,23 @@ const ProfilePage: React.FC = () => {
           <h1 className="text-3xl font-serif font-bold text-gray-900">Your Profile</h1>
           <p className="text-gray-600 mt-2">Manage your personal information and social links</p>
         </div>
+
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="mb-6 bg-green-50 text-green-700 p-4 rounded-md animate-slide-down">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5" />
+              <span>Profile updated successfully!</span>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-md animate-shake">
+            {error}
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Profile Picture Card */}
@@ -85,7 +149,8 @@ const ProfilePage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors"
+                    disabled={isLoading}
+                    className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     <Camera className="h-5 w-5 text-gray-600" />
                   </button>
@@ -100,6 +165,9 @@ const ProfilePage: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">{currentUser?.name}</h3>
                   <p className="text-sm text-gray-500">{currentUser?.email}</p>
+                  {isLoading && (
+                    <p className="text-sm text-blue-600 mt-1">Updating profile picture...</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -110,7 +178,11 @@ const ProfilePage: React.FC = () => {
             <CardHeader className="flex justify-between items-center">
               <h2 className="text-xl font-serif font-semibold text-gray-900">Profile Information</h2>
               {!isEditing && (
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditing(true)}
+                  disabled={isLoading}
+                >
                   Edit Profile
                 </Button>
               )}
@@ -123,6 +195,7 @@ const ProfilePage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
+                    disabled={isLoading}
                   />
                   
                   <Textarea
@@ -131,6 +204,7 @@ const ProfilePage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                     placeholder="Tell us about yourself..."
                     className="h-32"
+                    disabled={isLoading}
                   />
                   
                   <div className="space-y-4">
@@ -143,6 +217,7 @@ const ProfilePage: React.FC = () => {
                         ...formData,
                         socialLinks: { ...formData.socialLinks, twitter: e.target.value }
                       })}
+                      disabled={isLoading}
                     />
                     <Input
                       icon={<Linkedin className="h-5 w-5 text-gray-400" />}
@@ -152,6 +227,7 @@ const ProfilePage: React.FC = () => {
                         ...formData,
                         socialLinks: { ...formData.socialLinks, linkedin: e.target.value }
                       })}
+                      disabled={isLoading}
                     />
                     <Input
                       icon={<Facebook className="h-5 w-5 text-gray-400" />}
@@ -161,6 +237,7 @@ const ProfilePage: React.FC = () => {
                         ...formData,
                         socialLinks: { ...formData.socialLinks, facebook: e.target.value }
                       })}
+                      disabled={isLoading}
                     />
                     <Input
                       icon={<Instagram className="h-5 w-5 text-gray-400" />}
@@ -170,6 +247,7 @@ const ProfilePage: React.FC = () => {
                         ...formData,
                         socialLinks: { ...formData.socialLinks, instagram: e.target.value }
                       })}
+                      disabled={isLoading}
                     />
                   </div>
                   
@@ -177,11 +255,18 @@ const ProfilePage: React.FC = () => {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      onClick={() => setIsEditing(false)}
+                      onClick={handleCancel}
+                      disabled={isLoading}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">Save Changes</Button>
+                    <Button 
+                      type="submit" 
+                      isLoading={isLoading}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -241,6 +326,12 @@ const ProfilePage: React.FC = () => {
                         </a>
                       )}
                     </div>
+                    {!currentUser?.socialLinks?.twitter && 
+                     !currentUser?.socialLinks?.linkedin && 
+                     !currentUser?.socialLinks?.facebook && 
+                     !currentUser?.socialLinks?.instagram && (
+                      <p className="text-gray-500 text-sm">No social links added yet.</p>
+                    )}
                   </div>
                 </div>
               )}

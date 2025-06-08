@@ -176,6 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       console.log('🔐 Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
@@ -281,17 +282,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<User>) => {
     if (!currentUser) throw new Error('No user logged in');
 
-    const { error } = await supabase
-      .from('users')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', currentUser.id);
+    try {
+      console.log('🔄 Updating profile:', updates);
+      
+      const { error } = await supabase
+        .from('users')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentUser.id);
 
-    if (error) throw error;
+      if (error) {
+        console.error('❌ Error updating profile:', error);
+        throw error;
+      }
 
-    setCurrentUser(prev => prev ? { ...prev, ...updates, updated_at: new Date() } : null);
+      console.log('✅ Profile updated successfully');
+      setCurrentUser(prev => prev ? { ...prev, ...updates, updated_at: new Date() } : null);
+    } catch (error) {
+      console.error('❌ Profile update failed:', error);
+      throw error;
+    }
   };
 
   const updateEmail = async (newEmail: string) => {
