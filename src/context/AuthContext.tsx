@@ -118,11 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         console.log('User profile found:', data);
-        // Profile exists, set user - map database fields to frontend fields safely
+        // Profile exists, set user
         setCurrentUser({
           ...data,
-          profilePicture: data.profile_picture || undefined, // Safe mapping with fallback
-          socialLinks: data.social_links || undefined, // Safe mapping with fallback
           created_at: new Date(data.created_at),
           updated_at: new Date(data.updated_at),
           lifeStory: data.life_story_narrative ? {
@@ -156,8 +154,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('User profile created:', newProfile);
           setCurrentUser({
             ...newProfile,
-            profilePicture: newProfile.profile_picture || undefined, // Safe mapping with fallback
-            socialLinks: newProfile.social_links || undefined, // Safe mapping with fallback
             created_at: new Date(newProfile.created_at),
             updated_at: new Date(newProfile.updated_at),
           });
@@ -274,27 +270,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<User>) => {
     if (!currentUser) throw new Error('No user logged in');
 
-    // Map frontend fields to database fields
-    const dbUpdates: any = {
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-
-    // Map profilePicture to profile_picture for database
-    if ('profilePicture' in updates) {
-      dbUpdates.profile_picture = updates.profilePicture;
-      delete dbUpdates.profilePicture;
-    }
-
-    // Map socialLinks to social_links for database
-    if ('socialLinks' in updates) {
-      dbUpdates.social_links = updates.socialLinks;
-      delete dbUpdates.socialLinks;
-    }
-
     const { error } = await supabase
       .from('users')
-      .update(dbUpdates)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', currentUser.id);
 
     if (error) throw error;
