@@ -49,23 +49,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('🔄 Initializing auth...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('❌ Error getting session:', error);
           if (mounted) {
             setLoading(false);
           }
           return;
         }
 
+        console.log('📋 Initial session:', session ? 'Found' : 'None');
         if (session?.user && mounted) {
+          console.log('👤 User found in session:', session.user.email);
           await fetchUserProfile(session.user);
         } else if (mounted) {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -78,14 +81,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('🔔 Auth state changed:', event, session?.user?.email || 'No user');
 
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in:', session.user.email);
         await fetchUserProfile(session.user);
       } else if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out');
         setCurrentUser(null);
         setLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        console.log('🔄 Token refreshed for:', session.user.email);
         await fetchUserProfile(session.user);
       } else {
         setLoading(false);
@@ -100,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      console.log('Fetching user profile for:', supabaseUser.id);
+      console.log('📊 Fetching user profile for:', supabaseUser.id, supabaseUser.email);
       
       // Check if user profile exists
       const { data, error } = await supabase
@@ -110,14 +116,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('❌ Error fetching user profile:', error);
         setCurrentUser(null);
         setLoading(false);
         return;
       }
 
       if (data) {
-        console.log('User profile found:', data);
+        console.log('✅ User profile found:', data.email);
         // Profile exists, set user
         setCurrentUser({
           ...data,
@@ -133,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } : undefined,
         });
       } else {
-        console.log('No user profile found, creating one...');
+        console.log('⚠️ No user profile found, creating one...');
         // Profile doesn't exist, create it
         const { data: newProfile, error: insertError } = await supabase
           .from('users')
@@ -148,10 +154,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .single();
 
         if (insertError) {
-          console.error('Error creating user profile:', insertError);
+          console.error('❌ Error creating user profile:', insertError);
           setCurrentUser(null);
         } else {
-          console.log('User profile created:', newProfile);
+          console.log('✅ User profile created:', newProfile.email);
           setCurrentUser({
             ...newProfile,
             created_at: new Date(newProfile.created_at),
@@ -160,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('❌ Error in fetchUserProfile:', error);
       setCurrentUser(null);
     } finally {
       setLoading(false);
@@ -169,14 +175,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login for:', email);
+      console.log('🔐 Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
@@ -188,10 +194,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      console.log('Login successful:', data.user?.email);
+      console.log('✅ Login successful for:', data.user?.email);
       // The auth state change listener will handle fetching the profile
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       throw error;
     }
   };
@@ -201,10 +207,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cleanEmail = email.trim().toLowerCase();
       const cleanName = name.trim();
 
-      console.log('Attempting registration for:', cleanEmail);
+      console.log('📝 Attempting registration for:', cleanEmail);
 
-      // Get the current origin for redirect URL - redirect to root with verified parameter
-      const redirectTo = `${window.location.origin}/?verified=true`;
+      // Get the current origin for redirect URL
+      const redirectTo = `${window.location.origin}/login?verified=true`;
+      console.log('🔗 Redirect URL:', redirectTo);
 
       // Create auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -220,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (authError) {
-        console.error('Registration error:', authError);
+        console.error('❌ Registration error:', authError);
         if (authError.message.includes('User already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.');
         } else {
@@ -232,10 +239,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Failed to create user account. Please try again.');
       }
 
-      console.log('Registration successful:', authData.user.email, 'Session:', !!authData.session);
+      console.log('✅ Registration successful:', authData.user.email, 'Session:', !!authData.session);
 
       // If user is immediately confirmed (no email verification required)
       if (authData.session) {
+        console.log('🎯 User immediately confirmed, creating profile...');
         // Create user profile
         const { error: profileError } = await supabase
           .from('users')
@@ -248,20 +256,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
         if (profileError) {
-          console.error('Profile creation error:', profileError);
+          console.error('⚠️ Profile creation error:', profileError);
           // Don't throw here - the user account was created successfully
         }
+      } else {
+        console.log('📧 Email verification required');
       }
 
       return { emailConfirmationRequired: !authData.session };
       
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error('❌ Registration error:', error);
       throw error;
     }
   };
 
   const logout = async () => {
+    console.log('👋 Logging out...');
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setCurrentUser(null);
@@ -320,16 +331,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('No email address found');
       }
 
+      console.log('📧 Resending verification email to:', targetEmail);
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: targetEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/?verified=true`,
+          emailRedirectTo: `${window.location.origin}/login?verified=true`,
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error resending verification:', error);
+        throw error;
+      }
+
+      console.log('✅ Verification email resent successfully');
     } catch (error: any) {
+      console.error('❌ Resend verification error:', error);
       throw error;
     }
   };

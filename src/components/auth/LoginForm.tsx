@@ -32,19 +32,24 @@ const LoginForm: React.FC = () => {
     const errorCode = searchParams.get('error_code');
     const errorDescription = searchParams.get('error_description');
 
+    console.log('🔍 URL params:', { verified, errorParam, errorCode, errorDescription });
+
     if (verified === 'true') {
+      console.log('✅ Email verification successful');
       setShowVerificationSuccess(true);
       // Remove the parameter from URL
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.delete('verified');
       navigate(`/login?${newSearchParams.toString()}`, { replace: true });
     } else if (errorParam === 'access_denied' && errorCode === 'otp_expired') {
+      console.log('⏰ Verification link expired');
       setShowExpiredLinkMessage(true);
       setError('Your verification link has expired. Please request a new verification email below.');
       setShowResendVerification(true);
       // Clean up URL
       navigate('/login', { replace: true });
     } else if (errorParam) {
+      console.log('❌ Verification error:', errorParam, errorDescription);
       setError('There was an issue with your verification link. Please try signing in or request a new verification email.');
       setShowResendVerification(true);
       // Clean up URL
@@ -109,7 +114,7 @@ const LoginForm: React.FC = () => {
         setShowResendVerification(true);
       }
       
-      console.error(err);
+      console.error('❌ Login error:', err);
     } finally {
       setIsLoading(false);
     }
