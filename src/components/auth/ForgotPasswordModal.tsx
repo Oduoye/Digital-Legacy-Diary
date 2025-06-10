@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -18,7 +18,6 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const { resetPassword } = useAuth();
 
   if (!isOpen) return null;
 
@@ -45,7 +44,14 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setIsLoading(true);
 
     try {
-      await resetPassword(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
       setIsSuccess(true);
       setTimeout(() => {
         onClose();

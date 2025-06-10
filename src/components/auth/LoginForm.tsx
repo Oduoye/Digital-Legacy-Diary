@@ -4,6 +4,7 @@ import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, AlertTriangle } from '
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import ForgotPasswordModal from './ForgotPasswordModal';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     email: '',
     password: '',
@@ -170,6 +172,15 @@ const LoginForm: React.FC = () => {
               )}
             </button>
           </div>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Forgot your password?
+            </button>
+          </div>
         </div>
 
         <Button 
@@ -181,6 +192,11 @@ const LoginForm: React.FC = () => {
           {isLoading ? 'Signing In...' : 'Sign In'}
         </Button>
       </form>
+
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </>
   );
 };

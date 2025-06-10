@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { User } from '../types';
 
 interface AuthContextType {
@@ -37,139 +39,218 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-// Mock users storage
-const USERS_KEY = 'digital_legacy_users';
-const CURRENT_USER_KEY = 'digital_legacy_current_user';
-
-const getStoredUsers = (): User[] => {
-  const stored = localStorage.getItem(USERS_KEY);
-  return stored ? JSON.parse(stored) : [];
-};
-
-const saveUsers = (users: User[]) => {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-};
-
-const getCurrentUser = (): User | null => {
-  const stored = localStorage.getItem(CURRENT_USER_KEY);
-  if (!stored) return null;
-  
-  const userData = JSON.parse(stored);
+// Helper function to convert database user to app user
+const convertDbUserToAppUser = (dbUser: any): User => {
   return {
-    ...userData,
-    created_at: new Date(userData.created_at),
-    updated_at: new Date(userData.updated_at),
+    id: dbUser.id,
+    name: dbUser.name,
+    email: dbUser.email,
+    profilePicture: dbUser.profile_picture,
+    bio: dbUser.bio,
+    socialLinks: dbUser.social_links || {},
+    subscription_tier: dbUser.subscription_tier || 'free',
+    created_at: new Date(dbUser.created_at),
+    updated_at: new Date(dbUser.updated_at),
+    lifeStory: dbUser.life_story_narrative ? {
+      lastGenerated: new Date(dbUser.life_story_last_generated),
+      narrative: dbUser.life_story_narrative,
+      themes: dbUser.life_story_themes || [],
+      timeline: dbUser.life_story_timeline || [],
+      relationships: dbUser.life_story_relationships || [],
+      values: dbUser.life_story_values || [],
+    } : undefined,
   };
-};
-
-const setCurrentUser = (user: User | null) => {
-  if (user) {
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-  } else {
-    localStorage.removeItem(CURRENT_USER_KEY);
-  }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUserState] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load current user from localStorage on app start
-    const user = getCurrentUser();
-    setCurrentUserState(user);
-    setLoading(false);
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await fetchUserProfile(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      if (data) {
+        setCurrentUser(convertDbUserToAppUser(data));
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
   const login = async (email: string, password: string) => {
-    const users = getStoredUsers();
-    const user = users.find(u => u.email === email.toLowerCase());
-    
-    if (!user) {
-      throw new Error('Invalid email or password. Please check your credentials and try again.');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw new Error(error.message);
     }
-    
-    // In a real app, you'd verify the password hash
-    // For demo purposes, we'll just check if password is not empty
-    if (!password) {
-      throw new Error('Invalid email or password. Please check your credentials and try again.');
+
+    if (data.user) {
+      await fetchUserProfile(data.user.id);
     }
-    
-    setCurrentUser(user);
-    setCurrentUserState(user);
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    const users = getStoredUsers();
-    const existingUser = users.find(u => u.email === email.toLowerCase());
-    
-    if (existingUser) {
-      throw new Error('An account with this email already exists. Please sign in instead.');
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          subscription_tier: subscriptionTier,
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(error.message);
     }
-    
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      email: email.toLowerCase(),
-      subscription_tier: subscriptionTier,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    
-    users.push(newUser);
-    saveUsers(users);
-    setCurrentUser(newUser);
-    setCurrentUserState(newUser);
-    
+
+    // The user profile will be created automatically by the trigger
+    // If user is immediately confirmed, fetch their profile
+    if (data.user && !data.user.email_confirmed_at) {
+      return { emailConfirmationRequired: true };
+    }
+
+    if (data.user) {
+      await fetchUserProfile(data.user.id);
+    }
+
     return { emailConfirmationRequired: false };
   };
 
   const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw new Error(error.message);
+    }
     setCurrentUser(null);
-    setCurrentUserState(null);
   };
 
   const updateProfile = async (updates: Partial<User>) => {
     if (!currentUser) throw new Error('No user logged in');
 
-    const updatedUser = {
-      ...currentUser,
-      ...updates,
-      updated_at: new Date(),
+    const dbUpdates: any = {
+      updated_at: new Date().toISOString(),
     };
 
-    // Update in storage
-    const users = getStoredUsers();
-    const userIndex = users.findIndex(u => u.id === currentUser.id);
-    if (userIndex !== -1) {
-      users[userIndex] = updatedUser;
-      saveUsers(users);
+    // Map app user fields to database fields
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.socialLinks !== undefined) dbUpdates.social_links = updates.socialLinks;
+    if (updates.subscription_tier !== undefined) dbUpdates.subscription_tier = updates.subscription_tier;
+    
+    if (updates.lifeStory !== undefined) {
+      dbUpdates.life_story_last_generated = updates.lifeStory.lastGenerated.toISOString();
+      dbUpdates.life_story_narrative = updates.lifeStory.narrative;
+      dbUpdates.life_story_themes = updates.lifeStory.themes;
+      dbUpdates.life_story_timeline = updates.lifeStory.timeline;
+      dbUpdates.life_story_relationships = updates.lifeStory.relationships;
+      dbUpdates.life_story_values = updates.lifeStory.values;
     }
 
-    setCurrentUser(updatedUser);
-    setCurrentUserState(updatedUser);
+    const { error } = await supabase
+      .from('users')
+      .update(dbUpdates)
+      .eq('id', currentUser.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Update local state
+    setCurrentUser(prev => prev ? { ...prev, ...updates, updated_at: new Date() } : null);
   };
 
   const updateEmail = async (newEmail: string) => {
-    await updateProfile({ email: newEmail.toLowerCase() });
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    await updateProfile({ email: newEmail });
   };
 
   const updatePassword = async (newPassword: string) => {
-    // In a real app, you'd hash and store the password
-    // For demo purposes, we'll just simulate success
-    console.log('Password updated successfully');
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const resetPassword = async (email: string) => {
-    // In a real app, you'd send a reset email
-    // For demo purposes, we'll just simulate success
-    console.log('Password reset email sent to:', email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const resendVerificationEmail = async (email?: string) => {
-    // In a real app, you'd resend verification email
-    // For demo purposes, we'll just simulate success
-    console.log('Verification email sent to:', email);
+    if (!email && !currentUser?.email) {
+      throw new Error('No email provided');
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email || currentUser!.email,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const deactivateAccount = async () => {
@@ -179,10 +260,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteAccount = async () => {
     if (!currentUser) throw new Error('No user logged in');
 
-    // Remove user from storage
-    const users = getStoredUsers();
-    const filteredUsers = users.filter(u => u.id !== currentUser.id);
-    saveUsers(filteredUsers);
+    // Delete user data from our tables (cascading deletes will handle related data)
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', currentUser.id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
 
     await logout();
   };

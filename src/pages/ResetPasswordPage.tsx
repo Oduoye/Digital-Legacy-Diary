@@ -32,10 +32,18 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     // Set the session with the tokens from the URL
-    supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    const setSession = async () => {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (error) {
+        setError('Invalid or expired reset link. Please request a new password reset.');
+      }
+    };
+
+    setSession();
   }, [accessToken, refreshToken]);
 
   const validateForm = () => {
