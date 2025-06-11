@@ -210,14 +210,15 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* KYC Verification Coming Soon Banner - Compact Version */}
+          {/* KYC Verification Coming Soon Banner - Enhanced with Premium Styling */}
           <div 
             className={`mb-8 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
             style={{ transitionDelay: '200ms' }}
           >
-            <Card className="backdrop-blur-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/20 shadow-xl">
+            <Card className="backdrop-blur-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/20 shadow-xl relative">
+              <div className="absolute -top-px left-1/2 -translate-x-1/2 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-pulse" />
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
