@@ -76,47 +76,50 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
       try {
         console.log('📞 Opening Tawk.to chat interface...');
         
-        // First show the widget, then maximize it
+        // Method 1: Try to show and maximize
         window.Tawk_API.showWidget();
         
-        // Small delay to ensure the widget is ready
         setTimeout(() => {
           if (window.Tawk_API) {
             window.Tawk_API.maximize();
-            console.log('✅ Chat interface should now be visible');
+            console.log('✅ Chat maximize called');
+            
+            // Force show the container if it's still hidden
+            setTimeout(() => {
+              const container = document.getElementById('tawkchat-container');
+              if (container) {
+                container.style.display = 'block';
+                container.classList.add('tawk-maximized');
+                console.log('✅ Chat container forced visible');
+              }
+            }, 200);
           }
         }, 100);
         
       } catch (error) {
         console.error('❌ Error opening Tawk.to widget:', error);
         
-        // Fallback: Try to trigger the chat directly
+        // Fallback: Try alternative methods
         try {
           if (window.Tawk_API.toggle) {
             window.Tawk_API.toggle();
+          } else if (window.Tawk_API.popup) {
+            window.Tawk_API.popup();
           }
         } catch (fallbackError) {
-          console.error('❌ Fallback method also failed:', fallbackError);
+          console.error('❌ All fallback methods failed:', fallbackError);
+          
+          // Last resort: Open in new window
+          const chatUrl = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
+          window.open(chatUrl, 'tawk_chat', 'width=400,height=600,scrollbars=yes,resizable=yes');
         }
       }
     } else {
-      console.warn('⚠️ Tawk.to API not ready yet. Status:', { 
-        isReady, 
-        hasAPI: !!window.Tawk_API,
-        status: tawkStatus 
-      });
+      console.warn('⚠️ Tawk.to API not ready yet. Opening in new window as fallback.');
       
-      // If API isn't ready, try to wait a bit and retry
-      setTimeout(() => {
-        if (window.Tawk_API) {
-          try {
-            window.Tawk_API.showWidget();
-            window.Tawk_API.maximize();
-          } catch (error) {
-            console.error('❌ Delayed attempt failed:', error);
-          }
-        }
-      }, 1000);
+      // Fallback: Open chat in new window
+      const chatUrl = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
+      window.open(chatUrl, 'tawk_chat', 'width=400,height=600,scrollbars=yes,resizable=yes');
     }
     
     return false;

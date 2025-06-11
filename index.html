@@ -14,19 +14,43 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Tawk.to Live Chat - Custom Integration -->
+    <!-- Tawk.to Live Chat - Completely Hidden Default Widget -->
     <script type="text/javascript">
     var Tawk_API = Tawk_API || {};
     var Tawk_LoadStart = new Date();
     
-    // Hide the default widget initially but allow chat interface
+    // Configure Tawk.to to be completely hidden by default
     Tawk_API.onLoad = function(){
       console.log('✅ Tawk.to loaded successfully');
-      // Hide the default widget button but keep the chat interface functional
+      // Completely hide the default widget
       Tawk_API.hideWidget();
+      
+      // Additional hiding to ensure no elements show
+      setTimeout(() => {
+        const elementsToHide = [
+          '#tawkchat-minified-box',
+          '#tawkchat-minified-container', 
+          '.tawk-min-container',
+          '#tawkchat-status-container',
+          '.tawk-chatinput-editor',
+          '[data-tawk]'
+        ];
+        
+        elementsToHide.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach(el => {
+            if (el) {
+              el.style.display = 'none';
+              el.style.visibility = 'hidden';
+              el.style.opacity = '0';
+              el.style.pointerEvents = 'none';
+            }
+          });
+        });
+      }, 500);
     };
     
-    // Customize widget size and appearance when opened
+    // Customize widget when it's opened via our custom button
     Tawk_API.onChatMaximized = function(){
       console.log('📈 Tawk.to chat maximized');
       
@@ -44,6 +68,7 @@
             tawkWidget.style.borderRadius = '12px';
             tawkWidget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
             tawkWidget.style.zIndex = '9999';
+            tawkWidget.style.position = 'fixed';
           }
           
           // Find and style the iframe
@@ -73,19 +98,36 @@
     </script>
     
     <style>
-    /* Hide only the default Tawk.to widget button, not the chat interface */
+    /* Aggressively hide ALL Tawk.to default elements */
     #tawkchat-minified-box,
     #tawkchat-minified-container,
-    .tawk-min-container {
+    .tawk-min-container,
+    #tawkchat-status-container,
+    .tawk-chatinput-editor,
+    [data-tawk],
+    div[id*="tawk"]:not(#tawkchat-container),
+    iframe[src*="tawk"]:not(#tawkchat-container iframe) {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
       pointer-events: none !important;
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      width: 0 !important;
+      height: 0 !important;
     }
     
-    /* Allow the chat container to be visible when opened */
+    /* Only allow the main chat container when explicitly opened */
     #tawkchat-container {
       transition: all 0.3s ease-in-out !important;
+      display: none !important; /* Hidden by default */
+    }
+    
+    /* Show chat container only when maximized */
+    #tawkchat-container.tawk-maximized {
+      display: block !important;
+      animation: tawkSlideIn 0.3s ease-out;
     }
     
     /* Ensure the widget appears above other elements */
@@ -107,6 +149,16 @@
     
     #tawkchat-container.tawk-maximized {
       animation: tawkSlideIn 0.3s ease-out;
+    }
+    
+    /* Hide any other Tawk.to elements that might appear */
+    body > div:not(#root):not(#tawkchat-container) {
+      display: none !important;
+    }
+    
+    /* Exception for the chat container when active */
+    #tawkchat-container.tawk-maximized {
+      display: block !important;
     }
     </style>
   </body>
