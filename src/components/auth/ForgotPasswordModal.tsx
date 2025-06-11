@@ -9,6 +9,22 @@ interface ForgotPasswordModalProps {
   onClose: () => void;
 }
 
+// Get the correct redirect URL based on environment
+const getRedirectUrl = (path: string = '/reset-password') => {
+  // Check if we're in production (Netlify)
+  if (window.location.hostname === 'digitallegacydiary.netlify.app') {
+    return `https://digitallegacydiary.netlify.app${path}`;
+  }
+  
+  // Check for other production domains
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `${window.location.origin}${path}`;
+  }
+  
+  // Default to current origin for development
+  return `${window.location.origin}${path}`;
+};
+
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   isOpen,
   onClose,
@@ -45,7 +61,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: getRedirectUrl('/reset-password'),
       });
 
       if (error) {

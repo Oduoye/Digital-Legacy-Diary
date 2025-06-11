@@ -39,6 +39,22 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+// Get the correct redirect URL based on environment
+const getRedirectUrl = (path: string = '/auth/callback') => {
+  // Check if we're in production (Netlify)
+  if (window.location.hostname === 'digitallegacydiary.netlify.app') {
+    return `https://digitallegacydiary.netlify.app${path}`;
+  }
+  
+  // Check for other production domains
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `${window.location.origin}${path}`;
+  }
+  
+  // Default to current origin for development
+  return `${window.location.origin}${path}`;
+};
+
 // Helper function to convert database user to app user
 const convertDbUserToAppUser = (dbUser: any): User => {
   return {
@@ -152,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    // First, sign up the user
+    // First, sign up the user with correct redirect URL
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -161,8 +177,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name,
           subscription_tier: subscriptionTier,
         },
-        // Set redirect URL for email confirmation if enabled
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        // Use the correct production URL for email verification
+        emailRedirectTo: getRedirectUrl('/auth/callback')
       }
     });
 
@@ -178,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       session: data.session,
       emailConfirmationRequired,
       email_confirmed_at: data.user?.email_confirmed_at,
+      redirectUrl: getRedirectUrl('/auth/callback')
     });
 
     // If user is immediately confirmed or email confirmation is disabled, fetch their profile
@@ -261,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: getRedirectUrl('/reset-password'),
     });
 
     if (error) {
@@ -278,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
+        emailRedirectTo: getRedirectUrl('/auth/callback')
       }
     });
 
