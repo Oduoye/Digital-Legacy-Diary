@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -20,13 +20,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const { register } = useAuth();
+  const { register, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
@@ -81,17 +84,36 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setIsLoading(true);
 
     try {
-      await register(name.trim(), email.trim(), password, selectedTier);
-      setShowSuccessMessage(true);
+      const result = await register(name.trim(), email.trim(), password, selectedTier);
       
-      // User is automatically logged in, redirect to dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      if (result.emailConfirmationRequired) {
+        setEmailConfirmationRequired(true);
+      } else {
+        setShowSuccessMessage(true);
+        // User is automatically logged in, redirect to dashboard
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setIsResendingEmail(true);
+    setError('');
+    
+    try {
+      await resendVerificationEmail(email);
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch (err: any) {
+      setError('Failed to resend verification email. Please try again.');
+    } finally {
+      setIsResendingEmail(false);
     }
   };
 
@@ -129,28 +151,108 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     }
   };
 
+  // Email Verification Required Modal
+  if (emailConfirmationRequired) {
+    return (
+      <div className="text-center animate-fade-in">
+        <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-cyan-400/30">
+          <Mail className="h-8 w-8 text-cyan-400" />
+        </div>
+        <h3 className="text-xl font-semibold text-white mb-2">
+          Check Your Email
+        </h3>
+        <p className="text-white/80 mb-4">
+          We've sent a verification link to <strong className="text-cyan-400">{email}</strong>
+        </p>
+        
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6 border border-white/20">
+          <div className="flex items-start space-x-3">
+            <Mail className="h-5 w-5 text-cyan-400 mt-0.5 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-sm text-white/90 mb-2">
+                <strong>Next Steps:</strong>
+              </p>
+              <ol className="text-sm text-white/80 space-y-1 list-decimal list-inside">
+                <li>Check your email inbox (and spam folder)</li>
+                <li>Click the verification link in the email</li>
+                <li>Return here to sign in to your account</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm mb-4 animate-shake backdrop-blur-sm border border-red-400/30">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div className="bg-green-500/20 text-green-200 p-3 rounded-md text-sm mb-4 animate-slide-down backdrop-blur-sm border border-green-400/30">
+            <div className="flex items-start space-x-2">
+              <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>Verification email sent successfully!</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <Button
+            onClick={handleResendEmail}
+            isLoading={isResendingEmail}
+            disabled={isResendingEmail}
+            variant="outline"
+            className="w-full border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+            icon={<RefreshCw className="h-4 w-4 mr-2" />}
+          >
+            {isResendingEmail ? 'Sending...' : 'Resend Verification Email'}
+          </Button>
+          
+          <p className="text-sm text-white/70">
+            Didn't receive the email? Check your spam folder or try resending.
+          </p>
+          
+          <div className="pt-4 border-t border-white/20">
+            <p className="text-sm text-white/70">
+              Already verified your email?{' '}
+              <button
+                onClick={() => navigate('/login')}
+                className="text-cyan-400 hover:text-cyan-300 font-medium"
+              >
+                Sign In Here
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in relative">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in relative shadow-2xl">
             <button
               onClick={handleCloseSuccess}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-500" />
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
+                <CheckCircle className="h-8 w-8 text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 Account Created Successfully!
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-white/80 mb-4">
                 Welcome to Digital Legacy Diary! You're now logged in and ready to start preserving your memories.
               </p>
-              <Button onClick={handleCloseSuccess} className="w-full">
+              <Button onClick={handleCloseSuccess} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl">
                 Go to Dashboard
               </Button>
             </div>
