@@ -3,7 +3,6 @@ import { Link, Navigate } from 'react-router-dom';
 import { Book, Shield, Users, ArrowRight, Heart, Star, Sparkles, CheckCircle, HelpCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
-import LiveChatButton from '../components/ui/LiveChatButton';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
@@ -246,9 +245,6 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
-
-        {/* Live Chat Button */}
-        <LiveChatButton variant="floating" />
       </Layout>
     </div>
   );

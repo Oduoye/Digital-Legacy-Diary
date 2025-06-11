@@ -67,9 +67,11 @@ const LoginForm: React.FC = () => {
     try {
       await login(email, password);
       setShowSuccessMessage(true);
+      
+      // Redirect after showing success message with proper timing
       setTimeout(() => {
         navigate('/dashboard');
-      }, 1500);
+      }, 2000);
     } catch (err: any) {
       let errorMessage = err.message || 'Invalid email or password. Please try again.';
       
@@ -126,17 +128,38 @@ const LoginForm: React.FC = () => {
 
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-lg max-w-sm w-full p-6 transform transition-all duration-300 scale-90 animate-scale-in">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-500" />
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in relative overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-400/10 via-cyan-400/5 to-blue-500/10 animate-gradient-x" />
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-400/20 to-cyan-400/20 rounded-full blur-xl animate-float" />
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }} />
+            </div>
+
+            <div className="text-center relative z-10">
+              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-green-400/30 animate-pulse">
+                <CheckCircle className="h-10 w-10 text-green-400 animate-scale-in" style={{ animationDelay: '200ms' }} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-2xl font-serif font-bold text-white mb-3 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                 Login Successful!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-white/90 leading-relaxed animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 Welcome back! Redirecting to your dashboard...
               </p>
+              
+              <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+                <div className="w-full bg-white/20 rounded-full h-1 overflow-hidden backdrop-blur-sm">
+                  <div 
+                    className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width"
+                    style={{ 
+                      animation: `shrinkWidth 2000ms linear forwards`
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-white/60 mt-2">
+                  Redirecting...
+                </p>
+              </div>
             </div>
           </div>
         </div>

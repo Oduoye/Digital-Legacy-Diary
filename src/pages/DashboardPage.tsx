@@ -7,9 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
-import LiveChatButton from '../components/ui/LiveChatButton';
-import Input from '../components/ui/Input';
-import Textarea from '../components/ui/Textarea';
+import ContactModal from '../components/ui/ContactModal';
 import ComingSoonModal from '../components/ui/ComingSoonModal';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
@@ -19,10 +17,8 @@ const DashboardPage: React.FC = () => {
   const [currentDate] = useState(new Date());
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
   const [showContactModal, setShowContactModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Trigger animations after component mounts
@@ -40,22 +36,6 @@ const DashboardPage: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setShowContactModal(false);
-      }
-    };
-
-    if (showContactModal) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showContactModal]);
   
   const totalEntries = entries.length;
   const recentEntries = entries.slice(0, 3);
@@ -68,13 +48,9 @@ const DashboardPage: React.FC = () => {
     return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
   }).length;
 
-  const handleSubmitContact = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowContactModal(false);
-    setShowSuccessModal(true);
-    setTimeout(() => {
-      setShowSuccessModal(false);
-    }, 3000);
+  const handleContactSubmit = (data: any) => {
+    console.log('Contact form submitted:', data);
+    // Handle form submission here
   };
 
   // Get subscription tier info for badge
@@ -229,23 +205,25 @@ const DashboardPage: React.FC = () => {
               to="/profile" 
               className="group relative"
             >
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-white/10 ring-4 ring-cyan-400 shadow-2xl transform transition-transform group-hover:scale-105 backdrop-blur-sm relative">
-                {currentUser?.profilePicture ? (
-                  <img 
-                    src={currentUser.profilePicture} 
-                    alt={currentUser.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/20 to-blue-500/20">
-                    <span className="text-2xl font-serif text-white">
-                      {currentUser?.name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-white/10 ring-4 ring-cyan-400 shadow-2xl transform transition-transform group-hover:scale-105 backdrop-blur-sm">
+                  {currentUser?.profilePicture ? (
+                    <img 
+                      src={currentUser.profilePicture} 
+                      alt={currentUser.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/20 to-blue-500/20">
+                      <span className="text-2xl font-serif text-white">
+                        {currentUser?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 
-                {/* Subscription Badge */}
-                <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white`}>
+                {/* Subscription Badge - Fixed positioning outside profile picture */}
+                <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white min-w-[28px] justify-center`}>
                   {subscriptionBadge.icon}
                   <span className="hidden sm:inline">{subscriptionBadge.text}</span>
                 </div>
@@ -500,75 +478,12 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Contact Form Modal */}
-          {showContactModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-              <div 
-                ref={modalRef}
-                className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-lg w-full p-6 animate-scale-in shadow-2xl"
-              >
-                <h3 className="text-2xl font-serif font-semibold text-white mb-6">Contact Us</h3>
-                <form onSubmit={handleSubmitContact} className="space-y-6">
-                  <Input
-                    label="Name"
-                    placeholder="Your name"
-                    icon={<Users className="h-5 w-5 text-gray-400" />}
-                    required
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    icon={<Mail className="h-5 w-5 text-gray-400" />}
-                    required
-                  />
-                  <Input
-                    label="Phone"
-                    type="tel"
-                    placeholder="Your phone number (optional)"
-                    icon={<Phone className="h-5 w-5 text-gray-400" />}
-                  />
-                  <Textarea
-                    label="Message"
-                    placeholder="How can we help you?"
-                    required
-                    className="h-32"
-                  />
-                  <div className="flex justify-end space-x-3">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowContactModal(false)}
-                      className="border-white/30 text-white hover:bg-white/10"
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl">
-                      Send Message
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* Success Message Modal */}
-          {showSuccessModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-              <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-6 animate-scale-in shadow-2xl">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
-                    <CheckCircle className="h-8 w-8 text-green-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    Message Sent Successfully!
-                  </h3>
-                  <p className="text-white/80">
-                    Thank you for reaching out. We'll get back to you as soon as possible.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Contact Modal */}
+          <ContactModal
+            isOpen={showContactModal}
+            onClose={() => setShowContactModal(false)}
+            onSubmit={handleContactSubmit}
+          />
 
           {/* KYC Coming Soon Modal */}
           <ComingSoonModal
@@ -578,11 +493,6 @@ const DashboardPage: React.FC = () => {
             message="We're developing advanced identity verification features to enhance security for your digital legacy. This will include document verification, biometric authentication, and enhanced heir verification processes to ensure your legacy reaches the right people securely."
           />
         </div>
-
-        {/* Live Chat Button - Only show when no modals are open */}
-        {!showContactModal && !showSuccessModal && !showKYCModal && (
-          <LiveChatButton variant="floating" />
-        )}
       </Layout>
     </div>
   );

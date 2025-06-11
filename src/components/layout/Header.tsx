@@ -100,21 +100,23 @@ const Header: React.FC = () => {
                       onClick={() => setShowProfileMenu(!showProfileMenu)}
                       className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors focus:outline-none"
                     >
-                      <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
-                        {currentUser.profilePicture ? (
-                          <img 
-                            src={currentUser.profilePicture} 
-                            alt={currentUser.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm font-medium">
-                            {currentUser.name.charAt(0).toUpperCase()}
-                          </span>
-                        )}
+                      <div className="relative">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
+                          {currentUser.profilePicture ? (
+                            <img 
+                              src={currentUser.profilePicture} 
+                              alt={currentUser.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-medium">
+                              {currentUser.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
                         
-                        {/* Subscription Badge */}
-                        <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border border-white`}>
+                        {/* Subscription Badge - Fixed positioning outside profile picture */}
+                        <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border border-white min-w-[20px] justify-center`}>
                           {subscriptionBadge.icon}
                           <span className="hidden sm:inline text-xs">{subscriptionBadge.text}</span>
                         </div>
@@ -221,23 +223,25 @@ const Header: React.FC = () => {
               {currentUser ? (
                 <>
                   <div className="flex items-center space-x-3 px-3 py-2">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden bg-primary-100">
-                      {currentUser.profilePicture ? (
-                        <img 
-                          src={currentUser.profilePicture} 
-                          alt={currentUser.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-lg font-medium text-primary-600">
-                            {currentUser.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-100">
+                        {currentUser.profilePicture ? (
+                          <img 
+                            src={currentUser.profilePicture} 
+                            alt={currentUser.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="text-lg font-medium text-primary-600">
+                              {currentUser.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       
-                      {/* Subscription Badge */}
-                      <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white`}>
+                      {/* Subscription Badge - Fixed positioning outside profile picture */}
+                      <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white min-w-[24px] justify-center`}>
                         {subscriptionBadge.icon}
                         <span>{subscriptionBadge.text}</span>
                       </div>
