@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
+    <footer className="relative z-10 backdrop-blur-xl bg-white/10 border-t border-white/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col items-center text-center">
           <Link to="/" className="inline-flex items-center">
-            <div className="h-12 w-12 bg-black rounded-full flex items-center justify-center p-1 shadow-sm">
+            <div className="h-12 w-12 bg-black rounded-full flex items-center justify-center p-1 shadow-2xl border border-white/20">
               <img 
                 src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
                 alt="Digital Legacy Diary"
@@ -24,28 +24,28 @@ const Footer: React.FC = () => {
                 }}
               />
             </div>
-            <span className="ml-2 text-lg font-serif font-medium text-gray-900">Digital Legacy Diary</span>
+            <span className="ml-2 text-lg font-serif font-medium text-white">Digital Legacy Diary</span>
           </Link>
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-white/80">
             Preserving memories, sharing wisdom, connecting generations.
           </p>
         </div>
         <div className="mt-8 flex flex-col items-center">
           <div className="flex space-x-6 mb-4">
-            <Link to="/about" className="text-sm text-gray-600 hover:text-gray-800">
+            <Link to="/about" className="text-sm text-white/80 hover:text-white transition-colors">
               About
             </Link>
-            <Link to="/privacy" className="text-sm text-gray-600 hover:text-gray-800">
+            <Link to="/privacy" className="text-sm text-white/80 hover:text-white transition-colors">
               Privacy
             </Link>
-            <Link to="/terms" className="text-sm text-gray-600 hover:text-gray-800">
+            <Link to="/terms" className="text-sm text-white/80 hover:text-white transition-colors">
               Terms
             </Link>
-            <Link to="/contact" className="text-sm text-gray-600 hover:text-gray-800">
+            <Link to="/contact" className="text-sm text-white/80 hover:text-white transition-colors">
               Contact
             </Link>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-white/70">
             ©2025 Digital Legacy Diary
           </p>
         </div>
