@@ -15,26 +15,11 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden no-overscroll full-height no-bounce">
-      {/* Premium Animated Background - Fixed positioning to prevent white overlay */}
-      <div className="fixed inset-0 z-0 no-overscroll" style={{ 
-        minHeight: '100vh', 
-        minHeight: '100dvh',
-        height: '100%',
-        width: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient-x no-overscroll" 
-             style={{ 
-               backgroundSize: '400% 400%',
-               minHeight: '100vh',
-               minHeight: '100dvh',
-               height: '100%',
-               width: '100%'
-             }} />
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Premium Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient-x" 
+             style={{ backgroundSize: '400% 400%' }} />
         
         {/* Floating Orbs */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/30 to-purple-600/30 rounded-full blur-3xl animate-float" 
@@ -59,7 +44,7 @@ const HomePage: React.FC = () => {
 
       <Layout>
         {/* Hero Section */}
-        <section className="relative z-10 overflow-hidden animate-fade-in no-overscroll">
+        <section className="relative z-10 overflow-hidden animate-fade-in">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
             <div className="text-center max-w-3xl mx-auto">
               <div className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-300">
@@ -110,7 +95,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 relative z-10 animate-fade-in no-overscroll">
+        <section className="py-20 relative z-10 animate-fade-in">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Your Story Matters</h2>
@@ -155,7 +140,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-20 relative z-10 animate-fade-in no-overscroll">
+        <section className="py-20 relative z-10 animate-fade-in">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Simple Steps to Preserve Your Legacy</h2>
@@ -205,7 +190,7 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 relative z-10 overflow-hidden animate-fade-in no-overscroll">
+        <section className="py-20 relative z-10 overflow-hidden animate-fade-in">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
               <div className="inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20">

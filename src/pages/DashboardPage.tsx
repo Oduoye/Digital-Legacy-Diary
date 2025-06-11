@@ -66,26 +66,11 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden no-overscroll full-height no-bounce">
-      {/* Premium Animated Background - Fixed positioning to prevent white overlay */}
-      <div className="fixed inset-0 z-0 no-overscroll" style={{ 
-        minHeight: '100vh', 
-        minHeight: '100dvh',
-        height: '100%',
-        width: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-      }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient-x no-overscroll" 
-             style={{ 
-               backgroundSize: '400% 400%',
-               minHeight: '100vh',
-               minHeight: '100dvh',
-               height: '100%',
-               width: '100%'
-             }} />
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Premium Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient-x" 
+             style={{ backgroundSize: '400% 400%' }} />
         
         {/* Floating Orbs */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-float" 
@@ -101,7 +86,7 @@ const DashboardPage: React.FC = () => {
       </div>
 
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10 no-overscroll">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           <div className="flex justify-between items-start mb-8">
             <div className="animate-fade-in">
               <h2 className="text-lg text-white/80">Welcome back,</h2>

@@ -3,64 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply min-h-screen;
-    /* Prevent overscroll bounce and white overlay */
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    /* Ensure full height coverage */
-    height: 100%;
-    /* Prevent pull-to-refresh */
-    touch-action: pan-x pan-y;
-  }
-  
   body {
     @apply min-h-screen;
-    /* Critical: Prevent white overlay */
-    overscroll-behavior: none;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
-    /* Ensure background covers everything */
-    min-height: 100vh;
-    min-height: 100dvh; /* Dynamic viewport height for mobile */
-    height: 100%;
-    /* Prevent iOS bounce */
-    -webkit-overflow-scrolling: touch;
-    /* Prevent pull-to-refresh on mobile */
-    touch-action: pan-x pan-y;
-    /* Ensure no white space */
-    margin: 0;
-    padding: 0;
-  }
-  
-  #root {
-    @apply min-h-screen;
-    /* Prevent overscroll */
-    overscroll-behavior: none;
-    /* Ensure full coverage */
-    min-height: 100vh;
-    min-height: 100dvh;
-    height: 100%;
-    /* Prevent white space */
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Prevent overscroll on all scrollable elements */
-  * {
-    overscroll-behavior: none;
-  }
-  
-  /* Specific mobile fixes */
-  @supports (-webkit-touch-callout: none) {
-    html, body, #root {
-      /* iOS Safari specific fixes */
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: none;
-      touch-action: pan-x pan-y;
-      /* Prevent elastic scrolling */
-      -webkit-overscroll-behavior: none;
-    }
   }
 }
 
@@ -84,36 +28,6 @@
   .animate-gradient-x {
     background-size: 400% 400%;
     animation: gradientX 15s linear infinite;
-  }
-  
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out;
-  }
-  
-  .animate-shake {
-    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-  }
-  
-  /* No overscroll utility */
-  .no-overscroll {
-    overscroll-behavior: none;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
-    -webkit-overscroll-behavior: none;
-  }
-  
-  /* Full height utility with mobile support */
-  .full-height {
-    min-height: 100vh;
-    min-height: 100dvh;
-    height: 100%;
-  }
-  
-  /* Prevent mobile bounce */
-  .no-bounce {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
-    touch-action: pan-x pan-y;
   }
 }
 
@@ -180,31 +94,5 @@
   }
   100% {
     transform: translateY(0px);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes shake {
-  10%, 90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%, 80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%, 50%, 70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%, 60% {
-    transform: translate3d(4px, 0, 0);
   }
 }
