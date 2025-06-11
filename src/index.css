@@ -27,7 +27,7 @@
   }
   
   .animate-gradient-x {
-    background-size: 200% 100%;
+    background-size: 400% 400%;
     animation: gradientX 15s linear infinite;
   }
 }
