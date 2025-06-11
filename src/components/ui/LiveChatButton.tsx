@@ -67,70 +67,58 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
   }, []);
 
   const handleChatClick = (e: React.MouseEvent) => {
-    // CRITICAL: Prevent any default behavior and external redirects
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🖱️ Custom button clicked - opening Tawk.to chat...');
+    console.log('🖱️ Custom chat button clicked');
     
     if (window.Tawk_API && isReady) {
       try {
-        // Method 1: Use Tawk.to API to show and maximize
-        window.Tawk_API.showWidget();
-        window.Tawk_API.maximize();
+        console.log('📞 Opening Tawk.to chat interface...');
         
-        // Method 2: Manually show the container
+        // First show the widget, then maximize it
+        window.Tawk_API.showWidget();
+        
+        // Small delay to ensure the widget is ready
         setTimeout(() => {
-          const tawkContainer = document.getElementById('tawkchat-container');
-          if (tawkContainer) {
-            tawkContainer.classList.add('custom-show');
-            tawkContainer.style.display = 'block !important';
-            tawkContainer.style.visibility = 'visible !important';
-            tawkContainer.style.opacity = '1 !important';
-            tawkContainer.style.pointerEvents = 'auto !important';
-            tawkContainer.style.position = 'fixed !important';
-            tawkContainer.style.bottom = '20px !important';
-            tawkContainer.style.right = '20px !important';
-            tawkContainer.style.zIndex = '9999 !important';
-            tawkContainer.style.width = '400px !important';
-            tawkContainer.style.height = '600px !important';
-            tawkContainer.style.borderRadius = '12px !important';
-            tawkContainer.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1) !important';
+          if (window.Tawk_API) {
+            window.Tawk_API.maximize();
+            console.log('✅ Chat interface should now be visible');
           }
-          
-          // Also try to find any hidden chat iframes
-          const chatIframes = document.querySelectorAll('iframe[src*="tawk"]');
-          chatIframes.forEach(iframe => {
-            const parent = iframe.parentElement;
-            if (parent && parent.id === 'tawkchat-container') {
-              parent.style.display = 'block !important';
-              iframe.style.borderRadius = '12px !important';
-            }
-          });
-        }, 200);
+        }, 100);
         
       } catch (error) {
-        console.error('Error opening Tawk.to widget:', error);
+        console.error('❌ Error opening Tawk.to widget:', error);
         
-        // Fallback: Force show any Tawk.to elements
-        const allTawkElements = document.querySelectorAll('[id*="tawk"], iframe[src*="tawk"]');
-        allTawkElements.forEach(el => {
-          const element = el as HTMLElement;
-          element.style.display = 'block !important';
-          element.style.visibility = 'visible !important';
-          element.style.opacity = '1 !important';
-          element.style.pointerEvents = 'auto !important';
-        });
+        // Fallback: Try to trigger the chat directly
+        try {
+          if (window.Tawk_API.toggle) {
+            window.Tawk_API.toggle();
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback method also failed:', fallbackError);
+        }
       }
     } else {
-      console.warn('Tawk.to API not ready yet. Status:', { 
+      console.warn('⚠️ Tawk.to API not ready yet. Status:', { 
         isReady, 
         hasAPI: !!window.Tawk_API,
         status: tawkStatus 
       });
+      
+      // If API isn't ready, try to wait a bit and retry
+      setTimeout(() => {
+        if (window.Tawk_API) {
+          try {
+            window.Tawk_API.showWidget();
+            window.Tawk_API.maximize();
+          } catch (error) {
+            console.error('❌ Delayed attempt failed:', error);
+          }
+        }
+      }, 1000);
     }
     
-    // Return false to prevent any navigation
     return false;
   };
 
@@ -166,8 +154,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     return (
       <button
         onClick={handleChatClick}
-        onMouseDown={(e) => e.preventDefault()}
-        onTouchStart={(e) => e.preventDefault()}
         className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
         title={getTooltipText()}
         type="button"
@@ -185,8 +171,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     <div className="fixed bottom-8 right-8 z-40">
       <button
         onClick={handleChatClick}
-        onMouseDown={(e) => e.preventDefault()}
-        onTouchStart={(e) => e.preventDefault()}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         className={`
