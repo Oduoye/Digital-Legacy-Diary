@@ -33,7 +33,17 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Protected route component
+// Loading component for better UX
+const LoadingScreen: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <p className="text-white/80">Loading your account...</p>
+    </div>
+  </div>
+);
+
+// Protected route component with improved loading handling
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -44,7 +54,7 @@ const ProtectedRoute: React.FC<{
   const { isAuthenticated, loading } = useAuth();
   
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <LoadingScreen />;
   }
   
   if (!isAuthenticated) {
