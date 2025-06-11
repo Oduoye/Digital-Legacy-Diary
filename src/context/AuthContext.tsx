@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  loading: false,
+  loading: true,
   login: async () => {},
   register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
@@ -85,16 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Initialize auth state
     const initializeAuth = async () => {
       try {
-        console.log('🔄 Initializing auth...');
+        console.log('🔄 Initializing authentication...');
         
-        // Get current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('❌ Error getting session:', error);
+          console.error('❌ Session error:', error);
           if (mounted) {
             setCurrentUser(null);
             setLoading(false);
@@ -102,25 +100,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        console.log('📋 Session check:', {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id,
-          emailConfirmed: !!session?.user?.email_confirmed_at
-        });
-
         if (session?.user?.email_confirmed_at) {
-          console.log('✅ User has confirmed email, fetching profile...');
+          console.log('✅ Found confirmed user session');
           await fetchUserProfile(session.user.id);
         } else {
-          console.log('⚠️ No confirmed user session found');
+          console.log('⚠️ No confirmed user session');
           if (mounted) {
             setCurrentUser(null);
             setLoading(false);
           }
         }
       } catch (error) {
-        console.error('❌ Error initializing auth:', error);
+        console.error('❌ Auth initialization error:', error);
         if (mounted) {
           setCurrentUser(null);
           setLoading(false);
@@ -128,51 +119,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id,
-        emailConfirmed: !!session?.user?.email_confirmed_at
-      });
-
+      console.log('🔄 Auth state change:', event);
+      
       if (!mounted) return;
 
-      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-        console.log('✅ User signed in with confirmed email, fetching profile...');
-        await fetchUserProfile(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        console.log('👋 User signed out');
-        setCurrentUser(null);
-        setLoading(false);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user?.email_confirmed_at) {
-        console.log('🔄 Token refreshed, maintaining session...');
-        // Only fetch profile if we don't have current user data
-        if (!currentUser) {
+      try {
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+          console.log('✅ User signed in');
           await fetchUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
+          setCurrentUser(null);
+          setLoading(false);
+        } else if (event === 'TOKEN_REFRESHED' && session?.user?.email_confirmed_at) {
+          console.log('🔄 Token refreshed');
+          if (!currentUser) {
+            await fetchUserProfile(session.user.id);
+          } else {
+            setLoading(false);
+          }
         } else {
+          console.log('⚠️ Auth event without confirmed user');
+          setCurrentUser(null);
           setLoading(false);
         }
-      } else {
-        console.log('⚠️ Auth state change but no confirmed user');
+      } catch (error) {
+        console.error('❌ Auth state change error:', error);
         setCurrentUser(null);
         setLoading(false);
       }
     });
 
-    // Initialize auth
     initializeAuth();
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Empty dependency array to prevent infinite loops
+  }, []);
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('📡 Fetching user profile for:', userId);
+      console.log('📡 Fetching profile for user:', userId);
       
       const { data, error } = await supabase
         .from('users')
@@ -181,24 +170,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('❌ Error fetching user profile:', error);
-        if (error.code === 'PGRST116') {
-          console.log('⚠️ User profile not found in database');
-        }
+        console.error('❌ Profile fetch error:', error);
         setCurrentUser(null);
-        setLoading(false);
         return;
       }
 
       if (data) {
-        console.log('✅ User profile loaded successfully');
+        console.log('✅ Profile loaded successfully');
         setCurrentUser(convertDbUserToAppUser(data));
       } else {
-        console.log('⚠️ No user profile data returned');
+        console.log('⚠️ No profile data found');
         setCurrentUser(null);
       }
     } catch (error) {
-      console.error('❌ Error in fetchUserProfile:', error);
+      console.error('❌ Profile fetch exception:', error);
       setCurrentUser(null);
     } finally {
       setLoading(false);
@@ -216,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (data.user?.email_confirmed_at) {
-      console.log('✅ Login successful, fetching profile...');
+      console.log('✅ Login successful');
       await fetchUserProfile(data.user.id);
     } else {
       throw new Error('Please verify your email address before signing in.');
@@ -243,14 +228,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
     
     console.log('📋 Registration result:', {
-      user: !!data.user,
-      session: !!data.session,
       emailConfirmationRequired,
-      email_confirmed_at: data.user?.email_confirmed_at,
+      emailConfirmed: !!data.user?.email_confirmed_at,
     });
 
     if (data.user?.email_confirmed_at && data.session) {
-      console.log('✅ Registration successful with immediate confirmation');
+      console.log('✅ Registration with immediate confirmation');
       await fetchUserProfile(data.user.id);
       return { emailConfirmationRequired: false };
     }
