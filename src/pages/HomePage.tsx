@@ -55,11 +55,16 @@ const HomePage: React.FC = () => {
                 <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
                   Preserve Your Legacy,{" "}
                   <span className="relative inline-block">
-                    <span className="relative z-10 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
+                    <span className="relative z-10 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white animate-gradient-x drop-shadow-2xl" 
+                          style={{ 
+                            backgroundSize: '400% 400%',
+                            textShadow: '0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(34,211,238,0.3)',
+                            WebkitTextStroke: '1px rgba(255,255,255,0.1)'
+                          }}>
                       Share Your Story
                     </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-cyan-200 to-purple-200 blur-lg opacity-30 animate-pulse"></span>
-                    <Sparkles className="absolute -right-8 -top-6 h-6 w-6 text-yellow-400 animate-float" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-cyan-200 to-white blur-lg opacity-40 animate-pulse"></span>
+                    <Sparkles className="absolute -right-8 -top-6 h-6 w-6 text-yellow-400 animate-float drop-shadow-lg" />
                   </span>
                 </h1>
               </div>
