@@ -41,15 +41,15 @@ const HomePage: React.FC = () => {
 
       <Layout>
         {/* Hero Section */}
-        <section className="relative z-10 overflow-hidden animate-fade-in">
+        <section className="relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
             <div className="text-center max-w-3xl mx-auto">
-              <div className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <div className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in-up [animation-delay:100ms]">
                 <Star className="h-5 w-5 text-yellow-400 mr-2" />
                 <span className="text-sm font-medium text-white">Your memories, preserved forever</span>
               </div>
               <div className="relative mb-6">
-                <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
+                <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight animate-fade-in-up [animation-delay:200ms]">
                   Preserve Your Legacy,{" "}
                   <span className="relative inline-block">
                     <span className="relative z-10 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white animate-gradient-x drop-shadow-2xl" 
@@ -65,14 +65,14 @@ const HomePage: React.FC = () => {
                   </span>
                 </h1>
               </div>
-              <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed">
+              <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed animate-fade-in-up [animation-delay:400ms]">
                 Every memory tells a story. Create a lasting legacy by sharing your wisdom, experiences, and cherished moments with future generations.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up [animation-delay:600ms]">
                 <Link to="/register">
                   <Button 
                     size="lg" 
-                    className="w-full sm:w-auto px-8 group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-2xl"
+                    className="w-full sm:w-auto px-8 group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-2xl transform transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     <span className="relative z-10">Begin Your Journey</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-700 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -81,7 +81,7 @@ const HomePage: React.FC = () => {
                 <Link to="/login">
                   <Button 
                     size="lg" 
-                    className="w-full sm:w-auto px-8 backdrop-blur-xl bg-white/10 border border-white/30 text-white hover:bg-white/20 hover:border-white/40 transition-all duration-300 shadow-xl"
+                    className="w-full sm:w-auto px-8 backdrop-blur-xl bg-white/10 border border-white/30 text-white hover:bg-white/20 hover:border-white/40 transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95"
                   >
                     Welcome Back
                   </Button>
@@ -92,9 +92,9 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 relative z-10 animate-fade-in">
+        <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
+            <div className="text-center mb-16 animate-fade-in-up [animation-delay:800ms]">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Your Story Matters</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Digital Legacy Diary helps you preserve life's precious moments and share your wisdom with those who matter most.
@@ -103,7 +103,7 @@ const HomePage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {/* Feature cards with glass morphism */}
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1000ms]">
                 <div className="bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Book className="h-7 w-7 text-white" />
                 </div>
@@ -113,7 +113,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1200ms]">
                 <div className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-7 w-7 text-white" />
                 </div>
@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1400ms]">
                 <div className="bg-gradient-to-r from-green-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-7 w-7 text-white" />
                 </div>
@@ -137,9 +137,9 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-20 relative z-10 animate-fade-in">
+        <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
+            <div className="text-center mb-16 animate-fade-in-up [animation-delay:1600ms]">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Simple Steps to Preserve Your Legacy</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Begin your journey of preserving memories and connecting generations.
@@ -147,7 +147,7 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              <div className="text-center group">
+              <div className="text-center group animate-fade-in-up [animation-delay:1800ms]">
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">1</span>
@@ -160,7 +160,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="text-center group">
+              <div className="text-center group animate-fade-in-up [animation-delay:2000ms]">
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-purple-400 to-pink-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">2</span>
@@ -173,7 +173,7 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="text-center group">
+              <div className="text-center group animate-fade-in-up [animation-delay:2200ms]">
                 <div className="rounded-full bg-gradient-to-r from-green-400 to-cyan-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                   <span className="text-2xl font-serif font-bold text-white">3</span>
                 </div>
@@ -187,9 +187,9 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 relative z-10 overflow-hidden animate-fade-in">
+        <section className="py-20 relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
+            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl animate-fade-in-up [animation-delay:2400ms] transform hover:scale-105 transition-all duration-500">
               <div className="inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20">
                 <Heart className="h-5 w-5 text-pink-400 mr-2" />
                 <span className="text-sm font-medium text-white">Join thousands preserving their legacy</span>
@@ -201,7 +201,7 @@ const HomePage: React.FC = () => {
               <Link to="/register">
                 <Button 
                   size="lg" 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-10 group shadow-2xl"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-10 group shadow-2xl transform transition-all duration-300 hover:scale-110 active:scale-95"
                   icon={<ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />}
                 >
                   Create Your Diary
