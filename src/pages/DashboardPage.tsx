@@ -218,7 +218,7 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Professional KYC Verification Card */}
+          {/* Professional KYC Verification Card - Compact Version */}
           <div 
             className={`mb-8 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
@@ -229,38 +229,19 @@ const DashboardPage: React.FC = () => {
               {/* Professional header stripe */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
               
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                        <Shield className="h-6 w-6 text-white" />
-                      </div>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                      <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white">
-                          Identity Verification
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <div className="px-2.5 py-1 bg-amber-500/20 border border-amber-400/30 rounded-full">
-                            <span className="text-xs font-medium text-amber-200">Coming Soon</span>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-white/80 text-sm leading-relaxed mb-3">
-                        Enhanced security verification to protect your digital legacy with bank-level authentication protocols.
+                      <h3 className="text-base font-semibold text-white">
+                        Identity Verification
+                      </h3>
+                      <p className="text-white/80 text-sm leading-relaxed">
+                        Enhanced security verification to protect your digital legacy.
                       </p>
-                      <div className="flex items-center space-x-4 text-xs text-white/60">
-                        <div className="flex items-center space-x-1">
-                          <Award className="h-3 w-3" />
-                          <span>ISO 27001 Compliant</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-3 w-3" />
-                          <span>Q2 2025 Release</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                   <div className="flex-shrink-0 ml-4">
@@ -462,24 +443,24 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Get in Touch Section with Enhanced Animation */}
+          {/* Get in Touch Section with Enhanced Animation and Blue Button */}
           <div 
             className={`mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
             style={{ transitionDelay: '1600ms' }}
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
                 <h2 className="text-lg font-medium text-white">Need Help?</h2>
                 <p className="text-sm text-white/80">Our support team is here to assist you</p>
               </div>
               <Button
                 onClick={() => setShowContactModal(true)}
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-xl transform transition-all duration-200 hover:scale-105 active:scale-95"
               >
-                Get in Touch
+                <span className="block sm:hidden">Get Help</span>
+                <span className="hidden sm:block">Get in Touch</span>
               </Button>
             </div>
           </div>
