@@ -19,23 +19,39 @@
     var Tawk_API = Tawk_API || {};
     var Tawk_LoadStart = new Date();
     
-    // Hide the default widget initially - we'll show it via our custom button
+    // Hide the widget completely on load
     Tawk_API.onLoad = function(){
       console.log('✅ Tawk.to loaded successfully');
-      // Hide the default widget so we can control it with our custom button
+      // Completely hide the default widget
       Tawk_API.hideWidget();
+      
+      // Additional CSS to ensure it's hidden
+      setTimeout(() => {
+        const tawkWidget = document.getElementById('tawkchat-container');
+        if (tawkWidget) {
+          tawkWidget.style.display = 'none';
+        }
+        
+        // Hide any other Tawk elements
+        const tawkElements = document.querySelectorAll('[id*="tawk"], [class*="tawk"]');
+        tawkElements.forEach(el => {
+          if (el.id !== 'tawkchat-container') {
+            el.style.display = 'none';
+          }
+        });
+      }, 100);
     };
     
-    // Customize widget size and appearance when maximized
+    // Only show when we explicitly maximize
     Tawk_API.onChatMaximized = function(){
       console.log('📈 Tawk.to chat maximized');
       
-      // Apply custom CSS to make the widget larger and better positioned
       setTimeout(() => {
         try {
           const tawkWidget = document.getElementById('tawkchat-container');
           if (tawkWidget) {
-            // Make the widget larger and better positioned
+            // Show and style the widget
+            tawkWidget.style.display = 'block';
             tawkWidget.style.width = '400px';
             tawkWidget.style.height = '600px';
             tawkWidget.style.maxHeight = '80vh';
@@ -45,16 +61,19 @@
             tawkWidget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
             tawkWidget.style.zIndex = '9999';
           }
-          
-          // Find and style the iframe
-          const tawkIframe = document.querySelector('#tawkchat-container iframe');
-          if (tawkIframe) {
-            tawkIframe.style.borderRadius = '12px';
-          }
         } catch (error) {
           console.warn('Could not apply custom Tawk.to styling:', error);
         }
       }, 100);
+    };
+    
+    // Hide when minimized
+    Tawk_API.onChatMinimized = function(){
+      console.log('📉 Tawk.to chat minimized');
+      const tawkWidget = document.getElementById('tawkchat-container');
+      if (tawkWidget) {
+        tawkWidget.style.display = 'none';
+      }
     };
     
     Tawk_API.onStatusChange = function(status){
@@ -73,12 +92,20 @@
     </script>
     
     <style>
-    /* Custom styling for Tawk.to widget */
-    #tawkchat-container {
+    /* Hide all Tawk.to elements by default */
+    #tawkchat-container,
+    [id*="tawk"],
+    [class*="tawk"] {
+      display: none !important;
+    }
+    
+    /* Only show when explicitly maximized */
+    #tawkchat-container.tawk-maximized {
+      display: block !important;
       transition: all 0.3s ease-in-out !important;
     }
     
-    /* Ensure the widget appears above other elements */
+    /* Ensure the widget appears above other elements when shown */
     #tawkchat-container iframe {
       z-index: 9999 !important;
     }

@@ -48,33 +48,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           console.warn('⚠️ Could not get Tawk.to status:', error);
           setTawkStatus('offline');
         }
-
-        // Set up status change listener
-        const originalOnStatusChange = window.Tawk_API.onStatusChange;
-        window.Tawk_API.onStatusChange = function(status: string) {
-          setTawkStatus(status as any);
-          if (originalOnStatusChange) originalOnStatusChange(status);
-        };
-
-        // Customize Tawk.to widget
-        window.Tawk_API.onLoad = function() {
-          console.log('✅ Tawk.to loaded successfully');
-          
-          // Set custom attributes for the widget
-          try {
-            window.Tawk_API?.setAttributes({
-              name: 'Digital Legacy Diary User',
-              email: '',
-              hash: ''
-            }, function(error: any) {
-              if (error) {
-                console.warn('Could not set Tawk.to attributes:', error);
-              }
-            });
-          } catch (error) {
-            console.warn('Could not customize Tawk.to widget:', error);
-          }
-        };
       }
     };
 
@@ -85,22 +58,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     // Clean up
     return () => clearInterval(interval);
   }, []);
-
-  const handleChatClick = () => {
-    console.log('🖱️ Opening Tawk.to chat widget...');
-    
-    if (window.Tawk_API) {
-      try {
-        // Show and maximize the Tawk.to widget (stays within the app)
-        window.Tawk_API.showWidget();
-        window.Tawk_API.maximize();
-      } catch (error) {
-        console.error('Error opening Tawk.to widget:', error);
-      }
-    } else {
-      console.warn('Tawk.to API not available yet');
-    }
-  };
 
   const getStatusColor = () => {
     if (!isReady) return 'bg-yellow-400 animate-pulse';
@@ -127,6 +84,36 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
         return 'Leave a Message - Agents Offline';
       default:
         return 'Start Live Chat';
+    }
+  };
+
+  const handleChatClick = () => {
+    console.log('🖱️ Opening Tawk.to chat widget...');
+    
+    if (window.Tawk_API && isReady) {
+      try {
+        // First show the widget, then maximize it
+        window.Tawk_API.showWidget();
+        
+        // Small delay to ensure the widget is ready
+        setTimeout(() => {
+          window.Tawk_API?.maximize();
+          
+          // Ensure the container is visible and styled
+          setTimeout(() => {
+            const tawkWidget = document.getElementById('tawkchat-container');
+            if (tawkWidget) {
+              tawkWidget.style.display = 'block';
+              tawkWidget.classList.add('tawk-maximized');
+            }
+          }, 100);
+        }, 100);
+        
+      } catch (error) {
+        console.error('Error opening Tawk.to widget:', error);
+      }
+    } else {
+      console.warn('Tawk.to API not ready yet');
     }
   };
 
