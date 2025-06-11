@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import Input from '../ui/Input';
+import AuthInput from '../ui/AuthInput';
 import Button from '../ui/Button';
 import { SubscriptionTier } from '../../types';
 
@@ -291,7 +291,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           </div>
         )}
 
-        <Input
+        <AuthInput
           label="Full Name"
           type="text"
           value={name}
@@ -302,7 +302,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           error={validationErrors.name}
         />
 
-        <Input
+        <AuthInput
           label="Email"
           type="email"
           value={email}
@@ -314,7 +314,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         />
 
         <div className="relative">
-          <Input
+          <AuthInput
             label="Password"
             type={showPassword ? "text" : "password"}
             value={password}
@@ -347,7 +347,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         </div>
 
         <div className="relative">
-          <Input
+          <AuthInput
             label="Confirm Password"
             type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}

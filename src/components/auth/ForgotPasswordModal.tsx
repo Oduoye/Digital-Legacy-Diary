@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import Button from '../ui/Button';
-import Input from '../ui/Input';
+import AuthInput from '../ui/AuthInput';
 import { supabase } from '../../lib/supabase';
 
 interface ForgotPasswordModalProps {
@@ -157,7 +157,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               </div>
             )}
 
-            <Input
+            <AuthInput
               label="Email Address"
               type="email"
               value={email}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, AlertTriangle, UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import Input from '../ui/Input';
+import AuthInput from '../ui/AuthInput';
 import Button from '../ui/Button';
 import ForgotPasswordModal from './ForgotPasswordModal';
 
@@ -192,7 +192,7 @@ const LoginForm: React.FC = () => {
         )}
 
         <div className="relative">
-          <Input
+          <AuthInput
             label="Email"
             type="email"
             value={email}
@@ -206,7 +206,7 @@ const LoginForm: React.FC = () => {
 
         <div className="space-y-1">
           <div className="relative">
-            <Input
+            <AuthInput
               label="Password"
               type={showPassword ? "text" : "password"}
               value={password}
