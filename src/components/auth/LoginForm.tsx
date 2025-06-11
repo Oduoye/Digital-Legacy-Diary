@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, AlertTriangle, UserPlus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -14,6 +14,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showInvalidCredentialsHelp, setShowInvalidCredentialsHelp] = useState(false);
   const [validationErrors, setValidationErrors] = useState({
     email: '',
     password: '',
@@ -55,6 +56,7 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowInvalidCredentialsHelp(false);
     
     if (!validateForm()) {
       return;
@@ -75,7 +77,8 @@ const LoginForm: React.FC = () => {
       if (err.message?.includes('Email not confirmed')) {
         errorMessage = 'Please verify your email address before signing in. Check your inbox for a verification link.';
       } else if (err.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        errorMessage = 'The email or password you entered is incorrect.';
+        setShowInvalidCredentialsHelp(true);
       }
       
       setError(errorMessage);
@@ -93,6 +96,7 @@ const LoginForm: React.FC = () => {
     }
     if (error) {
       setError('');
+      setShowInvalidCredentialsHelp(false);
     }
   };
 
@@ -104,6 +108,7 @@ const LoginForm: React.FC = () => {
     }
     if (error) {
       setError('');
+      setShowInvalidCredentialsHelp(false);
     }
   };
 
@@ -153,6 +158,35 @@ const LoginForm: React.FC = () => {
             <div className="flex items-start space-x-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Help message for invalid credentials */}
+        {showInvalidCredentialsHelp && (
+          <div className="bg-amber-500/20 text-amber-200 p-4 rounded-md text-sm backdrop-blur-sm border border-amber-400/30">
+            <h4 className="font-medium mb-2">Need help signing in?</h4>
+            <ul className="space-y-1 text-xs">
+              <li>• Double-check your email address for typos</li>
+              <li>• Make sure you're using the correct password</li>
+              <li>• If you forgot your password, use the "Forgot your password?" link below</li>
+              <li>• If you don't have an account yet, you'll need to register first</li>
+            </ul>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs bg-amber-400/20 hover:bg-amber-400/30 px-2 py-1 rounded transition-colors"
+              >
+                Reset Password
+              </button>
+              <Link
+                to="/register"
+                className="text-xs bg-cyan-400/20 hover:bg-cyan-400/30 px-2 py-1 rounded transition-colors inline-flex items-center gap-1"
+              >
+                <UserPlus className="h-3 w-3" />
+                Create Account
+              </Link>
             </div>
           </div>
         )}
@@ -213,6 +247,18 @@ const LoginForm: React.FC = () => {
         >
           {isLoading ? 'Signing In...' : 'Sign In'}
         </Button>
+
+        <div className="text-center">
+          <p className="text-white/70 text-sm">
+            Don't have an account?{' '}
+            <Link 
+              to="/register" 
+              className="text-cyan-400 hover:text-cyan-300 font-medium"
+            >
+              Sign up here
+            </Link>
+          </p>
+        </div>
       </form>
 
       <ForgotPasswordModal
