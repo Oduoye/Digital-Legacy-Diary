@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
@@ -32,6 +32,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   });
   const { register, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if there's a message from the verification callback
+  const callbackMessage = location.state?.message;
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -268,6 +272,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Show callback message if present */}
+        {callbackMessage && (
+          <div className="bg-blue-500/20 text-blue-200 p-3 rounded-md text-sm mb-4 backdrop-blur-sm border border-blue-400/30">
+            <div className="flex items-start space-x-2">
+              <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{callbackMessage}</span>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm animate-shake backdrop-blur-sm border border-red-400/30">
             <div className="flex items-start space-x-2">

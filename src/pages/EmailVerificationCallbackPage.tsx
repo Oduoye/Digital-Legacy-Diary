@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, AlertTriangle, Loader } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Loader, RefreshCw } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import Button from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
 
 const EmailVerificationCallbackPage: React.FC = () => {
@@ -9,37 +10,46 @@ const EmailVerificationCallbackPage: React.FC = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const handleEmailVerification = async () => {
-      try {
-        const accessToken = searchParams.get('access_token');
-        const refreshToken = searchParams.get('refresh_token');
-        const type = searchParams.get('type');
+    handleEmailVerification();
+  }, []);
 
-        console.log('Email verification callback:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+  const handleEmailVerification = async () => {
+    try {
+      setStatus('loading');
+      setMessage('Verifying your email address...');
 
-        if (!accessToken || !refreshToken) {
-          setStatus('error');
-          setMessage('Invalid verification link. Please try requesting a new verification email.');
-          return;
-        }
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
+      const tokenHash = searchParams.get('token_hash');
+      const next = searchParams.get('next');
 
-        // Set the session with the tokens from the URL
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
+      console.log('Email verification params:', { 
+        hasAccessToken: !!accessToken, 
+        hasRefreshToken: !!refreshToken, 
+        type, 
+        hasTokenHash: !!tokenHash,
+        next 
+      });
+
+      // Handle different verification methods
+      if (tokenHash && type) {
+        // New method using token_hash
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type as any,
         });
 
         if (error) {
-          console.error('Session error:', error);
-          setStatus('error');
-          setMessage('Invalid or expired verification link. Please try requesting a new verification email.');
-          return;
+          console.error('Token hash verification error:', error);
+          throw error;
         }
 
-        if (data.user && data.user.email_confirmed_at) {
-          console.log('Email verified successfully:', data.user);
+        if (data.user && data.session) {
+          console.log('Email verified successfully with token hash:', data.user);
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
           
@@ -47,19 +57,67 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 2000);
-        } else {
-          setStatus('error');
-          setMessage('Email verification failed. Please try again.');
+          return;
         }
-      } catch (error) {
-        console.error('Email verification error:', error);
-        setStatus('error');
-        setMessage('An error occurred during email verification. Please try again.');
       }
-    };
 
+      // Fallback to access_token method
+      if (accessToken && refreshToken) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) {
+          console.error('Session error:', error);
+          throw error;
+        }
+
+        if (data.user && data.user.email_confirmed_at) {
+          console.log('Email verified successfully with session:', data.user);
+          setStatus('success');
+          setMessage('Your email has been verified successfully! Redirecting to dashboard...');
+          
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 2000);
+          return;
+        }
+      }
+
+      // If we get here, verification failed
+      throw new Error('Unable to verify email with provided parameters');
+
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      setStatus('error');
+      
+      // Provide more specific error messages
+      if (error.message?.includes('expired')) {
+        setMessage('The verification link has expired. Please request a new verification email.');
+      } else if (error.message?.includes('invalid')) {
+        setMessage('The verification link is invalid. Please try requesting a new verification email.');
+      } else if (error.message?.includes('already_verified')) {
+        setMessage('Your email is already verified. You can now sign in to your account.');
+      } else {
+        setMessage('Email verification failed. The link may be invalid or expired. Please try requesting a new verification email.');
+      }
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
     handleEmailVerification();
-  }, [searchParams, navigate]);
+  };
+
+  const handleResendVerification = () => {
+    navigate('/register', { 
+      state: { 
+        message: 'Please enter your email to receive a new verification link.' 
+      } 
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
@@ -86,7 +144,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
                     Verifying Your Email
                   </h2>
                   <p className="text-white/80">
-                    Please wait while we verify your email address...
+                    {message}
                   </p>
                 </>
               )}
@@ -120,18 +178,28 @@ const EmailVerificationCallbackPage: React.FC = () => {
                     {message}
                   </p>
                   <div className="space-y-3">
-                    <button
-                      onClick={() => navigate('/login')}
+                    {retryCount < 2 && (
+                      <Button
+                        onClick={handleRetry}
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95"
+                        icon={<RefreshCw className="h-4 w-4 mr-2" />}
+                      >
+                        Try Again
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleResendVerification}
                       className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95"
                     >
-                      Go to Login
-                    </button>
-                    <button
-                      onClick={() => navigate('/register')}
+                      Request New Verification Email
+                    </Button>
+                    <Button
+                      onClick={() => navigate('/login')}
+                      variant="outline"
                       className="w-full border border-white/30 text-white hover:bg-white/10 font-medium py-2 px-4 rounded-md transition-all duration-200"
                     >
-                      Create New Account
-                    </button>
+                      Go to Login
+                    </Button>
                   </div>
                 </>
               )}
