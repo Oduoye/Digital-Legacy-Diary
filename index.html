@@ -13,5 +13,90 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Tawk.to Live Chat -->
+    <script type="text/javascript">
+    var Tawk_API = Tawk_API || {};
+    var Tawk_LoadStart = new Date();
+    
+    // Hide the default widget initially - we'll show it via our custom button
+    Tawk_API.onLoad = function(){
+      console.log('✅ Tawk.to loaded successfully');
+      // Hide the default widget so we can control it with our custom button
+      Tawk_API.hideWidget();
+    };
+    
+    // Customize widget size and appearance
+    Tawk_API.onChatMaximized = function(){
+      console.log('📈 Tawk.to chat maximized');
+      
+      // Apply custom CSS to make the widget larger and better positioned
+      setTimeout(() => {
+        try {
+          const tawkWidget = document.getElementById('tawkchat-container');
+          if (tawkWidget) {
+            // Make the widget larger
+            tawkWidget.style.width = '400px';
+            tawkWidget.style.height = '600px';
+            tawkWidget.style.maxHeight = '80vh';
+            tawkWidget.style.bottom = '20px';
+            tawkWidget.style.right = '20px';
+            tawkWidget.style.borderRadius = '12px';
+            tawkWidget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+          }
+          
+          // Find and style the iframe
+          const tawkIframe = document.querySelector('#tawkchat-container iframe');
+          if (tawkIframe) {
+            tawkIframe.style.borderRadius = '12px';
+          }
+        } catch (error) {
+          console.warn('Could not apply custom Tawk.to styling:', error);
+        }
+      }, 100);
+    };
+    
+    Tawk_API.onStatusChange = function(status){
+      console.log('📊 Tawk.to status changed to:', status);
+    };
+    
+    // Load Tawk.to script
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/68495a4c2061f3190a9644ee/1itf8hfev';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    
+    <style>
+    /* Custom styling for Tawk.to widget */
+    #tawkchat-container {
+      transition: all 0.3s ease-in-out !important;
+    }
+    
+    /* Ensure the widget appears above other elements */
+    #tawkchat-container iframe {
+      z-index: 9999 !important;
+    }
+    
+    /* Custom animations for the widget */
+    @keyframes tawkSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    #tawkchat-container.tawk-maximized {
+      animation: tawkSlideIn 0.3s ease-out;
+    }
+    </style>
   </body>
 </html>
