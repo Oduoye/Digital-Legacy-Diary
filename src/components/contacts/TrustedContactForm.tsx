@@ -97,8 +97,8 @@ const TrustedContactForm: React.FC<TrustedContactFormProps> = ({
           />
         </div>
         <div>
-          <h3 className="text-sm font-medium text-gray-700">Contact Photo</h3>
-          <p className="text-sm text-gray-500">Upload a photo of your trusted contact</p>
+          <h3 className="text-sm font-medium text-label-light">Contact Photo</h3>
+          <p className="text-sm text-white/70">Upload a photo of your trusted contact</p>
         </div>
       </div>
 
@@ -134,10 +134,18 @@ const TrustedContactForm: React.FC<TrustedContactFormProps> = ({
       />
       
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          className="border-white/30 text-white hover:bg-white/10"
+        >
           Cancel
         </Button>
-        <Button type="submit">
+        <Button 
+          type="submit"
+          className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
+        >
           {initialContact.id ? 'Update Contact' : 'Add Contact'}
         </Button>
       </div>
