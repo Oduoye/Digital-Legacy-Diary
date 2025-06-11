@@ -247,18 +247,6 @@ const LoginForm: React.FC = () => {
         >
           {isLoading ? 'Signing In...' : 'Sign In'}
         </Button>
-
-        <div className="text-center">
-          <p className="text-white/70 text-sm">
-            Don't have an account?{' '}
-            <Link 
-              to="/register" 
-              className="text-cyan-400 hover:text-cyan-300 font-medium"
-            >
-              Sign up here
-            </Link>
-          </p>
-        </div>
       </form>
 
       <ForgotPasswordModal

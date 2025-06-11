@@ -254,13 +254,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
               <X className="h-5 w-5" />
             </button>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30 animate-pulse">
                 <CheckCircle className="h-8 w-8 text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-white mb-2 animate-fade-in-up [animation-delay:200ms]">
                 Account Created Successfully!
               </h3>
-              <p className="text-white/80 mb-4">
+              <p className="text-white/80 animate-fade-in-up [animation-delay:400ms]">
                 Welcome to Digital Legacy Diary! You're now logged in and ready to start preserving your memories.
               </p>
               <Button onClick={handleCloseSuccess} className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl">
@@ -393,19 +393,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
-        </div>
-
-        <div className="text-center">
-          <p className="text-white/70 text-sm">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="text-cyan-400 hover:text-cyan-300 font-medium"
-            >
-              Sign in here
-            </button>
-          </p>
         </div>
       </form>
     </>
