@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.email_confirmed_at);
+      console.log('Auth state change:', event, session?.user?.id);
       
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('User signed in, fetching profile');
@@ -118,6 +118,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        // If user doesn't exist in our users table, they might need to complete registration
+        if (error.code === 'PGRST116') {
+          console.log('User not found in users table, they may need to complete registration');
+          setCurrentUser(null);
+        }
         return;
       }
 
@@ -137,10 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      // Check if it's an email not confirmed error
-      if (error.message.includes('Email not confirmed')) {
-        throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
-      }
       throw new Error(error.message);
     }
 
@@ -151,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    // First, sign up the user with email confirmation required
+    // First, sign up the user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -160,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name,
           subscription_tier: subscriptionTier,
         },
-        // Set redirect URL for email confirmation
+        // Set redirect URL for email confirmation if enabled
         emailRedirectTo: `${window.location.origin}/auth/callback`
       }
     });
@@ -169,18 +170,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(error.message);
     }
 
-    // Email confirmation is always required in production
-    const emailConfirmationRequired = !data.user?.email_confirmed_at;
+    // Check if email confirmation is required
+    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
     
     console.log('Registration result:', {
       user: data.user,
+      session: data.session,
       emailConfirmationRequired,
       email_confirmed_at: data.user?.email_confirmed_at,
     });
 
-    // If user is immediately confirmed (unlikely in production), fetch their profile
-    if (data.user?.email_confirmed_at) {
-      await fetchUserProfile(data.user.id);
+    // If user is immediately confirmed or email confirmation is disabled, fetch their profile
+    if (data.user && (data.user.email_confirmed_at || data.session)) {
+      // Wait a moment for the database trigger to create the user profile
+      setTimeout(async () => {
+        await fetchUserProfile(data.user!.id);
+      }, 1000);
       return { emailConfirmationRequired: false };
     }
 
