@@ -15,23 +15,20 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Premium Animated Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient-x" 
-             style={{ backgroundSize: '400% 400%' }} />
-        
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
         {/* Floating Orbs */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/30 to-purple-600/30 rounded-full blur-3xl animate-float" 
+        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-float" 
              style={{ animationDelay: '0s', animationDuration: '6s' }} />
-        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-pink-400/20 to-red-600/20 rounded-full blur-3xl animate-float" 
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-pink-400/15 to-red-600/15 rounded-full blur-3xl animate-float" 
              style={{ animationDelay: '2s', animationDuration: '8s' }} />
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-cyan-400/25 to-blue-600/25 rounded-full blur-3xl animate-float" 
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-cyan-400/20 to-blue-600/20 rounded-full blur-3xl animate-float" 
              style={{ animationDelay: '4s', animationDuration: '7s' }} />
         
         {/* Mesh Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-white/3 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/3 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-white/2 to-transparent" />
         
         {/* Subtle Pattern Overlay */}
         <div className="absolute inset-0 opacity-10" 

@@ -3,8 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    @apply min-h-screen;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
   body {
     @apply min-h-screen;
+    /* Prevent white overlay on mobile scroll */
+    background: #1e1b4b; /* fallback color matching the gradient */
   }
 }
 
@@ -28,6 +36,11 @@
   .animate-gradient-x {
     background-size: 400% 400%;
     animation: gradientX 15s linear infinite;
+  }
+  
+  .no-overscroll {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
