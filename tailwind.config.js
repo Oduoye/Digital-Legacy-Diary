@@ -43,11 +43,6 @@ export default {
           900: '#4c1d95',
           950: '#2e1065',
         },
-        // Custom color for labels on dark backgrounds
-        label: {
-          light: '#f8fafc', // Very light gray for dark backgrounds
-          dark: '#1f2937',   // Dark gray for light backgrounds
-        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

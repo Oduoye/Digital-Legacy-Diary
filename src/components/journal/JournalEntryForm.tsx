@@ -275,7 +275,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
         <div className="space-y-6">
           {/* Tags section */}
           <div className="bg-gradient-to-br from-secondary-50 to-white p-6 rounded-lg border border-secondary-100 animate-fade-in-up [animation-delay:400ms]">
-            <label className="block text-sm font-medium text-label-dark mb-3">
+            <label className="block text-sm font-medium text-white mb-3">
               Tags
             </label>
             <div className="flex items-center">
@@ -323,7 +323,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
           
           {/* Media Upload Section */}
           <div className="bg-gradient-to-br from-accent-50 to-white p-6 rounded-lg border border-accent-100 animate-fade-in-up [animation-delay:600ms]">
-            <label className="block text-sm font-medium text-label-dark mb-3">
+            <label className="block text-sm font-medium text-white mb-3">
               Photos & Videos
             </label>
             <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-accent-200 rounded-lg hover:border-accent-300 transition-colors bg-white/50">
@@ -356,7 +356,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
             {/* Existing Images */}
             {existingImages.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-label-dark mb-2">Existing Images</h4>
+                <h4 className="text-sm font-medium text-white mb-2">Existing Images</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {existingImages.map((image, index) => (
                     <div key={index} className="relative group animate-fade-in">
@@ -383,7 +383,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
             {/* Newly Uploaded Files Preview */}
             {uploadedFiles.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-label-dark mb-2">New Uploads</h4>
+                <h4 className="text-sm font-medium text-white mb-2">New Uploads</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {uploadedFiles.map((file, index) => (
                     <div key={index} className="relative group animate-fade-in">
@@ -418,7 +418,7 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
           
           {/* External Image URLs */}
           <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-6 rounded-lg border border-primary-100 animate-fade-in-up [animation-delay:800ms]">
-            <label className="block text-sm font-medium text-label-dark mb-3">
+            <label className="block text-sm font-medium text-white mb-3">
               External Image URLs
             </label>
             <div className="flex items-center">

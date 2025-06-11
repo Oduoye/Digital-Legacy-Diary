@@ -121,7 +121,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
             </div>
 
             <div className="bg-gradient-to-br from-accent-50 to-white p-4 rounded-lg border border-accent-100">
-              <label className="block text-sm font-medium text-label-dark mb-3">
+              <label className="block text-sm font-medium text-white mb-3">
                 Attachments
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-accent-300 transition-colors">

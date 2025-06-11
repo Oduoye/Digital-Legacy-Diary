@@ -97,7 +97,7 @@ const TrustedContactForm: React.FC<TrustedContactFormProps> = ({
           />
         </div>
         <div>
-          <h3 className="text-sm font-medium text-label-light">Contact Photo</h3>
+          <h3 className="text-sm font-medium text-white">Contact Photo</h3>
           <p className="text-sm text-white/70">Upload a photo of your trusted contact</p>
         </div>
       </div>

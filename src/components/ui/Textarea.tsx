@@ -19,7 +19,7 @@ const Textarea: React.FC<TextareaProps> = ({
       {label && (
         <label
           htmlFor={textareaId}
-          className="block text-sm font-medium text-label-light mb-1"
+          className="block text-sm font-medium text-white mb-1"
         >
           {label}
         </label>
