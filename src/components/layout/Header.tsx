@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard, HelpCircle } from 'lucide-react';
+import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard, HelpCircle, Crown, Shield, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
@@ -27,6 +27,35 @@ const Header: React.FC = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  // Get subscription tier info for badge
+  const getSubscriptionBadge = (tier: string = 'free') => {
+    switch (tier) {
+      case 'premium':
+        return {
+          icon: <Shield className="h-3 w-3" />,
+          text: 'Premium',
+          bgColor: 'bg-blue-500',
+          textColor: 'text-white'
+        };
+      case 'gold':
+        return {
+          icon: <Crown className="h-3 w-3" />,
+          text: 'Gold',
+          bgColor: 'bg-yellow-500',
+          textColor: 'text-white'
+        };
+      default:
+        return {
+          icon: <Star className="h-3 w-3" />,
+          text: 'Free',
+          bgColor: 'bg-gray-500',
+          textColor: 'text-white'
+        };
+    }
+  };
+
+  const subscriptionBadge = getSubscriptionBadge(currentUser?.subscription_tier);
 
   return (
     <header className="bg-gradient-to-br from-primary-600 to-accent-600 shadow-sm sticky top-0 z-50">
@@ -71,7 +100,7 @@ const Header: React.FC = () => {
                       onClick={() => setShowProfileMenu(!showProfileMenu)}
                       className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors focus:outline-none"
                     >
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
                         {currentUser.profilePicture ? (
                           <img 
                             src={currentUser.profilePicture} 
@@ -83,6 +112,12 @@ const Header: React.FC = () => {
                             {currentUser.name.charAt(0).toUpperCase()}
                           </span>
                         )}
+                        
+                        {/* Subscription Badge */}
+                        <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border border-white`}>
+                          {subscriptionBadge.icon}
+                          <span className="hidden sm:inline text-xs">{subscriptionBadge.text}</span>
+                        </div>
                       </div>
                       <span className="text-sm font-medium">{currentUser.name}</span>
                       <ChevronDown className="h-4 w-4" />
@@ -186,7 +221,7 @@ const Header: React.FC = () => {
               {currentUser ? (
                 <>
                   <div className="flex items-center space-x-3 px-3 py-2">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-100">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden bg-primary-100">
                       {currentUser.profilePicture ? (
                         <img 
                           src={currentUser.profilePicture} 
@@ -200,6 +235,12 @@ const Header: React.FC = () => {
                           </span>
                         </div>
                       )}
+                      
+                      {/* Subscription Badge */}
+                      <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white`}>
+                        {subscriptionBadge.icon}
+                        <span>{subscriptionBadge.text}</span>
+                      </div>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">{currentUser.name}</div>
