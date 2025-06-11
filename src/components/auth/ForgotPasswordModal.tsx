@@ -87,30 +87,30 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in relative">
+      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-6 animate-scale-in relative shadow-2xl">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
         >
           <X className="h-5 w-5" />
         </button>
 
         {isSuccess ? (
           <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
+              <CheckCircle className="h-6 w-6 text-green-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               Reset Email Sent!
             </h3>
-            <p className="text-gray-600 mb-4">
-              We've sent password reset instructions to <strong>{email}</strong>.
+            <p className="text-white/80 mb-4">
+              We've sent password reset instructions to <strong className="text-cyan-400">{email}</strong>.
             </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4">
               <div className="flex items-start space-x-3">
-                <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Mail className="h-5 w-5 text-cyan-400 mt-0.5 flex-shrink-0" />
                 <div className="text-left">
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-white/90">
                     Check your inbox and click the reset link to create a new password. 
                     The link will expire in 1 hour for security reasons.
                   </p>
@@ -121,19 +121,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-6 w-6 text-primary-600" />
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-cyan-400/30">
+                <Mail className="h-6 w-6 text-cyan-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 Reset Your Password
               </h3>
-              <p className="text-gray-600">
+              <p className="text-white/80">
                 Enter your email address and we'll send you instructions to reset your password.
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm mb-4 animate-shake">
+              <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm mb-4 animate-shake backdrop-blur-sm border border-red-400/30">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>{error}</span>
@@ -148,7 +148,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               onChange={handleEmailChange}
               placeholder="your.email@example.com"
               required
-              icon={<Mail className="h-5 w-5 text-gray-400" />}
+              icon={<Mail className="h-5 w-5 text-white/60" />}
               error={validationError}
             />
 
@@ -157,6 +157,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 variant="outline"
                 onClick={handleClose}
                 disabled={isLoading}
+                className="border-white/30 text-white hover:bg-white/10"
               >
                 Cancel
               </Button>
@@ -164,18 +165,19 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 type="submit"
                 isLoading={isLoading}
                 disabled={isLoading}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
               >
                 {isLoading ? 'Sending...' : 'Send Reset Link'}
               </Button>
             </div>
 
             <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-white/70">
                 Remember your password?{' '}
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="text-primary-600 hover:text-primary-700 font-medium"
+                  className="text-cyan-400 hover:text-cyan-300 font-medium"
                 >
                   Back to login
                 </button>

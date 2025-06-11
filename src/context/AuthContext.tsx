@@ -85,8 +85,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.email_confirmed_at);
+      
       if (event === 'SIGNED_IN' && session?.user) {
-        await fetchUserProfile(session.user.id);
+        // Only fetch profile if email is confirmed or confirmation is not required
+        if (session.user.email_confirmed_at || !session.user.confirmation_sent_at) {
+          await fetchUserProfile(session.user.id);
+        }
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
       }
@@ -128,11 +133,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (data.user) {
+      // Check if email is confirmed
+      if (!data.user.email_confirmed_at) {
+        throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+      }
       await fetchUserProfile(data.user.id);
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
+    // First, sign up the user with email confirmation enabled
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -140,7 +150,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: {
           name,
           subscription_tier: subscriptionTier,
-        }
+        },
+        // Force email confirmation
+        emailRedirectTo: `${window.location.origin}/login`
       }
     });
 
@@ -148,17 +160,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(error.message);
     }
 
-    // The user profile will be created automatically by the trigger
-    // If user is immediately confirmed, fetch their profile
-    if (data.user && !data.user.email_confirmed_at) {
-      return { emailConfirmationRequired: true };
-    }
+    // Check if email confirmation is required
+    const emailConfirmationRequired = !data.user?.email_confirmed_at && !!data.user?.confirmation_sent_at;
+    
+    console.log('Registration result:', {
+      user: data.user,
+      emailConfirmationRequired,
+      email_confirmed_at: data.user?.email_confirmed_at,
+      confirmation_sent_at: data.user?.confirmation_sent_at
+    });
 
-    if (data.user) {
+    // If user is immediately confirmed (unlikely in production), fetch their profile
+    if (data.user?.email_confirmed_at) {
       await fetchUserProfile(data.user.id);
+      return { emailConfirmationRequired: false };
     }
 
-    return { emailConfirmationRequired: false };
+    return { emailConfirmationRequired };
   };
 
   const logout = async () => {
@@ -243,9 +261,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('No email provided');
     }
 
+    const targetEmail = email || currentUser!.email;
+
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email: email || currentUser!.email,
+      email: targetEmail,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`
+      }
     });
 
     if (error) {
