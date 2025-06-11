@@ -95,7 +95,7 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false for non-blocking
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
   // Helper function to handle auth errors and clear session
@@ -123,21 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('🔄 Initializing authentication...');
         
-        // Get initial session with timeout - increased to 60 seconds
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 60000)
-        );
-
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        // Get initial session without blocking UI
+        const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
           await handleAuthError(error, 'Session initialization');
           if (mounted) {
-            setLoading(false);
             setSessionInitialized(true);
           }
           return;
@@ -147,13 +138,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           console.log('👤 Session user found, fetching profile...');
-          await fetchUserProfile(session.user.id);
+          // Fetch profile in background without blocking
+          fetchUserProfile(session.user.id).catch(err => {
+            console.error('Background profile fetch failed:', err);
+          });
         }
       } catch (error) {
         await handleAuthError(error, 'Auth initialization');
       } finally {
         if (mounted) {
-          setLoading(false);
           setSessionInitialized(true);
         }
       }
@@ -168,6 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in, fetching profile');
+          // Only show loading for explicit sign-in actions
           setLoading(true);
           await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
@@ -189,7 +183,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    // Initialize auth
+    // Initialize auth without blocking
     initializeAuth();
 
     return () => {
@@ -202,21 +196,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('📡 Fetching user profile for:', userId);
       
-      const profilePromise = supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
-
-      // Increased timeout to 60 seconds
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 60000)
-      );
-
-      const { data, error } = await Promise.race([
-        profilePromise,
-        timeoutPromise
-      ]) as any;
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
@@ -443,7 +427,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     currentUser,
-    loading: loading || !sessionInitialized,
+    loading: loading, // Only show loading for explicit actions, not initialization
     login,
     register,
     logout,
