@@ -13,20 +13,34 @@ const AuthPages: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState(subscriptionTiers[0].id);
   const [showSubscription, setShowSubscription] = useState(!isLoginPage);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [currentForm, setCurrentForm] = useState(isLoginPage ? 'login' : 'register');
 
   useEffect(() => {
-    setShowSubscription(!isLoginPage);
-    if (isLoginPage) {
-      setSelectedTier(subscriptionTiers[0].id);
+    const newForm = isLoginPage ? 'login' : 'register';
+    if (newForm !== currentForm) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentForm(newForm);
+        setShowSubscription(!isLoginPage);
+        if (isLoginPage) {
+          setSelectedTier(subscriptionTiers[0].id);
+        }
+        setIsTransitioning(false);
+      }, 150); // Half of the transition duration
     }
-  }, [location.pathname, isLoginPage]);
+  }, [location.pathname, isLoginPage, currentForm]);
 
   const handleTierSelect = (tierId: string) => {
     if (tierId !== 'free') {
       setShowComingSoonModal(true);
     } else {
       setSelectedTier(tierId);
-      setShowSubscription(false);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowSubscription(false);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
@@ -110,17 +124,22 @@ const AuthPages: React.FC = () => {
                 <div className="h-1 w-24 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mx-auto rounded-full animate-pulse" />
               </div>
               <h2 className="mt-4 text-2xl font-serif font-bold text-white">
-                {isLoginPage ? 'Welcome Back' : (showSubscription ? 'Choose Your Plan' : 'Create Your Account')}
+                {currentForm === 'login' ? 'Welcome Back' : (showSubscription ? 'Choose Your Plan' : 'Create Your Account')}
               </h2>
               <p className="mt-2 text-white/80">
-                {isLoginPage 
+                {currentForm === 'login' 
                   ? 'Sign in to continue your legacy journey' 
                   : (showSubscription ? 'Select a plan to begin your journey' : 'Start preserving your memories and wisdom')}
               </p>
             </div>
 
-            <div className="animate-fade-in-up [animation-delay:300ms]">
-              {isLoginPage ? (
+            {/* Form content with transition */}
+            <div 
+              className={`transition-all duration-300 ease-in-out ${
+                isTransitioning ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'
+              }`}
+            >
+              {currentForm === 'login' ? (
                 <LoginForm />
               ) : showSubscription ? (
                 <div className="space-y-4 md:space-y-6">
@@ -170,15 +189,15 @@ const AuthPages: React.FC = () => {
                         </div>
                         
                         <ul className="space-y-1 md:space-y-2">
-                          {tier.features.slice(0, window.innerWidth < 768 ? 3 : 4).map((feature, index) => (
+                          {tier.features.slice(0, typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4).map((feature, index) => (
                             <li key={index} className="text-xs md:text-sm text-white/80 flex items-center">
                               <Check className="h-3 w-3 md:h-4 md:w-4 text-cyan-400 mr-1.5 md:mr-2 flex-shrink-0" />
                               {feature}
                             </li>
                           ))}
-                          {tier.features.length > (window.innerWidth < 768 ? 3 : 4) && (
+                          {tier.features.length > (typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4) && (
                             <li className="text-xs md:text-sm text-white/60 italic">
-                              +{tier.features.length - (window.innerWidth < 768 ? 3 : 4)} more features
+                              +{tier.features.length - (typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4)} more features
                             </li>
                           )}
                         </ul>
@@ -188,7 +207,13 @@ const AuthPages: React.FC = () => {
                   
                   <div className="flex flex-col space-y-3 md:space-y-4 animate-fade-in-up [animation-delay:700ms]">
                     <Button 
-                      onClick={() => setShowSubscription(false)}
+                      onClick={() => {
+                        setIsTransitioning(true);
+                        setTimeout(() => {
+                          setShowSubscription(false);
+                          setIsTransitioning(false);
+                        }, 150);
+                      }}
                       className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transform transition-all duration-200 hover:scale-105 active:scale-95 shadow-xl"
                     >
                       Continue with {subscriptionTiers.find(t => t.id === selectedTier)?.name}
@@ -196,7 +221,13 @@ const AuthPages: React.FC = () => {
                     <button
                       type="button"
                       className="text-sm text-white/70 hover:text-white transition-colors"
-                      onClick={() => setShowSubscription(false)}
+                      onClick={() => {
+                        setIsTransitioning(true);
+                        setTimeout(() => {
+                          setShowSubscription(false);
+                          setIsTransitioning(false);
+                        }, 150);
+                      }}
                     >
                       Skip plan selection
                     </button>
@@ -209,15 +240,15 @@ const AuthPages: React.FC = () => {
 
             <div className="mt-8 text-center animate-fade-in-up [animation-delay:400ms]">
               <p className="text-sm text-white/70">
-                {isLoginPage 
+                {currentForm === 'login' 
                   ? "Don't have an account?" 
                   : "Already have an account?"}
                 {' '}
                 <Link
-                  to={isLoginPage ? '/register' : '/login'}
+                  to={currentForm === 'login' ? '/register' : '/login'}
                   className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
                 >
-                  {isLoginPage ? 'Sign Up' : 'Sign In'}
+                  {currentForm === 'login' ? 'Sign Up' : 'Sign In'}
                 </Link>
               </p>
             </div>
