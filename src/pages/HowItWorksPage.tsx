@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Users, Shield, Clock, Mail, Key, Download, CheckCircle, AlertTriangle, Heart, FileText, Smartphone } from 'lucide-react';
 import Layout from '../components/layout/Layout';
@@ -6,6 +6,17 @@ import Card, { CardHeader, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
 const HowItWorksPage: React.FC = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Trigger fade-in animation after component mounts
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
       {/* Animated Background Elements */}
@@ -19,8 +30,17 @@ const HowItWorksPage: React.FC = () => {
       </div>
 
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-          <div className="mb-8">
+        <div 
+          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 transition-all duration-1000 ease-out ${
+            isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+          }`}
+        >
+          <div 
+            className={`mb-8 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'
+            }`}
+            style={{ transitionDelay: '200ms' }}
+          >
             <Link 
               to="/" 
               className="inline-flex items-center text-white/70 hover:text-white transition-colors mb-4"
@@ -31,7 +51,12 @@ const HowItWorksPage: React.FC = () => {
           </div>
 
           {/* Header */}
-          <div className="text-center mb-16 animate-fade-in">
+          <div 
+            className={`text-center mb-16 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '400ms' }}
+          >
             <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-6">
               How Digital Legacy Transfer Works
             </h1>
@@ -43,7 +68,12 @@ const HowItWorksPage: React.FC = () => {
 
           {/* Overview Cards */}
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up">
+            <Card 
+              className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
+              style={{ transitionDelay: '600ms' }}
+            >
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Shield className="h-8 w-8 text-white" />
@@ -53,7 +83,12 @@ const HowItWorksPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:200ms]">
+            <Card 
+              className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
+              style={{ transitionDelay: '700ms' }}
+            >
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-8 w-8 text-white" />
@@ -63,7 +98,12 @@ const HowItWorksPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:400ms]">
+            <Card 
+              className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
+              style={{ transitionDelay: '800ms' }}
+            >
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Heart className="h-8 w-8 text-white" />
@@ -76,13 +116,23 @@ const HowItWorksPage: React.FC = () => {
 
           {/* Step-by-Step Process */}
           <div className="mb-16">
-            <h2 className="text-3xl font-serif font-bold text-white text-center mb-12 animate-fade-in">
+            <h2 
+              className={`text-3xl font-serif font-bold text-white text-center mb-12 transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+              }`}
+              style={{ transitionDelay: '900ms' }}
+            >
               The Complete Process
             </h2>
 
             <div className="space-y-12">
               {/* Step 1 */}
-              <div className="flex flex-col lg:flex-row items-center gap-8 animate-fade-in-up">
+              <div 
+                className={`flex flex-col lg:flex-row items-center gap-8 transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1000ms' }}
+              >
                 <div className="lg:w-1/2">
                   <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                     <CardContent className="p-8">
@@ -118,7 +168,12 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               {/* Step 2 */}
-              <div className="flex flex-col lg:flex-row-reverse items-center gap-8 animate-fade-in-up [animation-delay:200ms]">
+              <div 
+                className={`flex flex-col lg:flex-row-reverse items-center gap-8 transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1100ms' }}
+              >
                 <div className="lg:w-1/2">
                   <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                     <CardContent className="p-8">
@@ -154,7 +209,12 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               {/* Step 3 */}
-              <div className="flex flex-col lg:flex-row items-center gap-8 animate-fade-in-up [animation-delay:400ms]">
+              <div 
+                className={`flex flex-col lg:flex-row items-center gap-8 transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1200ms' }}
+              >
                 <div className="lg:w-1/2">
                   <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                     <CardContent className="p-8">
@@ -190,7 +250,12 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               {/* Step 4 */}
-              <div className="flex flex-col lg:flex-row-reverse items-center gap-8 animate-fade-in-up [animation-delay:600ms]">
+              <div 
+                className={`flex flex-col lg:flex-row-reverse items-center gap-8 transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1300ms' }}
+              >
                 <div className="lg:w-1/2">
                   <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                     <CardContent className="p-8">
@@ -229,7 +294,12 @@ const HowItWorksPage: React.FC = () => {
 
           {/* Dead Man's Switch Explanation */}
           <div className="mb-16">
-            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in">
+            <Card 
+              className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+              }`}
+              style={{ transitionDelay: '1400ms' }}
+            >
               <CardHeader>
                 <h2 className="text-3xl font-serif font-bold text-white text-center">
                   What is a Dead Man's Switch?
@@ -286,11 +356,21 @@ const HowItWorksPage: React.FC = () => {
 
           {/* Security & Privacy */}
           <div className="mb-16">
-            <h2 className="text-3xl font-serif font-bold text-white text-center mb-12 animate-fade-in">
+            <h2 
+              className={`text-3xl font-serif font-bold text-white text-center mb-12 transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+              }`}
+              style={{ transitionDelay: '1500ms' }}
+            >
               Security & Privacy
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up">
+              <Card 
+                className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1600ms' }}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Shield className="h-8 w-8 text-blue-400 mr-3" />
@@ -305,7 +385,12 @@ const HowItWorksPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:200ms]">
+              <Card 
+                className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                  isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                }`}
+                style={{ transitionDelay: '1700ms' }}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Key className="h-8 w-8 text-green-400 mr-3" />
@@ -324,69 +409,69 @@ const HowItWorksPage: React.FC = () => {
 
           {/* FAQ Section */}
           <div className="mb-16">
-            <h2 className="text-3xl font-serif font-bold text-white text-center mb-12 animate-fade-in">
+            <h2 
+              className={`text-3xl font-serif font-bold text-white text-center mb-12 transition-all duration-800 ease-out ${
+                isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+              }`}
+              style={{ transitionDelay: '1800ms' }}
+            >
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    Do my heirs need to create accounts to access my legacy?
-                  </h3>
-                  <p className="text-white/90">
-                    No! Your heirs simply need the access code we send them. They'll verify their identity with basic information (name, email, relationship) and can immediately access your legacy. No account creation or complex signup process required.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:100ms]">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    What happens if I accidentally trigger the Dead Man's Switch?
-                  </h3>
-                  <p className="text-white/90">
-                    The system has multiple safeguards. You'll receive several warning emails before activation, and there's a grace period where you can easily reactivate your account. Even after activation, you can log in and pause the process.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:200ms]">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    Can I control what each heir can access?
-                  </h3>
-                  <p className="text-white/90">
-                    Yes! You can set different access levels for different heirs. Some might get full access to everything, while others might only see specific documents or memories. You have complete control over who sees what.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:300ms]">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    How secure are the access codes?
-                  </h3>
-                  <p className="text-white/90">
-                    Access codes are cryptographically generated and unique to each heir. They're sent via secure email and have optional expiration dates. Each code can only be used by the intended recipient and includes verification steps.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl animate-fade-in-up [animation-delay:400ms]">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3">
-                    What formats can my heirs download my data in?
-                  </h3>
-                  <p className="text-white/90">
-                    Your heirs can download individual documents (PDFs, text files), complete data exports (JSON format), and formatted versions for printing. Wills can be downloaded as legal documents, and photos maintain their original quality.
-                  </p>
-                </CardContent>
-              </Card>
+              {[
+                {
+                  question: "Do my heirs need to create accounts to access my legacy?",
+                  answer: "No! Your heirs simply need the access code we send them. They'll verify their identity with basic information (name, email, relationship) and can immediately access your legacy. No account creation or complex signup process required.",
+                  delay: '1900ms'
+                },
+                {
+                  question: "What happens if I accidentally trigger the Dead Man's Switch?",
+                  answer: "The system has multiple safeguards. You'll receive several warning emails before activation, and there's a grace period where you can easily reactivate your account. Even after activation, you can log in and pause the process.",
+                  delay: '2000ms'
+                },
+                {
+                  question: "Can I control what each heir can access?",
+                  answer: "Yes! You can set different access levels for different heirs. Some might get full access to everything, while others might only see specific documents or memories. You have complete control over who sees what.",
+                  delay: '2100ms'
+                },
+                {
+                  question: "How secure are the access codes?",
+                  answer: "Access codes are cryptographically generated and unique to each heir. They're sent via secure email and have optional expiration dates. Each code can only be used by the intended recipient and includes verification steps.",
+                  delay: '2200ms'
+                },
+                {
+                  question: "What formats can my heirs download my data in?",
+                  answer: "Your heirs can download individual documents (PDFs, text files), complete data exports (JSON format), and formatted versions for printing. Wills can be downloaded as legal documents, and photos maintain their original quality.",
+                  delay: '2300ms'
+                }
+              ].map((faq, index) => (
+                <Card 
+                  key={index}
+                  className={`backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl transition-all duration-800 ease-out ${
+                    isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+                  }`}
+                  style={{ transitionDelay: faq.delay }}
+                >
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-semibold text-white mb-3">
+                      {faq.question}
+                    </h3>
+                    <p className="text-white/90">
+                      {faq.answer}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
           {/* Call to Action */}
-          <div className="text-center animate-fade-in">
+          <div 
+            className={`text-center transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-8'
+            }`}
+            style={{ transitionDelay: '2400ms' }}
+          >
             <Card className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
               <CardContent>
                 <h2 className="text-3xl font-serif font-bold text-white mb-6">
@@ -399,7 +484,7 @@ const HowItWorksPage: React.FC = () => {
                   <Link to="/register">
                     <Button 
                       size="lg" 
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl"
+                      className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl text-white font-semibold"
                     >
                       Start Your Legacy Today
                     </Button>
@@ -408,7 +493,7 @@ const HowItWorksPage: React.FC = () => {
                     <Button 
                       size="lg" 
                       variant="outline"
-                      className="border-white/30 text-white hover:bg-white/10 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95"
+                      className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95"
                     >
                       Have Questions?
                     </Button>
