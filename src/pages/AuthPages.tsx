@@ -33,11 +33,11 @@ const AuthPages: React.FC = () => {
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
       case 'premium':
-        return <Shield className="h-5 w-5" />;
+        return <Shield className="h-4 w-4" />;
       case 'gold':
-        return <Crown className="h-5 w-5" />;
+        return <Crown className="h-4 w-4" />;
       default:
-        return <Zap className="h-5 w-5" />;
+        return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -123,12 +123,12 @@ const AuthPages: React.FC = () => {
               {isLoginPage ? (
                 <LoginForm />
               ) : showSubscription ? (
-                <div className="space-y-6">
-                  <div className="grid gap-4">
+                <div className="space-y-4">
+                  <div className="grid gap-3">
                     {subscriptionTiers.map((tier, index) => (
                       <div
                         key={tier.id}
-                        className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 transform backdrop-blur-sm ${
+                        className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 transform backdrop-blur-sm ${
                           selectedTier === tier.id
                             ? 'border-cyan-400 bg-white/20 shadow-2xl shadow-cyan-500/25'
                             : 'border-white/20 hover:border-cyan-300/50 hover:shadow-xl hover:bg-white/15'
@@ -137,47 +137,47 @@ const AuthPages: React.FC = () => {
                         onClick={() => handleTierSelect(tier.id)}
                       >
                         {tier.id === 'gold' && (
-                          <div className="absolute -top-3 -right-3">
-                            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center shadow-lg">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-lg">
                               <Crown className="h-3 w-3 mr-1" />
-                              Most Popular
+                              Popular
                             </div>
                           </div>
                         )}
                         
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-lg bg-gradient-to-r ${getTierColor(tier.id)} text-white shadow-lg`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center space-x-2">
+                            <div className={`p-1.5 rounded-lg bg-gradient-to-r ${getTierColor(tier.id)} text-white shadow-lg`}>
                               {getTierIcon(tier.id)}
                             </div>
                             <div>
-                              <h3 className="font-bold text-lg text-white">{tier.name}</h3>
-                              <p className="text-sm text-white/70">
+                              <h3 className="font-bold text-base text-white">{tier.name}</h3>
+                              <p className="text-xs text-white/70">
                                 ${tier.price}{tier.price > 0 ? '/month' : ' forever'}
                               </p>
                             </div>
                           </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                             selectedTier === tier.id
                               ? 'border-cyan-400 bg-cyan-400'
                               : 'border-white/40'
                           }`}>
                             {selectedTier === tier.id && (
-                              <Check className="h-4 w-4 text-white" />
+                              <Check className="h-3 w-3 text-white" />
                             )}
                           </div>
                         </div>
                         
-                        <ul className="space-y-2">
-                          {tier.features.slice(0, 4).map((feature, index) => (
-                            <li key={index} className="text-sm text-white/80 flex items-center">
-                              <Check className="h-4 w-4 text-cyan-400 mr-2 flex-shrink-0" />
+                        <ul className="space-y-1">
+                          {tier.features.slice(0, 3).map((feature, index) => (
+                            <li key={index} className="text-xs text-white/80 flex items-center">
+                              <Check className="h-3 w-3 text-cyan-400 mr-1.5 flex-shrink-0" />
                               {feature}
                             </li>
                           ))}
-                          {tier.features.length > 4 && (
-                            <li className="text-sm text-white/60 italic">
-                              +{tier.features.length - 4} more features
+                          {tier.features.length > 3 && (
+                            <li className="text-xs text-white/60 italic">
+                              +{tier.features.length - 3} more features
                             </li>
                           )}
                         </ul>
@@ -185,7 +185,7 @@ const AuthPages: React.FC = () => {
                     ))}
                   </div>
                   
-                  <div className="flex flex-col space-y-4 animate-fade-in-up [animation-delay:700ms]">
+                  <div className="flex flex-col space-y-3 animate-fade-in-up [animation-delay:700ms]">
                     <Button 
                       onClick={() => setShowSubscription(false)}
                       className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 transform transition-all duration-200 hover:scale-105 active:scale-95 shadow-xl"
