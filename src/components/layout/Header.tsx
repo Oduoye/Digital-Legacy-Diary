@@ -24,8 +24,21 @@ const Header: React.FC = () => {
           <div className="flex items-center">
             <Link to={currentUser ? '/dashboard' : '/'} className="flex items-center group">
               <div className="flex items-center">
-                <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-serif font-bold text-primary-600">D</span>
+                <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center p-1">
+                  <img 
+                    src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
+                    alt="Digital Legacy Diary"
+                    className="h-full w-full object-contain"
+                    onError={(e) => {
+                      // Fallback to text logo if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<span class="text-2xl font-serif font-bold text-primary-600">D</span>';
+                      }
+                    }}
+                  />
                 </div>
                 <span className="ml-2 text-xl font-serif font-semibold text-white">Digital Legacy Diary</span>
               </div>
