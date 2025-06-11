@@ -210,43 +210,44 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* KYC Verification Coming Soon Banner */}
+          {/* KYC Verification Coming Soon Banner - Compact Version */}
           <div 
             className={`mb-8 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
             style={{ transitionDelay: '200ms' }}
           >
-            <Card className="backdrop-blur-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 shadow-2xl">
-              <CardContent className="p-6">
+            <Card className="backdrop-blur-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/20 shadow-xl">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
-                      <div className="rounded-full bg-orange-500/20 p-3 backdrop-blur-sm border border-orange-400/30">
-                        <Shield className="h-6 w-6 text-orange-300" />
+                      <div className="rounded-full bg-amber-500/20 p-2 backdrop-blur-sm border border-amber-400/30">
+                        <Shield className="h-5 w-5 text-amber-200" />
                       </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-medium text-white flex items-center">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-medium text-amber-100 flex items-center">
                         KYC Verification
-                        <span className="ml-2 bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
+                        <span className="ml-2 bg-amber-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
                           Coming Soon
                         </span>
                       </h3>
-                      <p className="text-white/80 mt-1">
-                        Enhanced security verification to protect your digital legacy and ensure secure access for your heirs.
+                      <p className="text-amber-200/80 text-sm mt-0.5">
+                        Enhanced security verification to protect your digital legacy.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="hidden md:flex items-center text-white/70 text-sm">
-                      <Clock className="h-4 w-4 mr-1" />
+                  <div className="flex items-center space-x-3 flex-shrink-0">
+                    <div className="hidden sm:flex items-center text-amber-200/70 text-xs">
+                      <Clock className="h-3 w-3 mr-1" />
                       <span>In Development</span>
                     </div>
                     <Button
                       onClick={() => setShowKYCModal(true)}
                       variant="outline"
-                      className="border-orange-400/50 text-orange-200 hover:bg-orange-500/20 backdrop-blur-sm"
+                      size="sm"
+                      className="border-amber-400/50 text-amber-200 hover:bg-amber-500/20 backdrop-blur-sm text-xs px-3 py-1"
                     >
                       Learn More
                     </Button>
