@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface UseScrollAnimationOptions {
   threshold?: number;
@@ -9,7 +9,7 @@ interface UseScrollAnimationOptions {
 export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
   const {
     threshold = 0.1,
-    rootMargin = '0px 0px -50px 0px',
+    rootMargin = '0px 0px -100px 0px',
     triggerOnce = true
   } = options;
   
@@ -20,15 +20,23 @@ export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
     const element = elementRef.current;
     if (!element) return;
 
+    // Add will-change for better performance
+    element.style.willChange = 'transform, opacity';
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
+          // Use requestAnimationFrame for smoother transitions
+          requestAnimationFrame(() => {
+            setIsVisible(true);
+          });
           if (triggerOnce) {
             observer.unobserve(element);
           }
         } else if (!triggerOnce) {
-          setIsVisible(false);
+          requestAnimationFrame(() => {
+            setIsVisible(false);
+          });
         }
       },
       {
@@ -41,6 +49,10 @@ export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
 
     return () => {
       observer.unobserve(element);
+      // Clean up will-change
+      if (element) {
+        element.style.willChange = 'auto';
+      }
     };
   }, [threshold, rootMargin, triggerOnce]);
 
@@ -51,27 +63,30 @@ export const useStaggeredScrollAnimation = (itemCount: number, options: UseScrol
   const { elementRef, isVisible } = useScrollAnimation(options);
   const [visibleItems, setVisibleItems] = useState<boolean[]>(new Array(itemCount).fill(false));
 
-  useEffect(() => {
-    if (isVisible) {
-      const timeouts: NodeJS.Timeout[] = [];
-      
-      for (let i = 0; i < itemCount; i++) {
-        const timeout = setTimeout(() => {
-          setVisibleItems(prev => {
-            const newState = [...prev];
-            newState[i] = true;
-            return newState;
-          });
-        }, i * 150); // 150ms delay between each item
-        
-        timeouts.push(timeout);
-      }
+  const animateItems = useCallback(() => {
+    if (!isVisible) return;
 
-      return () => {
-        timeouts.forEach(timeout => clearTimeout(timeout));
-      };
-    }
+    const animateItem = (index: number) => {
+      if (index >= itemCount) return;
+      
+      requestAnimationFrame(() => {
+        setVisibleItems(prev => {
+          const newState = [...prev];
+          newState[index] = true;
+          return newState;
+        });
+        
+        // Schedule next item with reduced delay for smoother effect
+        setTimeout(() => animateItem(index + 1), 100);
+      });
+    };
+
+    animateItem(0);
   }, [isVisible, itemCount]);
+
+  useEffect(() => {
+    animateItems();
+  }, [animateItems]);
 
   return { elementRef, isVisible, visibleItems };
 };

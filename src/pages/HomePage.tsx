@@ -12,8 +12,8 @@ const HomePage: React.FC = () => {
 
   // Scroll animation hooks for different sections
   const heroSection = useScrollAnimation({ threshold: 0.2 });
-  const featuresSection = useStaggeredScrollAnimation(3, { threshold: 0.1 });
-  const howItWorksSection = useStaggeredScrollAnimation(3, { threshold: 0.1 });
+  const featuresSection = useStaggeredScrollAnimation(3, { threshold: 0.15 });
+  const howItWorksSection = useStaggeredScrollAnimation(3, { threshold: 0.15 });
   const ctaSection = useScrollAnimation({ threshold: 0.3 });
 
   // If user is authenticated, redirect to dashboard
@@ -52,26 +52,33 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
             <div 
               ref={heroSection.elementRef}
-              className={`text-center max-w-3xl mx-auto transition-all duration-1000 ${
-                heroSection.isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}
+              className="text-center max-w-3xl mx-auto"
+              style={{ 
+                transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
+                opacity: heroSection.isVisible ? 1 : 0,
+                transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              }}
             >
-              <div className={`inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-500 ${
-                heroSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-200' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <div 
+                className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-500"
+                style={{ 
+                  transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: heroSection.isVisible ? 1 : 0,
+                  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s'
+                }}
+              >
                 <Star className="h-5 w-5 text-yellow-400 mr-2" />
                 <span className="text-sm font-medium text-white">Your memories, preserved forever</span>
               </div>
               
-              <div className={`relative mb-8 md:mb-12 transition-all duration-1000 ${
-                heroSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-400' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="relative mb-8 md:mb-12"
+                style={{ 
+                  transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
+                  opacity: heroSection.isVisible ? 1 : 0,
+                  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s'
+                }}
+              >
                 <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
                   <span className="block mb-4 md:mb-6">Preserve Your Legacy,</span>
                   <span className="relative inline-block">
@@ -89,19 +96,25 @@ const HomePage: React.FC = () => {
                 </h1>
               </div>
               
-              <p className={`text-lg md:text-xl text-white/90 mb-10 leading-relaxed transition-all duration-1000 ${
-                heroSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-600' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <p 
+                className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed"
+                style={{ 
+                  transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: heroSection.isVisible ? 1 : 0,
+                  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s'
+                }}
+              >
                 Every memory tells a story. Create a lasting legacy by sharing your wisdom, experiences, and cherished moments with future generations.
               </p>
               
-              <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-1000 ${
-                heroSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-800' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <div 
+                className="flex flex-col sm:flex-row gap-4 justify-center"
+                style={{ 
+                  transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: heroSection.isVisible ? 1 : 0,
+                  transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s'
+                }}
+              >
                 <Link to="/register">
                   <Button 
                     size="lg" 
@@ -129,11 +142,12 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div 
               ref={featuresSection.elementRef}
-              className={`text-center mb-16 transition-all duration-1000 ${
-                featuresSection.isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}
+              className="text-center mb-16"
+              style={{ 
+                transform: featuresSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
+                opacity: featuresSection.isVisible ? 1 : 0,
+                transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              }}
             >
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Your Story Matters</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
@@ -142,12 +156,15 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {/* Feature cards with scroll animations */}
-              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
-                featuresSection.visibleItems[0] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              {/* Feature cards with optimized scroll animations */}
+              <div 
+                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
+                style={{ 
+                  transform: featuresSection.visibleItems[0] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: featuresSection.visibleItems[0] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                }}
+              >
                 <div className="bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Book className="h-7 w-7 text-white" />
                 </div>
@@ -157,11 +174,14 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
-                featuresSection.visibleItems[1] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
+                style={{ 
+                  transform: featuresSection.visibleItems[1] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: featuresSection.visibleItems[1] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s'
+                }}
+              >
                 <div className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-7 w-7 text-white" />
                 </div>
@@ -171,11 +191,14 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
-                featuresSection.visibleItems[2] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
+                style={{ 
+                  transform: featuresSection.visibleItems[2] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: featuresSection.visibleItems[2] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s'
+                }}
+              >
                 <div className="bg-gradient-to-r from-green-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-7 w-7 text-white" />
                 </div>
@@ -193,11 +216,12 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div 
               ref={howItWorksSection.elementRef}
-              className={`text-center mb-16 transition-all duration-1000 ${
-                howItWorksSection.isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}
+              className="text-center mb-16"
+              style={{ 
+                transform: howItWorksSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
+                opacity: howItWorksSection.isVisible ? 1 : 0,
+                transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              }}
             >
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Simple Steps to Preserve Your Legacy</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
@@ -206,11 +230,14 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              <div className={`text-center group transition-all duration-700 ${
-                howItWorksSection.visibleItems[0] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="text-center group"
+                style={{ 
+                  transform: howItWorksSection.visibleItems[0] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: howItWorksSection.visibleItems[0] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                }}
+              >
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">1</span>
@@ -223,11 +250,14 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className={`text-center group transition-all duration-700 ${
-                howItWorksSection.visibleItems[1] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="text-center group"
+                style={{ 
+                  transform: howItWorksSection.visibleItems[1] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: howItWorksSection.visibleItems[1] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s'
+                }}
+              >
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-purple-400 to-pink-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">2</span>
@@ -240,11 +270,14 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className={`text-center group transition-all duration-700 ${
-                howItWorksSection.visibleItems[2] 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}>
+              <div 
+                className="text-center group"
+                style={{ 
+                  transform: howItWorksSection.visibleItems[2] ? 'translateY(0)' : 'translateY(40px)',
+                  opacity: howItWorksSection.visibleItems[2] ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s'
+                }}
+              >
                 <div className="rounded-full bg-gradient-to-r from-green-400 to-cyan-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                   <span className="text-2xl font-serif font-bold text-white">3</span>
                 </div>
@@ -262,42 +295,54 @@ const HomePage: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <div 
               ref={ctaSection.elementRef}
-              className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl transition-all duration-1000 transform hover:scale-105 ${
-                ctaSection.isVisible 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-12'
-              }`}
+              className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl transition-all duration-500 transform hover:scale-105"
+              style={{ 
+                transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(40px)',
+                opacity: ctaSection.isVisible ? 1 : 0,
+                transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              }}
             >
-              <div className={`inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20 transition-all duration-700 ${
-                ctaSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-200' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <div 
+                className="inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20"
+                style={{ 
+                  transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: ctaSection.isVisible ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s'
+                }}
+              >
                 <Heart className="h-5 w-5 text-pink-400 mr-2" />
                 <span className="text-sm font-medium text-white">Join thousands preserving their legacy</span>
               </div>
               
-              <h2 className={`text-3xl font-serif font-bold mb-6 text-white transition-all duration-700 ${
-                ctaSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-400' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <h2 
+                className="text-3xl font-serif font-bold mb-6 text-white"
+                style={{ 
+                  transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: ctaSection.isVisible ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s'
+                }}
+              >
                 Begin Your Legacy Today
               </h2>
               
-              <p className={`text-lg mb-10 max-w-2xl mx-auto leading-relaxed text-white/90 transition-all duration-700 ${
-                ctaSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-600' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <p 
+                className="text-lg mb-10 max-w-2xl mx-auto leading-relaxed text-white/90"
+                style={{ 
+                  transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: ctaSection.isVisible ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s'
+                }}
+              >
                 Every story deserves to be remembered. Start preserving your memories and wisdom for future generations.
               </p>
               
-              <div className={`transition-all duration-700 ${
-                ctaSection.isVisible 
-                  ? 'opacity-100 translate-y-0 delay-800' 
-                  : 'opacity-0 translate-y-8'
-              }`}>
+              <div 
+                style={{ 
+                  transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
+                  opacity: ctaSection.isVisible ? 1 : 0,
+                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s'
+                }}
+              >
                 <Link to="/register">
                   <Button 
                     size="lg" 
