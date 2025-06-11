@@ -70,7 +70,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     // CRITICAL: Prevent any default behavior and external redirects
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
     
     console.log('🖱️ Custom button clicked - opening Tawk.to chat...');
     
