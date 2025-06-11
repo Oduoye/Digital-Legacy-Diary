@@ -9,7 +9,6 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['eslint.config.js'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
