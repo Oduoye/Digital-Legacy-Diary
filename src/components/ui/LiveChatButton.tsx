@@ -15,6 +15,15 @@ declare global {
       hideWidget: () => void;
       showWidget: () => void;
       onLoad?: () => void;
+      onStatusChange?: (status: string) => void;
+      isChatMaximized: () => boolean;
+      isChatMinimized: () => boolean;
+      isChatHidden: () => boolean;
+      isChatOngoing: () => boolean;
+      isVisitorEngaged: () => boolean;
+      getWindowType: () => string;
+      getStatus: () => string;
+      setAttributes: (attributes: any, callback?: () => void) => void;
     };
   }
 }
@@ -22,53 +31,107 @@ declare global {
 const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' }) => {
   const [isTawkLoaded, setIsTawkLoaded] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [chatStatus, setChatStatus] = useState('loading');
 
   useEffect(() => {
-    // Check if Tawk.to is loaded
+    let checkInterval: NodeJS.Timeout;
+    
     const checkTawkLoaded = () => {
       if (window.Tawk_API) {
+        console.log('Tawk_API found:', window.Tawk_API);
         setIsTawkLoaded(true);
+        setChatStatus('ready');
         
-        // Hide the default Tawk.to widget since we're using our custom button
+        // Set up event handlers
+        if (window.Tawk_API.onLoad) {
+          const originalOnLoad = window.Tawk_API.onLoad;
+          window.Tawk_API.onLoad = function() {
+            console.log('Tawk.to widget loaded');
+            setIsTawkLoaded(true);
+            setChatStatus('ready');
+            // Hide the default widget
+            if (window.Tawk_API?.hideWidget) {
+              window.Tawk_API.hideWidget();
+            }
+            if (originalOnLoad) originalOnLoad();
+          };
+        } else {
+          window.Tawk_API.onLoad = function() {
+            console.log('Tawk.to widget loaded');
+            setIsTawkLoaded(true);
+            setChatStatus('ready');
+            // Hide the default widget
+            if (window.Tawk_API?.hideWidget) {
+              window.Tawk_API.hideWidget();
+            }
+          };
+        }
+
+        // Set up status change handler
+        if (window.Tawk_API.onStatusChange) {
+          const originalOnStatusChange = window.Tawk_API.onStatusChange;
+          window.Tawk_API.onStatusChange = function(status: string) {
+            console.log('Tawk.to status changed:', status);
+            setChatStatus(status);
+            if (originalOnStatusChange) originalOnStatusChange(status);
+          };
+        } else {
+          window.Tawk_API.onStatusChange = function(status: string) {
+            console.log('Tawk.to status changed:', status);
+            setChatStatus(status);
+          };
+        }
+
+        // If already loaded, hide the widget immediately
         if (window.Tawk_API.hideWidget) {
           window.Tawk_API.hideWidget();
         }
+        
+        clearInterval(checkInterval);
       }
     };
 
     // Check immediately
     checkTawkLoaded();
 
-    // Set up Tawk.to onLoad callback
-    if (window.Tawk_API) {
-      window.Tawk_API.onLoad = () => {
-        setIsTawkLoaded(true);
-        // Hide the default widget
-        if (window.Tawk_API?.hideWidget) {
-          window.Tawk_API.hideWidget();
-        }
-      };
-    }
+    // Set up interval to check periodically
+    checkInterval = setInterval(checkTawkLoaded, 1000);
 
-    // Fallback: check periodically if Tawk.to is loaded
-    const interval = setInterval(() => {
-      if (window.Tawk_API && !isTawkLoaded) {
-        checkTawkLoaded();
-        clearInterval(interval);
+    // Cleanup
+    return () => {
+      if (checkInterval) {
+        clearInterval(checkInterval);
       }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isTawkLoaded]);
+    };
+  }, []);
 
   const handleChatClick = () => {
-    if (window.Tawk_API && window.Tawk_API.toggle) {
-      // Toggle the Tawk.to chat widget
-      window.Tawk_API.toggle();
+    console.log('Chat button clicked, Tawk_API available:', !!window.Tawk_API);
+    
+    if (window.Tawk_API) {
+      try {
+        // First show the widget if it's hidden
+        if (window.Tawk_API.showWidget) {
+          window.Tawk_API.showWidget();
+        }
+        
+        // Then maximize/toggle it
+        if (window.Tawk_API.maximize) {
+          window.Tawk_API.maximize();
+        } else if (window.Tawk_API.toggle) {
+          window.Tawk_API.toggle();
+        }
+        
+        console.log('Tawk.to chat opened successfully');
+      } catch (error) {
+        console.error('Error opening Tawk.to chat:', error);
+        // Fallback: try to open the direct chat URL
+        window.open('https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev', '_blank', 'width=400,height=600');
+      }
     } else {
-      // Fallback if Tawk.to isn't loaded yet
-      console.warn('Tawk.to is not loaded yet. Please try again in a moment.');
-      alert('Live chat is loading... Please try again in a moment.');
+      console.warn('Tawk_API not available yet');
+      // Show a message or try to load Tawk.to
+      alert('Live chat is still loading. Please wait a moment and try again.');
     }
   };
 
@@ -107,6 +170,11 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
         {/* Loading indicator */}
         {!isTawkLoaded && (
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+        )}
+        
+        {/* Ready indicator */}
+        {isTawkLoaded && chatStatus === 'ready' && (
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full" />
         )}
         
         {/* Tooltip */}

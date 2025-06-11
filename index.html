@@ -25,6 +25,19 @@
     s1.setAttribute('crossorigin','*');
     s0.parentNode.insertBefore(s1,s0);
     })();
+    
+    // Ensure Tawk.to loads properly and hide default widget
+    Tawk_API = Tawk_API || {};
+    Tawk_API.onLoad = function(){
+        console.log('Tawk.to loaded successfully');
+        // Hide the default Tawk.to widget
+        Tawk_API.hideWidget();
+    };
+    
+    // Handle any errors
+    Tawk_API.onStatusChange = function(status){
+        console.log('Tawk.to status:', status);
+    };
     </script>
     <!--End of Tawk.to Script-->
   </body>
