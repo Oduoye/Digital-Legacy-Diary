@@ -5,22 +5,9 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import LiveChatButton from '../components/ui/LiveChatButton';
 import { useAuth } from '../context/AuthContext';
-import { useOnceAnimation } from '../hooks/useScrollAnimation';
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
-
-  // Optimized one-time scroll animations with better timing
-  const heroSection = useOnceAnimation(0);
-  const featuresTitle = useOnceAnimation(0);
-  const feature1 = useOnceAnimation(0);
-  const feature2 = useOnceAnimation(100);
-  const feature3 = useOnceAnimation(200);
-  const howItWorksTitle = useOnceAnimation(0);
-  const step1 = useOnceAnimation(0);
-  const step2 = useOnceAnimation(100);
-  const step3 = useOnceAnimation(200);
-  const ctaSection = useOnceAnimation(0);
 
   // If user is authenticated, redirect to dashboard
   if (currentUser) {
@@ -53,19 +40,10 @@ const HomePage: React.FC = () => {
       </div>
 
       <Layout>
-        {/* Hero Section - Optimized for performance */}
+        {/* Hero Section */}
         <section className="relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
-            <div 
-              ref={heroSection.elementRef}
-              className="text-center max-w-3xl mx-auto"
-              style={{ 
-                transform: heroSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                opacity: heroSection.isVisible ? 1 : 0,
-                transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                willChange: 'transform, opacity'
-              }}
-            >
+            <div className="text-center max-w-3xl mx-auto animate-fade-in">
               <div className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <Star className="h-5 w-5 text-yellow-400 mr-2" />
                 <span className="text-sm font-medium text-white">Your memories, preserved forever</span>
@@ -119,16 +97,7 @@ const HomePage: React.FC = () => {
         {/* Features Section */}
         <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div 
-              ref={featuresTitle.elementRef}
-              className="text-center mb-16"
-              style={{ 
-                transform: featuresTitle.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                opacity: featuresTitle.isVisible ? 1 : 0,
-                transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                willChange: 'transform, opacity'
-              }}
-            >
+            <div className="text-center mb-16 animate-fade-in">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Your Story Matters</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Digital Legacy Diary helps you preserve life's precious moments and share your wisdom with those who matter most.
@@ -137,16 +106,7 @@ const HomePage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {/* Feature 1 */}
-              <div 
-                ref={feature1.elementRef}
-                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
-                style={{ 
-                  transform: feature1.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: feature1.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in">
                 <div className="bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Book className="h-7 w-7 text-white" />
                 </div>
@@ -157,16 +117,7 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* Feature 2 */}
-              <div 
-                ref={feature2.elementRef}
-                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
-                style={{ 
-                  transform: feature2.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: feature2.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in">
                 <div className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-7 w-7 text-white" />
                 </div>
@@ -177,16 +128,7 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* Feature 3 */}
-              <div 
-                ref={feature3.elementRef}
-                className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105"
-                style={{ 
-                  transform: feature3.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: feature3.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in">
                 <div className="bg-gradient-to-r from-green-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-7 w-7 text-white" />
                 </div>
@@ -202,16 +144,7 @@ const HomePage: React.FC = () => {
         {/* How It Works Section */}
         <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div 
-              ref={howItWorksTitle.elementRef}
-              className="text-center mb-16"
-              style={{ 
-                transform: howItWorksTitle.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                opacity: howItWorksTitle.isVisible ? 1 : 0,
-                transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                willChange: 'transform, opacity'
-              }}
-            >
+            <div className="text-center mb-16 animate-fade-in">
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Simple Steps to Preserve Your Legacy</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Begin your journey of preserving memories and connecting generations.
@@ -220,16 +153,7 @@ const HomePage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {/* Step 1 */}
-              <div 
-                ref={step1.elementRef}
-                className="text-center group"
-                style={{ 
-                  transform: step1.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: step1.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="text-center group animate-fade-in">
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">1</span>
@@ -243,16 +167,7 @@ const HomePage: React.FC = () => {
               </div>
               
               {/* Step 2 */}
-              <div 
-                ref={step2.elementRef}
-                className="text-center group"
-                style={{ 
-                  transform: step2.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: step2.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="text-center group animate-fade-in">
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-purple-400 to-pink-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">2</span>
@@ -266,16 +181,7 @@ const HomePage: React.FC = () => {
               </div>
               
               {/* Step 3 */}
-              <div 
-                ref={step3.elementRef}
-                className="text-center group"
-                style={{ 
-                  transform: step3.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                  opacity: step3.isVisible ? 1 : 0,
-                  transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                  willChange: 'transform, opacity'
-                }}
-              >
+              <div className="text-center group animate-fade-in">
                 <div className="rounded-full bg-gradient-to-r from-green-400 to-cyan-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                   <span className="text-2xl font-serif font-bold text-white">3</span>
                 </div>
@@ -291,16 +197,7 @@ const HomePage: React.FC = () => {
         {/* CTA Section */}
         <section className="py-20 relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div 
-              ref={ctaSection.elementRef}
-              className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl transition-all duration-500 transform hover:scale-105"
-              style={{ 
-                transform: ctaSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
-                opacity: ctaSection.isVisible ? 1 : 0,
-                transition: 'transform 0.6s ease-out, opacity 0.6s ease-out',
-                willChange: 'transform, opacity'
-              }}
-            >
+            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl transition-all duration-500 transform hover:scale-105 animate-fade-in">
               <div className="inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20">
                 <Heart className="h-5 w-5 text-pink-400 mr-2" />
                 <span className="text-sm font-medium text-white">Join thousands preserving their legacy</span>
