@@ -59,7 +59,7 @@ const AuthPages: React.FC = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8 animate-fade-in-up [animation-delay:200ms]">
             <Link to="/" className="inline-flex items-center justify-center">
-              <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center p-2 shadow-lg border border-gray-200">
+              <div className="h-16 w-16 bg-black rounded-full flex items-center justify-center p-2 shadow-lg border border-gray-200">
                 <img 
                   src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
                   alt="Digital Legacy Diary"
@@ -70,7 +70,7 @@ const AuthPages: React.FC = () => {
                     target.style.display = 'none';
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = '<span class="text-3xl font-serif font-bold text-primary-600">D</span>';
+                      parent.innerHTML = '<span class="text-3xl font-serif font-bold text-white">D</span>';
                     }
                   }}
                 />
