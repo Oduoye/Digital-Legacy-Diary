@@ -83,9 +83,8 @@ const HomePage: React.FC = () => {
                 </Link>
                 <Link to="/login">
                   <Button 
-                    variant="outline" 
                     size="lg" 
-                    className="w-full sm:w-auto px-8 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300"
+                    className="w-full sm:w-auto px-8 backdrop-blur-xl bg-white/10 border border-white/30 text-white hover:bg-white/20 hover:border-white/40 transition-all duration-300 shadow-xl"
                   >
                     Welcome Back
                   </Button>
