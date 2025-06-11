@@ -129,6 +129,189 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
     setTimeout(() => {
       setTawkStatus(prev => prev === 'connecting' ? 'online' : prev);
     }, 1000);
+
+    // Apply custom CSS to organize Tawk.to navigation
+    setTimeout(() => {
+      try {
+        const iframe = iframeRef.current;
+        if (iframe && iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement('style');
+          style.textContent = `
+            /* Organize Tawk.to navigation icons */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center {
+              justify-content: space-between !important;
+              padding: 8px 16px !important;
+              background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+              border-bottom: 1px solid #e2e8f0 !important;
+            }
+            
+            /* Style navigation buttons */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button {
+              margin: 0 4px !important;
+              padding: 8px 12px !important;
+              border-radius: 8px !important;
+              transition: all 0.2s ease !important;
+              background: white !important;
+              border: 1px solid #e2e8f0 !important;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            }
+            
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button:hover {
+              background: #f1f5f9 !important;
+              border-color: #cbd5e1 !important;
+              transform: translateY(-1px) !important;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+            }
+            
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button.tawk-button-circle {
+              border-radius: 50% !important;
+              width: 40px !important;
+              height: 40px !important;
+              padding: 0 !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+            }
+            
+            /* Active button styling */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button[aria-pressed="true"],
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button.tawk-button-active {
+              background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+              color: white !important;
+              border-color: #1d4ed8 !important;
+              box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+            }
+            
+            /* Navigation container */
+            .tawk-min-height-0 > .tawk-flex.tawk-flex-row {
+              background: #f8fafc !important;
+              border-radius: 8px 8px 0 0 !important;
+              margin: 0 !important;
+            }
+            
+            /* Chat input area styling */
+            .tawk-textarea-element {
+              border-radius: 8px !important;
+              border: 1px solid #e2e8f0 !important;
+              padding: 12px !important;
+              font-size: 14px !important;
+              line-height: 1.4 !important;
+            }
+            
+            .tawk-textarea-element:focus {
+              border-color: #3b82f6 !important;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+              outline: none !important;
+            }
+            
+            /* Send button styling */
+            .tawk-button[type="submit"] {
+              background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+              border: none !important;
+              border-radius: 8px !important;
+              padding: 8px 16px !important;
+              color: white !important;
+              font-weight: 500 !important;
+              transition: all 0.2s ease !important;
+            }
+            
+            .tawk-button[type="submit"]:hover {
+              background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+              transform: translateY(-1px) !important;
+              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+            }
+            
+            /* Message bubbles */
+            .tawk-message-row {
+              margin: 8px 0 !important;
+            }
+            
+            .tawk-message-bubble {
+              border-radius: 12px !important;
+              padding: 10px 14px !important;
+              max-width: 85% !important;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            }
+            
+            /* Agent messages */
+            .tawk-message-row.tawk-message-row-agent .tawk-message-bubble {
+              background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+              border: 1px solid #e2e8f0 !important;
+            }
+            
+            /* User messages */
+            .tawk-message-row.tawk-message-row-visitor .tawk-message-bubble {
+              background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+              color: white !important;
+              border: 1px solid #1d4ed8 !important;
+            }
+            
+            /* Form styling for offline messages */
+            .tawk-form-input {
+              border-radius: 8px !important;
+              border: 1px solid #e2e8f0 !important;
+              padding: 10px 12px !important;
+              font-size: 14px !important;
+              transition: border-color 0.2s ease !important;
+            }
+            
+            .tawk-form-input:focus {
+              border-color: #3b82f6 !important;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+              outline: none !important;
+            }
+            
+            /* Overall container styling */
+            .tawk-chatinput-container {
+              padding: 12px !important;
+              background: white !important;
+              border-top: 1px solid #e2e8f0 !important;
+            }
+            
+            /* Navigation icons spacing */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center > * {
+              margin: 0 2px !important;
+            }
+            
+            /* Ensure proper icon sizing */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center svg,
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center img {
+              width: 18px !important;
+              height: 18px !important;
+            }
+            
+            /* Navigation container height */
+            .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center {
+              min-height: 56px !important;
+              max-height: 56px !important;
+            }
+            
+            /* Responsive adjustments */
+            @media (max-width: 480px) {
+              .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center {
+                padding: 6px 12px !important;
+                min-height: 48px !important;
+                max-height: 48px !important;
+              }
+              
+              .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button {
+                padding: 6px 10px !important;
+                margin: 0 2px !important;
+              }
+              
+              .tawk-flex.tawk-flex-row.tawk-justify-center.tawk-items-center button.tawk-button-circle {
+                width: 36px !important;
+                height: 36px !important;
+              }
+            }
+          `;
+          iframe.contentDocument.head.appendChild(style);
+          console.log('✅ Applied custom Tawk.to navigation styling');
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not apply custom styling to iframe:', error);
+      }
+    }, 2000);
   };
 
   // Don't render if not visible
@@ -258,7 +441,7 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                 {!isConnecting && (
                   <div className="h-full flex flex-col">
                     {/* Enhanced Status Header */}
-                    <div className={`border-b p-4 transition-all duration-300 ${
+                    <div className={`border-b p-3 transition-all duration-300 ${
                       isAgentsOnline 
                         ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
                         : tawkStatus === 'away'
@@ -266,17 +449,17 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                         : 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200'
                     }`}>
                       <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           isAgentsOnline ? 'bg-green-100' :
                           tawkStatus === 'away' ? 'bg-orange-100' :
                           'bg-red-100'
                         }`}>
                           {isAgentsOnline ? (
-                            <Users className="h-5 w-5 text-green-600" />
+                            <Users className="h-4 w-4 text-green-600" />
                           ) : tawkStatus === 'away' ? (
-                            <Clock className="h-5 w-5 text-orange-600" />
+                            <Clock className="h-4 w-4 text-orange-600" />
                           ) : (
-                            <Mail className="h-5 w-5 text-red-600" />
+                            <Mail className="h-4 w-4 text-red-600" />
                           )}
                         </div>
                         <div className="flex-1">
@@ -295,10 +478,10 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                             'text-red-600'
                           }`}>
                             {isAgentsOnline 
-                              ? "You'll be connected to an agent shortly" 
+                              ? "Use the navigation below to chat or browse help" 
                               : tawkStatus === 'away'
                               ? "Agents are away but will respond soon"
-                              : "Leave a message and we'll get back to you"}
+                              : "Leave a message using the form below"}
                           </p>
                         </div>
                         {isAgentsOnline && (
@@ -310,8 +493,8 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                       </div>
                     </div>
                     
-                    {/* Tawk.to Iframe Container */}
-                    <div className="flex-1 relative">
+                    {/* Tawk.to Iframe Container with better organization */}
+                    <div className="flex-1 relative bg-white">
                       <iframe
                         ref={iframeRef}
                         src="https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev"
@@ -320,8 +503,9 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                         title="Digital Legacy Diary Support Chat"
                         onLoad={handleIframeLoad}
                         style={{
-                          minHeight: '400px',
-                          backgroundColor: '#ffffff'
+                          minHeight: '350px',
+                          backgroundColor: '#ffffff',
+                          borderRadius: '0 0 16px 16px'
                         }}
                       />
                       
