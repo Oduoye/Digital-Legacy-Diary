@@ -28,30 +28,65 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newAttachments: WillAttachment[] = files.map((file) => ({
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      const isValidType = file.type === 'application/pdf' || 
+                         file.type.startsWith('image/') || 
+                         file.type === 'application/msword' ||
+                         file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      return isValidSize && isValidType;
+    });
+
+    if (validFiles.length !== files.length) {
+      setError('Some files were skipped. Only PDF, Word documents, and images under 10MB are allowed.');
+    }
+
+    const newAttachments: WillAttachment[] = validFiles.map((file) => ({
       id: crypto.randomUUID(),
       name: file.name,
       url: URL.createObjectURL(file),
       type: file.type,
       size: file.size,
     }));
-    setAttachments([...attachments, ...newAttachments]);
+    
+    setAttachments(prev => [...prev, ...newAttachments]);
+    
+    // Clear the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!title.trim()) {
+      setError('Title is required');
+      return;
+    }
+    
+    if (!content.trim()) {
+      setError('Content is required');
+      return;
+    }
+    
     setIsLoading(true);
+    setError('');
 
     try {
       const willData = {
-        title,
-        content,
+        title: title.trim(),
+        content: content.trim(),
         attachments,
         isActive: true,
       };
@@ -64,8 +99,9 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
 
       onSave(willData);
       setShowSuccessModal(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving will:', error);
+      setError(error.message || 'Failed to save will. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -78,10 +114,24 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
     setTitle('');
     setContent('');
     setAttachments([]);
+    setError('');
   };
 
   const removeAttachment = (id: string) => {
-    setAttachments(attachments.filter((att) => att.id !== id));
+    setAttachments(prev => prev.filter((att) => att.id !== id));
+  };
+
+  const handleClose = () => {
+    if (!isLoading) {
+      onClose();
+      // Reset form if not editing
+      if (!currentWill) {
+        setTitle('');
+        setContent('');
+        setAttachments([]);
+      }
+      setError('');
+    }
   };
 
   return (
@@ -98,6 +148,15 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 p-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-4 rounded-lg border border-primary-100">
               <Input
                 label="Will Title"
@@ -105,6 +164,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Last Will and Testament"
                 required
+                disabled={isLoading}
                 icon={<FileText className="h-5 w-5 text-gray-400" />}
               />
             </div>
@@ -117,11 +177,12 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                 placeholder="Enter the content of your will..."
                 className="h-48"
                 required
+                disabled={isLoading}
               />
             </div>
 
             <div className="bg-gradient-to-br from-accent-50 to-white p-4 rounded-lg border border-accent-100">
-              <label className="block text-sm font-medium text-white mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Attachments
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-accent-300 transition-colors">
@@ -130,7 +191,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                   <div className="mt-2">
                     <label
                       htmlFor="file-upload"
-                      className="cursor-pointer text-accent-600 hover:text-accent-500"
+                      className={`cursor-pointer text-accent-600 hover:text-accent-500 ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                     >
                       <span>Upload files</span>
                       <input
@@ -140,12 +201,17 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                         ref={fileInputRef}
                         onChange={handleFileSelect}
                         multiple
+                        accept=".pdf,.doc,.docx,image/*"
+                        disabled={isLoading}
                       />
                     </label>
                     <p className="text-sm text-gray-500">
                       or drag and drop files here
                     </p>
                   </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    PDF, Word documents, and images up to 10MB each
+                  </p>
                 </div>
               </div>
 
@@ -170,7 +236,8 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                       <button
                         type="button"
                         onClick={() => removeAttachment(attachment.id)}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                        disabled={isLoading}
                       >
                         Remove
                       </button>
@@ -196,10 +263,19 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
 
             <div className="sticky bottom-0 bg-white border-t pt-4 pb-2">
               <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={onClose} disabled={isLoading}>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={handleClose} 
+                  disabled={isLoading}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" isLoading={isLoading}>
+                <Button 
+                  type="submit" 
+                  isLoading={isLoading}
+                  disabled={isLoading || !title.trim() || !content.trim()}
+                >
                   {isLoading ? 'Saving...' : (currentWill ? 'Update Will' : 'Upload Will')}
                 </Button>
               </div>
