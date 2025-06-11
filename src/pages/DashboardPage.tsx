@@ -133,7 +133,7 @@ const DashboardPage: React.FC = () => {
       buttonText: "View Map",
       gradient: "from-purple-400 to-indigo-500",
       variant: "outline",
-      bgClass: "bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border-purple-400/30"
+      bgClass: "backdrop-blur-xl bg-white/10 border border-white/20"
     },
     {
       icon: Bot,
@@ -143,7 +143,7 @@ const DashboardPage: React.FC = () => {
       buttonText: "Start Chat",
       gradient: "from-pink-400 to-purple-500",
       variant: "outline",
-      bgClass: "bg-gradient-to-br from-pink-500/20 to-purple-600/20 border-pink-400/30"
+      bgClass: "backdrop-blur-xl bg-white/10 border border-white/20"
     }
   ];
 
@@ -503,7 +503,7 @@ const DashboardPage: React.FC = () => {
                     <Button 
                       variant="outline" 
                       onClick={() => setShowContactModal(false)}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      className="border-white/30 text-white hover:bg-white/10"
                     >
                       Cancel
                     </Button>
