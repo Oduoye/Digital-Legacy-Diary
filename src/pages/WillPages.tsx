@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { FileText, Plus, Search, ArrowLeft, Download, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
+import { FileText, Plus, Search, ArrowLeft, Download, Eye, Edit, Trash2, AlertTriangle, Share, ExternalLink } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import WillUploadModal from '../components/contacts/WillUploadModal';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card, { CardHeader, CardContent, CardFooter } from '../components/ui/Card';
@@ -14,6 +15,7 @@ export const WillListPage: React.FC = () => {
   const { wills } = useDiary();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
   
   // Filter wills based on search query
   const filteredWills = wills.filter(will => 
@@ -22,17 +24,28 @@ export const WillListPage: React.FC = () => {
     will.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+  };
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
+            <Link 
+              to="/dashboard" 
+              className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
             <h1 className="text-3xl font-serif font-bold text-gray-900 mb-2">Your Wills</h1>
             <p className="text-gray-600">Manage your legal documents and final wishes</p>
           </div>
           <Button
             icon={<Plus size={18} />}
-            onClick={() => navigate('/wills/new')}
+            onClick={() => setShowUploadModal(true)}
             className="mt-4 sm:mt-0"
           >
             New Will
@@ -66,13 +79,20 @@ export const WillListPage: React.FC = () => {
                   : "No wills match your current search."}
               </p>
               {wills.length === 0 ? (
-                <Button onClick={() => navigate('/wills/new')}>Create Your First Will</Button>
+                <Button onClick={() => setShowUploadModal(true)}>Create Your First Will</Button>
               ) : (
                 <Button variant="outline" onClick={() => setSearchQuery('')}>Clear Search</Button>
               )}
             </CardContent>
           </Card>
         )}
+
+        {/* Upload Modal */}
+        <WillUploadModal
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          onSave={handleUploadSuccess}
+        />
       </div>
     </Layout>
   );
@@ -83,6 +103,7 @@ const WillCard: React.FC<{ will: Will; index: number }> = ({ will, index }) => {
   const { deleteWill } = useDiary();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleDelete = async () => {
     try {
@@ -91,6 +112,84 @@ const WillCard: React.FC<{ will: Will; index: number }> = ({ will, index }) => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error deleting will:', error);
+    }
+  };
+
+  const downloadWill = () => {
+    const willContent = `
+LAST WILL AND TESTAMENT
+${will.title}
+
+Created: ${format(new Date(will.createdAt), 'MMMM d, yyyy')}
+Last Updated: ${format(new Date(will.updatedAt), 'MMMM d, yyyy')}
+
+${will.content}
+
+${will.attachments.length > 0 ? `\nAttachments: ${will.attachments.length} file(s)` : ''}
+
+---
+Generated from Digital Legacy Diary
+Export Date: ${format(new Date(), 'MMMM d, yyyy')}
+    `;
+
+    const blob = new Blob([willContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${will.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportWillPDF = () => {
+    // Create a more formatted version for printing/PDF
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${will.title}</title>
+            <style>
+              body { font-family: 'Times New Roman', serif; margin: 40px; line-height: 1.6; }
+              h1 { text-align: center; margin-bottom: 30px; }
+              .header { text-align: center; margin-bottom: 40px; }
+              .content { margin-bottom: 40px; white-space: pre-line; }
+              .footer { margin-top: 40px; font-size: 12px; color: #666; }
+              .attachments { margin-top: 30px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>LAST WILL AND TESTAMENT</h1>
+              <h2>${will.title}</h2>
+              <p>Created: ${format(new Date(will.createdAt), 'MMMM d, yyyy')}</p>
+              <p>Last Updated: ${format(new Date(will.updatedAt), 'MMMM d, yyyy')}</p>
+            </div>
+            
+            <div class="content">
+              ${will.content.replace(/\n/g, '<br>')}
+            </div>
+            
+            ${will.attachments.length > 0 ? `
+              <div class="attachments">
+                <h3>Attachments:</h3>
+                <ul>
+                  ${will.attachments.map(att => `<li>${att.name} (${(att.size / 1024 / 1024).toFixed(2)} MB)</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+            
+            <div class="footer">
+              <p>Generated from Digital Legacy Diary</p>
+              <p>Export Date: ${format(new Date(), 'MMMM d, yyyy')}</p>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
     }
   };
 
@@ -133,8 +232,8 @@ const WillCard: React.FC<{ will: Will; index: number }> = ({ will, index }) => {
           )}
         </CardContent>
         
-        <CardFooter className="flex justify-between space-x-2 pt-4">
-          <div className="flex space-x-2">
+        <CardFooter className="flex flex-col space-y-2 pt-4">
+          <div className="flex justify-between w-full space-x-2">
             <Button 
               variant="ghost" 
               size="sm" 
@@ -146,22 +245,51 @@ const WillCard: React.FC<{ will: Will; index: number }> = ({ will, index }) => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate(`/wills/edit/${will.id}`)}
+              onClick={() => setShowEditModal(true)}
               icon={<Edit size={16} />}
             >
               Edit
             </Button>
+            <Button 
+              variant="danger" 
+              size="sm" 
+              onClick={() => setShowDeleteModal(true)}
+              icon={<Trash2 size={16} />}
+            >
+              Delete
+            </Button>
           </div>
-          <Button 
-            variant="danger" 
-            size="sm" 
-            onClick={() => setShowDeleteModal(true)}
-            icon={<Trash2 size={16} />}
-          >
-            Delete
-          </Button>
+          
+          <div className="flex justify-between w-full space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={downloadWill}
+              icon={<Download size={16} />}
+              className="flex-1"
+            >
+              Download
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportWillPDF}
+              icon={<ExternalLink size={16} />}
+              className="flex-1"
+            >
+              Print/PDF
+            </Button>
+          </div>
         </CardFooter>
       </Card>
+
+      {/* Edit Modal */}
+      <WillUploadModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        currentWill={will}
+        onSave={() => setShowEditModal(false)}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
@@ -211,6 +339,7 @@ export const ViewWillPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getWill } = useDiary();
   const navigate = useNavigate();
+  const [showEditModal, setShowEditModal] = useState(false);
   
   const will = id ? getWill(id) : undefined;
   
@@ -232,6 +361,34 @@ export const ViewWillPage: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const downloadWillAsText = () => {
+    const willContent = `
+LAST WILL AND TESTAMENT
+${will.title}
+
+Created: ${format(new Date(will.createdAt), 'MMMM d, yyyy')}
+Last Updated: ${format(new Date(will.updatedAt), 'MMMM d, yyyy')}
+
+${will.content}
+
+${will.attachments.length > 0 ? `\nAttachments: ${will.attachments.length} file(s)` : ''}
+
+---
+Generated from Digital Legacy Diary
+Export Date: ${format(new Date(), 'MMMM d, yyyy')}
+    `;
+
+    const blob = new Blob([willContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${will.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -265,12 +422,21 @@ export const ViewWillPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            <Button 
-              onClick={() => navigate(`/wills/edit/${will.id}`)}
-              icon={<Edit size={16} />}
-            >
-              Edit Will
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={downloadWillAsText}
+                icon={<Download size={16} />}
+                variant="outline"
+              >
+                Download
+              </Button>
+              <Button 
+                onClick={() => setShowEditModal(true)}
+                icon={<Edit size={16} />}
+              >
+                Edit Will
+              </Button>
+            </div>
           </div>
         </div>
         
@@ -321,6 +487,14 @@ export const ViewWillPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Edit Modal */}
+        <WillUploadModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          currentWill={will}
+          onSave={() => setShowEditModal(false)}
+        />
       </div>
     </Layout>
   );

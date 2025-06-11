@@ -12,6 +12,7 @@ import TermsPage from './pages/TermsPage';
 import AuthPages from './pages/AuthPages';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import EmailVerificationCallbackPage from './pages/EmailVerificationCallbackPage';
+import LegacyAccessPage from './pages/LegacyAccessPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import SubscriptionPage from './pages/SubscriptionPage';
@@ -68,6 +69,9 @@ function App() {
             <Route path="/register" element={<AuthPages />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<EmailVerificationCallbackPage />} />
+            
+            {/* Legacy access route - public but requires access code */}
+            <Route path="/legacy/:accessCode" element={<LegacyAccessPage />} />
             
             {/* Protected routes */}
             <Route 

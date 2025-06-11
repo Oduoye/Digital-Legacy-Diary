@@ -29,6 +29,9 @@ export interface TrustedContact {
   email: string;
   relationship: string;
   picture?: string;
+  hasAccess?: boolean;
+  accessGrantedAt?: Date;
+  notificationSent?: boolean;
 }
 
 export interface DiaryEntry {
@@ -69,6 +72,8 @@ export interface Will {
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
+  accessibleToHeirs?: boolean;
+  heirAccessCode?: string;
 }
 
 export interface WillAttachment {
@@ -77,6 +82,7 @@ export interface WillAttachment {
   url: string;
   type: string;
   size: number;
+  downloadable?: boolean;
 }
 
 export interface DeadMansSwitch {
@@ -91,6 +97,31 @@ export interface DeadMansSwitch {
   customMessage?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface LegacyAccess {
+  id: string;
+  userId: string;
+  contactId: string;
+  accessCode: string;
+  isActive: boolean;
+  accessGrantedAt?: Date;
+  lastAccessedAt?: Date;
+  expiresAt?: Date;
+  accessType: 'full' | 'limited' | 'view-only';
+  allowedContent: string[]; // array of content types: 'diary', 'wills', 'photos', etc.
+}
+
+export interface HeirRegistration {
+  id: string;
+  accessCode: string;
+  email: string;
+  name: string;
+  relationship: string;
+  registeredAt: Date;
+  isVerified: boolean;
+  originalUserId: string;
+  originalUserName: string;
 }
 
 export interface LifeTheme {
