@@ -55,27 +55,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           setTawkStatus(status as any);
           if (originalOnStatusChange) originalOnStatusChange(status);
         };
-
-        // Customize Tawk.to widget size and appearance
-        window.Tawk_API.onLoad = function() {
-          console.log('✅ Tawk.to loaded successfully');
-          
-          // Customize the widget size and position
-          try {
-            // Set custom attributes for the widget
-            window.Tawk_API?.setAttributes({
-              name: 'Digital Legacy Diary User',
-              email: '',
-              hash: ''
-            }, function(error: any) {
-              if (error) {
-                console.warn('Could not set Tawk.to attributes:', error);
-              }
-            });
-          } catch (error) {
-            console.warn('Could not customize Tawk.to widget:', error);
-          }
-        };
       }
     };
 
@@ -91,18 +70,34 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🖱️ Opening Tawk.to chat widget...');
+    console.log('🖱️ Opening Tawk.to chat widget via custom button...');
     
-    if (window.Tawk_API) {
+    if (window.Tawk_API && isReady) {
       try {
         // Show and maximize the Tawk.to widget
         window.Tawk_API.showWidget();
         window.Tawk_API.maximize();
+        
+        // Add maximized class for our custom styling
+        setTimeout(() => {
+          const tawkContainer = document.getElementById('tawkchat-container');
+          if (tawkContainer) {
+            tawkContainer.classList.add('tawk-maximized');
+            tawkContainer.style.display = 'block';
+          }
+        }, 100);
+        
       } catch (error) {
         console.error('Error opening Tawk.to widget:', error);
+        // Fallback: try to find and show any Tawk.to elements
+        const tawkElements = document.querySelectorAll('[id*="tawk"]');
+        tawkElements.forEach(el => {
+          (el as HTMLElement).style.display = 'block';
+          (el as HTMLElement).style.visibility = 'visible';
+        });
       }
     } else {
-      console.warn('Tawk.to API not available yet');
+      console.warn('Tawk.to API not ready yet. Status:', { isReady, hasAPI: !!window.Tawk_API });
     }
   };
 
