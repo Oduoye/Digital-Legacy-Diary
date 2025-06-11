@@ -67,38 +67,72 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
   }, []);
 
   const handleChatClick = (e: React.MouseEvent) => {
+    // CRITICAL: Prevent any default behavior and external redirects
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
-    console.log('🖱️ Opening Tawk.to chat widget via custom button...');
+    console.log('🖱️ Custom button clicked - opening Tawk.to chat...');
     
     if (window.Tawk_API && isReady) {
       try {
-        // Show and maximize the Tawk.to widget
+        // Method 1: Use Tawk.to API to show and maximize
         window.Tawk_API.showWidget();
         window.Tawk_API.maximize();
         
-        // Add maximized class for our custom styling
+        // Method 2: Manually show the container
         setTimeout(() => {
           const tawkContainer = document.getElementById('tawkchat-container');
           if (tawkContainer) {
-            tawkContainer.classList.add('tawk-maximized');
-            tawkContainer.style.display = 'block';
+            tawkContainer.classList.add('custom-show');
+            tawkContainer.style.display = 'block !important';
+            tawkContainer.style.visibility = 'visible !important';
+            tawkContainer.style.opacity = '1 !important';
+            tawkContainer.style.pointerEvents = 'auto !important';
+            tawkContainer.style.position = 'fixed !important';
+            tawkContainer.style.bottom = '20px !important';
+            tawkContainer.style.right = '20px !important';
+            tawkContainer.style.zIndex = '9999 !important';
+            tawkContainer.style.width = '400px !important';
+            tawkContainer.style.height = '600px !important';
+            tawkContainer.style.borderRadius = '12px !important';
+            tawkContainer.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1) !important';
           }
-        }, 100);
+          
+          // Also try to find any hidden chat iframes
+          const chatIframes = document.querySelectorAll('iframe[src*="tawk"]');
+          chatIframes.forEach(iframe => {
+            const parent = iframe.parentElement;
+            if (parent && parent.id === 'tawkchat-container') {
+              parent.style.display = 'block !important';
+              iframe.style.borderRadius = '12px !important';
+            }
+          });
+        }, 200);
         
       } catch (error) {
         console.error('Error opening Tawk.to widget:', error);
-        // Fallback: try to find and show any Tawk.to elements
-        const tawkElements = document.querySelectorAll('[id*="tawk"]');
-        tawkElements.forEach(el => {
-          (el as HTMLElement).style.display = 'block';
-          (el as HTMLElement).style.visibility = 'visible';
+        
+        // Fallback: Force show any Tawk.to elements
+        const allTawkElements = document.querySelectorAll('[id*="tawk"], iframe[src*="tawk"]');
+        allTawkElements.forEach(el => {
+          const element = el as HTMLElement;
+          element.style.display = 'block !important';
+          element.style.visibility = 'visible !important';
+          element.style.opacity = '1 !important';
+          element.style.pointerEvents = 'auto !important';
         });
       }
     } else {
-      console.warn('Tawk.to API not ready yet. Status:', { isReady, hasAPI: !!window.Tawk_API });
+      console.warn('Tawk.to API not ready yet. Status:', { 
+        isReady, 
+        hasAPI: !!window.Tawk_API,
+        status: tawkStatus 
+      });
     }
+    
+    // Return false to prevent any navigation
+    return false;
   };
 
   const getStatusColor = () => {
@@ -133,8 +167,11 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     return (
       <button
         onClick={handleChatClick}
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
         className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
         title={getTooltipText()}
+        type="button"
       >
         <MessageCircle className="h-5 w-5" />
         <span>Live Support</span>
@@ -149,6 +186,8 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     <div className="fixed bottom-8 right-8 z-40">
       <button
         onClick={handleChatClick}
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.preventDefault()}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         className={`
@@ -158,6 +197,7 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           ${!isReady ? 'opacity-75' : 'hover:shadow-xl'}
         `}
         title={getTooltipText()}
+        type="button"
       >
         <MessageCircle className="h-6 w-6" />
         
