@@ -55,6 +55,21 @@ const getRedirectUrl = (path: string = '/auth/callback') => {
   return `${window.location.origin}${path}`;
 };
 
+// Helper function to check if error is related to invalid refresh token
+const isRefreshTokenError = (error: any): boolean => {
+  if (!error) return false;
+  
+  const errorMessage = error.message?.toLowerCase() || '';
+  const errorCode = error.code?.toLowerCase() || '';
+  
+  return (
+    errorMessage.includes('refresh token not found') ||
+    errorMessage.includes('invalid refresh token') ||
+    errorCode === 'refresh_token_not_found' ||
+    errorCode === 'invalid_grant'
+  );
+};
+
 // Helper function to convert database user to app user
 const convertDbUserToAppUser = (dbUser: any): User => {
   return {
@@ -83,6 +98,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
+  // Helper function to handle auth errors and clear session
+  const handleAuthError = async (error: any, context: string) => {
+    console.error(`❌ ${context} error:`, error);
+    
+    if (isRefreshTokenError(error)) {
+      console.log('🔄 Invalid refresh token detected, clearing session...');
+      try {
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+      } catch (signOutError) {
+        console.error('❌ Error during signOut:', signOutError);
+        // Force clear the session even if signOut fails
+        setCurrentUser(null);
+      }
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -103,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ]) as any;
 
         if (error) {
-          console.error('❌ Session error:', error);
+          await handleAuthError(error, 'Session initialization');
           if (mounted) {
             setLoading(false);
             setSessionInitialized(true);
@@ -118,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await fetchUserProfile(session.user.id);
         }
       } catch (error) {
-        console.error('❌ Auth initialization error:', error);
+        await handleAuthError(error, 'Auth initialization');
       } finally {
         if (mounted) {
           setLoading(false);
@@ -149,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
-        console.error('❌ Auth state change error:', error);
+        await handleAuthError(error, 'Auth state change');
       } finally {
         if (mounted) {
           setLoading(false);
@@ -188,6 +220,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('❌ Error fetching user profile:', error);
         
+        // Check if this is an auth-related error
+        if (isRefreshTokenError(error)) {
+          await handleAuthError(error, 'Profile fetch');
+          return;
+        }
+        
         // If user doesn't exist in our users table, they might need to complete registration
         if (error.code === 'PGRST116') {
           console.log('⚠️ User not found in users table, they may need to complete registration');
@@ -202,7 +240,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('❌ Error in fetchUserProfile:', error);
-      // Don't set currentUser to null on fetch errors, keep existing state
+      
+      // Check if this is an auth-related error
+      if (isRefreshTokenError(error)) {
+        await handleAuthError(error, 'Profile fetch');
+        return;
+      }
+      
+      // Don't set currentUser to null on other fetch errors, keep existing state
     }
   };
 
