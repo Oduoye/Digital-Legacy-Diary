@@ -74,13 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Initial session:', session);
         
         if (session?.user) {
-          // Check if email is confirmed
-          if (session.user.email_confirmed_at) {
-            await fetchUserProfile(session.user.id);
-          } else {
-            console.log('Email not confirmed yet');
-            setCurrentUser(null);
-          }
+          // Always try to fetch user profile if we have a session
+          await fetchUserProfile(session.user.id);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -96,20 +91,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Auth state change:', event, session?.user?.email_confirmed_at);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        // Check if email is confirmed
-        if (session.user.email_confirmed_at) {
-          console.log('User signed in with confirmed email');
-          await fetchUserProfile(session.user.id);
-        } else {
-          console.log('User signed in but email not confirmed');
-          setCurrentUser(null);
-        }
+        console.log('User signed in, fetching profile');
+        await fetchUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setCurrentUser(null);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Handle token refresh - maintain user state if email is confirmed
-        if (session.user.email_confirmed_at && !currentUser) {
+        // Handle token refresh - maintain user state
+        if (!currentUser) {
           await fetchUserProfile(session.user.id);
         }
       }
@@ -148,17 +137,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
+      // Check if it's an email not confirmed error
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+      }
       throw new Error(error.message);
     }
 
     if (data.user) {
-      // Check if email is confirmed
-      if (!data.user.email_confirmed_at) {
-        // Sign out the user since email is not confirmed
-        await supabase.auth.signOut();
-        throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
-      }
-      
       console.log('Login successful, fetching profile');
       await fetchUserProfile(data.user.id);
     }

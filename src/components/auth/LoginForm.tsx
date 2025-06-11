@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, CheckCircle, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../ui/Input';
@@ -20,6 +20,10 @@ const LoginForm: React.FC = () => {
   });
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if there's a message from the verification callback
+  const callbackMessage = location.state?.message;
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -65,7 +69,15 @@ const LoginForm: React.FC = () => {
         navigate('/dashboard');
       }, 1500);
     } catch (err: any) {
-      const errorMessage = err.message || 'Invalid email or password. Please try again.';
+      let errorMessage = err.message || 'Invalid email or password. Please try again.';
+      
+      // Handle specific error cases
+      if (err.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please verify your email address before signing in. Check your inbox for a verification link.';
+      } else if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      }
+      
       setError(errorMessage);
       console.error('❌ Login error:', err);
     } finally {
@@ -126,6 +138,16 @@ const LoginForm: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Show callback message if present */}
+        {callbackMessage && (
+          <div className="bg-blue-500/20 text-blue-200 p-3 rounded-md text-sm mb-4 backdrop-blur-sm border border-blue-400/30">
+            <div className="flex items-start space-x-2">
+              <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{callbackMessage}</span>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm animate-shake backdrop-blur-sm border border-red-400/30">
             <div className="flex items-start space-x-2">
