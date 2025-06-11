@@ -78,29 +78,45 @@
     transition: opacity 300ms ease-out, transform 300ms ease-out;
   }
 
-  /* Chat Animation Classes */
-  .chat-fade-in {
-    animation: chatFadeIn 0.4s ease-out forwards;
+  /* Enhanced Chat Modal Animations */
+  .chat-modal-enter {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
   }
   
-  .chat-fade-out {
-    animation: chatFadeOut 0.3s ease-out forwards;
+  .chat-modal-enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
-  .chat-content-fade-in {
-    animation: chatContentFadeIn 0.3s ease-out forwards;
+  .chat-modal-exit {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
   
-  .chat-header-fade-in {
-    animation: chatHeaderFadeIn 0.3s ease-out 0.1s forwards;
+  .chat-modal-exit-active {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s ease-out;
   }
   
-  .chat-close-fade-in {
-    animation: chatCloseFadeIn 0.3s ease-out 0.3s forwards;
+  .chat-backdrop-enter {
+    opacity: 0;
   }
   
-  .pulse-glow {
-    animation: pulseGlow 2s infinite;
+  .chat-backdrop-enter-active {
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+  }
+  
+  .chat-backdrop-exit {
+    opacity: 1;
+  }
+  
+  .chat-backdrop-exit-active {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
   }
 }
 
@@ -192,65 +208,61 @@
   }
 }
 
-/* Chat-specific animations */
-@keyframes chatFadeIn {
+/* Enhanced chat-specific animations */
+@keyframes chatSlideIn {
   0% {
     opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes chatFadeOut {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-}
-
-@keyframes chatContentFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes chatHeaderFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes chatCloseFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    transform: translateY(30px) scale(0.9);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chatSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+}
+
+@keyframes headerGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Smooth minimize/maximize animations */
+@keyframes minimizeChat {
+  0% {
+    height: 600px;
+    opacity: 1;
+  }
+  100% {
+    height: 64px;
+    opacity: 0.9;
+  }
+}
+
+@keyframes maximizeChat {
+  0% {
+    height: 64px;
+    opacity: 0.9;
+  }
+  100% {
+    height: 600px;
+    opacity: 1;
   }
 }
