@@ -486,7 +486,9 @@ const HowItWorksPage: React.FC = () => {
                       size="lg" 
                       className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl text-white font-semibold"
                     >
-                      Start Your Legacy Today
+                      {/* Responsive button text - shorter on mobile, full on larger screens */}
+                      <span className="block sm:hidden">Start Today</span>
+                      <span className="hidden sm:block">Start Your Legacy Today</span>
                     </Button>
                   </Link>
                   <Link to="/contact">
@@ -495,7 +497,9 @@ const HowItWorksPage: React.FC = () => {
                       variant="outline"
                       className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 px-8 transform transition-all duration-300 hover:scale-105 active:scale-95"
                     >
-                      Have Questions?
+                      {/* Responsive button text */}
+                      <span className="block sm:hidden">Questions?</span>
+                      <span className="hidden sm:block">Have Questions?</span>
                     </Button>
                   </Link>
                 </div>
