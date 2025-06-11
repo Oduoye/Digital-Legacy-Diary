@@ -5,9 +5,16 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import LiveChatButton from '../components/ui/LiveChatButton';
 import { useAuth } from '../context/AuthContext';
+import { useScrollAnimation, useStaggeredScrollAnimation } from '../hooks/useScrollAnimation';
 
 const HomePage: React.FC = () => {
   const { currentUser } = useAuth();
+
+  // Scroll animation hooks for different sections
+  const heroSection = useScrollAnimation({ threshold: 0.2 });
+  const featuresSection = useStaggeredScrollAnimation(3, { threshold: 0.1 });
+  const howItWorksSection = useStaggeredScrollAnimation(3, { threshold: 0.1 });
+  const ctaSection = useScrollAnimation({ threshold: 0.3 });
 
   // If user is authenticated, redirect to dashboard
   if (currentUser) {
@@ -43,13 +50,29 @@ const HomePage: React.FC = () => {
         {/* Hero Section */}
         <section className="relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
-            <div className="text-center max-w-3xl mx-auto">
-              <div className="inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in-up [animation-delay:100ms]">
+            <div 
+              ref={heroSection.elementRef}
+              className={`text-center max-w-3xl mx-auto transition-all duration-1000 ${
+                heroSection.isVisible 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}
+            >
+              <div className={`inline-flex items-center backdrop-blur-xl bg-white/10 border border-white/20 px-4 py-2 rounded-full mb-8 shadow-xl hover:shadow-2xl transition-all duration-500 ${
+                heroSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-200' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
                 <Star className="h-5 w-5 text-yellow-400 mr-2" />
                 <span className="text-sm font-medium text-white">Your memories, preserved forever</span>
               </div>
-              <div className="relative mb-6">
-                <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight animate-fade-in-up [animation-delay:200ms]">
+              
+              <div className={`relative mb-6 transition-all duration-1000 ${
+                heroSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-400' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
+                <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
                   Preserve Your Legacy,{" "}
                   <span className="relative inline-block">
                     <span className="relative z-10 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white animate-gradient-x drop-shadow-2xl" 
@@ -65,10 +88,20 @@ const HomePage: React.FC = () => {
                   </span>
                 </h1>
               </div>
-              <p className="text-lg md:text-xl text-white/90 mb-10 leading-relaxed animate-fade-in-up [animation-delay:400ms]">
+              
+              <p className={`text-lg md:text-xl text-white/90 mb-10 leading-relaxed transition-all duration-1000 ${
+                heroSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-600' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
                 Every memory tells a story. Create a lasting legacy by sharing your wisdom, experiences, and cherished moments with future generations.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up [animation-delay:600ms]">
+              
+              <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-1000 ${
+                heroSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-800' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
                 <Link to="/register">
                   <Button 
                     size="lg" 
@@ -94,7 +127,14 @@ const HomePage: React.FC = () => {
         {/* Features Section */}
         <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 animate-fade-in-up [animation-delay:800ms]">
+            <div 
+              ref={featuresSection.elementRef}
+              className={`text-center mb-16 transition-all duration-1000 ${
+                featuresSection.isVisible 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}
+            >
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Your Story Matters</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Digital Legacy Diary helps you preserve life's precious moments and share your wisdom with those who matter most.
@@ -102,8 +142,12 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-              {/* Feature cards with glass morphism */}
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1000ms]">
+              {/* Feature cards with scroll animations */}
+              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
+                featuresSection.visibleItems[0] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Book className="h-7 w-7 text-white" />
                 </div>
@@ -113,7 +157,11 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1200ms]">
+              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
+                featuresSection.visibleItems[1] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Shield className="h-7 w-7 text-white" />
                 </div>
@@ -123,7 +171,11 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fade-in-up [animation-delay:1400ms]">
+              <div className={`group backdrop-blur-xl bg-white/10 border border-white/20 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 ${
+                featuresSection.visibleItems[2] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="bg-gradient-to-r from-green-400 to-cyan-400 rounded-full w-14 h-14 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-7 w-7 text-white" />
                 </div>
@@ -139,7 +191,14 @@ const HomePage: React.FC = () => {
         {/* How It Works Section */}
         <section className="py-20 relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16 animate-fade-in-up [animation-delay:1600ms]">
+            <div 
+              ref={howItWorksSection.elementRef}
+              className={`text-center mb-16 transition-all duration-1000 ${
+                howItWorksSection.isVisible 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}
+            >
               <h2 className="text-3xl font-serif font-bold text-white mb-6">Simple Steps to Preserve Your Legacy</h2>
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Begin your journey of preserving memories and connecting generations.
@@ -147,7 +206,11 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              <div className="text-center group animate-fade-in-up [animation-delay:1800ms]">
+              <div className={`text-center group transition-all duration-700 ${
+                howItWorksSection.visibleItems[0] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">1</span>
@@ -160,7 +223,11 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="text-center group animate-fade-in-up [animation-delay:2000ms]">
+              <div className={`text-center group transition-all duration-700 ${
+                howItWorksSection.visibleItems[1] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="relative">
                   <div className="rounded-full bg-gradient-to-r from-purple-400 to-pink-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                     <span className="text-2xl font-serif font-bold text-white">2</span>
@@ -173,7 +240,11 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
               
-              <div className="text-center group animate-fade-in-up [animation-delay:2200ms]">
+              <div className={`text-center group transition-all duration-700 ${
+                howItWorksSection.visibleItems[2] 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}>
                 <div className="rounded-full bg-gradient-to-r from-green-400 to-cyan-500 w-16 h-16 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-2xl">
                   <span className="text-2xl font-serif font-bold text-white">3</span>
                 </div>
@@ -189,24 +260,54 @@ const HomePage: React.FC = () => {
         {/* CTA Section */}
         <section className="py-20 relative z-10 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl animate-fade-in-up [animation-delay:2400ms] transform hover:scale-105 transition-all duration-500">
-              <div className="inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20">
+            <div 
+              ref={ctaSection.elementRef}
+              className={`backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl transition-all duration-1000 transform hover:scale-105 ${
+                ctaSection.isVisible 
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-12'
+              }`}
+            >
+              <div className={`inline-flex items-center bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8 border border-white/20 transition-all duration-700 ${
+                ctaSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-200' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
                 <Heart className="h-5 w-5 text-pink-400 mr-2" />
                 <span className="text-sm font-medium text-white">Join thousands preserving their legacy</span>
               </div>
-              <h2 className="text-3xl font-serif font-bold mb-6 text-white">Begin Your Legacy Today</h2>
-              <p className="text-lg mb-10 max-w-2xl mx-auto leading-relaxed text-white/90">
+              
+              <h2 className={`text-3xl font-serif font-bold mb-6 text-white transition-all duration-700 ${
+                ctaSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-400' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
+                Begin Your Legacy Today
+              </h2>
+              
+              <p className={`text-lg mb-10 max-w-2xl mx-auto leading-relaxed text-white/90 transition-all duration-700 ${
+                ctaSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-600' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
                 Every story deserves to be remembered. Start preserving your memories and wisdom for future generations.
               </p>
-              <Link to="/register">
-                <Button 
-                  size="lg" 
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-10 group shadow-2xl transform transition-all duration-300 hover:scale-110 active:scale-95"
-                  icon={<ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />}
-                >
-                  Create Your Diary
-                </Button>
-              </Link>
+              
+              <div className={`transition-all duration-700 ${
+                ctaSection.isVisible 
+                  ? 'opacity-100 translate-y-0 delay-800' 
+                  : 'opacity-0 translate-y-8'
+              }`}>
+                <Link to="/register">
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 px-10 group shadow-2xl transform transition-all duration-300 hover:scale-110 active:scale-95"
+                    icon={<ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />}
+                  >
+                    Create Your Diary
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </section>

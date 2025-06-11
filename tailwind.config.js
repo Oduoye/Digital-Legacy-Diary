@@ -65,6 +65,8 @@ export default {
         'slide-in-bottom': 'slideInBottom 0.8s ease-out',
         'zoom-in': 'zoomIn 0.6s ease-out',
         'rotate-slow': 'rotateSlow 20s linear infinite',
+        'scroll-reveal': 'scrollReveal 1s ease-out forwards',
+        'stagger-fade-in': 'staggerFadeIn 0.8s ease-out forwards',
       },
       keyframes: {
         fadeIn: {
@@ -128,6 +130,26 @@ export default {
         rotateSlow: {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' },
+        },
+        scrollReveal: {
+          '0%': { 
+            opacity: '0', 
+            transform: 'translateY(50px) scale(0.95)' 
+          },
+          '100%': { 
+            opacity: '1', 
+            transform: 'translateY(0) scale(1)' 
+          },
+        },
+        staggerFadeIn: {
+          '0%': { 
+            opacity: '0', 
+            transform: 'translateY(30px) rotateX(10deg)' 
+          },
+          '100%': { 
+            opacity: '1', 
+            transform: 'translateY(0) rotateX(0deg)' 
+          },
         },
       },
     },
