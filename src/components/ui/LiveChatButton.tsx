@@ -78,6 +78,130 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     };
   }, [isTawkLoaded]);
 
+  const createAnimatedChatPopup = () => {
+    // Remove any existing fallback chat
+    const existingChat = document.getElementById('fallback-chat');
+    if (existingChat) {
+      // Animate out existing chat
+      existingChat.style.animation = 'chatSlideOut 0.4s cubic-bezier(0.4, 0, 1, 1) forwards';
+      setTimeout(() => {
+        existingChat.remove();
+      }, 400);
+      return;
+    }
+    
+    // Create animated chat container
+    const chatContainer = document.createElement('div');
+    chatContainer.id = 'fallback-chat';
+    chatContainer.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      height: 500px;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.2);
+      z-index: 9999;
+      background: white;
+      overflow: hidden;
+      transform: scale(0.8) translateY(20px);
+      opacity: 0;
+      animation: chatSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    `;
+    
+    // Create iframe for embedded chat
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
+    iframe.style.cssText = `
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 16px;
+      opacity: 0;
+      animation: fadeInContent 0.3s ease-out 0.2s forwards;
+    `;
+    iframe.allow = 'microphone; camera';
+    
+    // Add animated close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: buttonPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+    `;
+    
+    closeBtn.onmouseenter = () => {
+      closeBtn.style.background = 'rgba(255,0,0,0.8)';
+      closeBtn.style.transform = 'scale(1.1)';
+    };
+    
+    closeBtn.onmouseleave = () => {
+      closeBtn.style.background = 'rgba(0,0,0,0.6)';
+      closeBtn.style.transform = 'scale(1)';
+    };
+    
+    closeBtn.onclick = () => {
+      // Animate out
+      chatContainer.style.animation = 'chatSlideOut 0.4s cubic-bezier(0.4, 0, 1, 1) forwards';
+      setTimeout(() => {
+        chatContainer.remove();
+      }, 400);
+    };
+    
+    // Add header with animation
+    const header = document.createElement('div');
+    header.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 10001;
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: slideInHeader 0.4s ease-out 0.1s forwards;
+    `;
+    header.textContent = '💬 Live Support Chat';
+    
+    // Adjust iframe to account for header
+    iframe.style.marginTop = '50px';
+    iframe.style.height = 'calc(100% - 50px)';
+    
+    chatContainer.appendChild(header);
+    chatContainer.appendChild(iframe);
+    chatContainer.appendChild(closeBtn);
+    document.body.appendChild(chatContainer);
+    
+    console.log('✅ Animated chat popup created');
+  };
+
   const handleChatClick = () => {
     console.log('🖱️ Custom chat button clicked, Tawk_API available:', !!window.Tawk_API);
     
@@ -112,79 +236,84 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     } catch (error) {
       console.error('❌ Error opening chat via custom button:', error);
       
-      // Fallback: Create embedded chat iframe
-      console.log('🔄 Trying fallback embedded chat...');
-      try {
-        // Remove any existing fallback chat
-        const existingChat = document.getElementById('fallback-chat');
-        if (existingChat) {
-          existingChat.remove();
-        }
-        
-        // Create embedded chat container
-        const chatContainer = document.createElement('div');
-        chatContainer.id = 'fallback-chat';
-        chatContainer.style.cssText = `
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          width: 350px;
-          height: 500px;
-          border: none;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-          z-index: 9999;
-          background: white;
-          overflow: hidden;
-        `;
-        
-        // Create iframe for embedded chat
-        const iframe = document.createElement('iframe');
-        iframe.src = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
-        iframe.style.cssText = `
-          width: 100%;
-          height: 100%;
-          border: none;
-          border-radius: 12px;
-        `;
-        iframe.allow = 'microphone; camera';
-        
-        // Add close button
-        const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '×';
-        closeBtn.style.cssText = `
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          width: 24px;
-          height: 24px;
-          border: none;
-          border-radius: 50%;
-          background: rgba(0,0,0,0.5);
-          color: white;
-          font-size: 16px;
-          cursor: pointer;
-          z-index: 10000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        `;
-        closeBtn.onclick = () => {
-          chatContainer.remove();
-        };
-        
-        chatContainer.appendChild(iframe);
-        chatContainer.appendChild(closeBtn);
-        document.body.appendChild(chatContainer);
-        
-        console.log('✅ Fallback embedded chat created');
-        
-      } catch (fallbackError) {
-        console.error('❌ Fallback approach also failed:', fallbackError);
-        alert('Unable to open live chat. Please try refreshing the page or contact support directly.');
-      }
+      // Fallback: Create animated embedded chat
+      console.log('🔄 Creating animated fallback chat...');
+      createAnimatedChatPopup();
     }
   };
+
+  // Add CSS animations to the document
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes chatSlideIn {
+        0% {
+          transform: scale(0.8) translateY(20px);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes chatSlideOut {
+        0% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.9) translateY(10px);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes fadeInContent {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      
+      @keyframes buttonPopIn {
+        0% {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      
+      @keyframes slideInHeader {
+        0% {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes pulseGlow {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   if (variant === 'inline') {
     return (
@@ -214,7 +343,11 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           hover:bg-primary-700 active:scale-95 group relative
           ${!isTawkLoaded ? 'opacity-75' : ''}
           ${chatStatus === 'failed' ? 'bg-red-500' : ''}
+          ${isTawkLoaded ? 'hover:shadow-xl' : ''}
         `}
+        style={{
+          animation: isTawkLoaded ? 'pulseGlow 2s infinite' : 'none'
+        }}
         title={
           chatStatus === 'failed' ? "Chat failed to load" :
           isTawkLoaded ? "Start live chat" : "Live chat is loading..."
@@ -222,22 +355,22 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
       >
         <MessageCircle className="h-6 w-6" />
         
-        {/* Status indicators */}
+        {/* Enhanced status indicators with animations */}
         {!isTawkLoaded && chatStatus !== 'failed' && (
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
         )}
         
         {isTawkLoaded && chatStatus === 'ready' && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-bounce" />
         )}
         
         {chatStatus === 'failed' && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full animate-pulse" />
         )}
         
-        {/* Tooltip */}
+        {/* Enhanced tooltip with animation */}
         {showTooltip && (
-          <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-1.5 rounded text-sm whitespace-nowrap animate-fade-in">
+          <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap animate-fade-in shadow-lg">
             {chatStatus === 'failed' ? 'Chat Failed to Load' :
              isTawkLoaded ? 'Start Live Chat' : 'Live Chat Loading...'}
             <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900" />
