@@ -67,13 +67,13 @@ const HomePage: React.FC = () => {
                 <span className="text-sm font-medium text-white">Your memories, preserved forever</span>
               </div>
               
-              <div className={`relative mb-6 transition-all duration-1000 ${
+              <div className={`relative mb-8 md:mb-12 transition-all duration-1000 ${
                 heroSection.isVisible 
                   ? 'opacity-100 translate-y-0 delay-400' 
                   : 'opacity-0 translate-y-12'
               }`}>
                 <h1 className="text-4xl md:text-5xl font-serif font-bold text-white leading-tight">
-                  Preserve Your Legacy,{" "}
+                  <span className="block mb-4 md:mb-6">Preserve Your Legacy,</span>
                   <span className="relative inline-block">
                     <span className="relative z-10 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white animate-gradient-x drop-shadow-2xl" 
                           style={{ 
