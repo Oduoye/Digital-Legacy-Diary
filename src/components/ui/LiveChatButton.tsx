@@ -38,7 +38,8 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     <>
       <button
         onClick={handleClick}
-        className="fixed bottom-8 right-8 bg-primary-600 text-white rounded-full p-4 shadow-lg transform transition-all duration-300 hover:scale-110 hover:rotate-12 hover:bg-primary-700 active:scale-95 z-50"
+        className="fixed bottom-8 right-8 bg-primary-600 text-white rounded-full p-4 shadow-lg transform transition-all duration-300 hover:scale-110 hover:rotate-12 hover:bg-primary-700 active:scale-95 z-40"
+        style={{ zIndex: 40 }} // Lower z-index than modals
       >
         <MessageCircle className="h-6 w-6" />
       </button>

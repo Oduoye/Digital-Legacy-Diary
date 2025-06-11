@@ -496,21 +496,21 @@ const DashboardPage: React.FC = () => {
                   <Input
                     label="Name"
                     placeholder="Your name"
-                    icon={<Users className="h-5 w-5 text-white/60" />}
+                    icon={<Users className="h-5 w-5 text-gray-400" />}
                     required
                   />
                   <Input
                     label="Email"
                     type="email"
                     placeholder="your.email@example.com"
-                    icon={<Mail className="h-5 w-5 text-white/60" />}
+                    icon={<Mail className="h-5 w-5 text-gray-400" />}
                     required
                   />
                   <Input
                     label="Phone"
                     type="tel"
                     placeholder="Your phone number (optional)"
-                    icon={<Phone className="h-5 w-5 text-white/60" />}
+                    icon={<Phone className="h-5 w-5 text-gray-400" />}
                   />
                   <Textarea
                     label="Message"
@@ -522,7 +522,7 @@ const DashboardPage: React.FC = () => {
                     <Button 
                       variant="outline" 
                       onClick={() => setShowContactModal(false)}
-                      className="border-white/30 text-white hover:bg-white/10"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
                       Cancel
                     </Button>
@@ -562,6 +562,11 @@ const DashboardPage: React.FC = () => {
             message="We're developing advanced identity verification features to enhance security for your digital legacy. This will include document verification, biometric authentication, and enhanced heir verification processes to ensure your legacy reaches the right people securely."
           />
         </div>
+
+        {/* Live Chat Button - Only show when no modals are open */}
+        {!showContactModal && !showSuccessModal && !showKYCModal && (
+          <LiveChatButton variant="floating" />
+        )}
       </Layout>
     </div>
   );
