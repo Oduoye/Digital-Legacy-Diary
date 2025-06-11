@@ -123,10 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('🔄 Initializing authentication...');
         
-        // Get initial session with timeout - increased to 15 seconds
+        // Get initial session with timeout - increased to 30 seconds
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 15000)
+          setTimeout(() => reject(new Error('Session timeout')), 30000)
         );
 
         const { data: { session }, error } = await Promise.race([
@@ -208,9 +208,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      // Increased timeout to 15 seconds
+      // Increased timeout to 30 seconds
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 15000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
       );
 
       const { data, error } = await Promise.race([
