@@ -26,16 +26,18 @@
     s0.parentNode.insertBefore(s1,s0);
     })();
     
-    // Configure Tawk.to to prevent external redirects
+    // Configure Tawk.to to prevent external redirects and hide default widget
     Tawk_API = Tawk_API || {};
     
     // Set up proper event handlers
     Tawk_API.onLoad = function(){
         console.log('✅ Tawk.to widget loaded successfully');
-        // Hide the default widget immediately
+        // Hide the default widget immediately and permanently
         if (typeof Tawk_API.hideWidget === 'function') {
             Tawk_API.hideWidget();
+            console.log('🙈 Default Tawk.to widget hidden');
         }
+        
         // Set visitor info to prevent external redirects
         if (typeof Tawk_API.setAttributes === 'function') {
             Tawk_API.setAttributes({
@@ -44,12 +46,31 @@
                 'hash': ''
             });
         }
+        
+        // Add CSS to completely hide the default widget
+        const style = document.createElement('style');
+        style.textContent = `
+            #tawk-bubble-container,
+            .tawk-bubble,
+            .tawk-widget,
+            .tawk-min-container,
+            .tawk-button,
+            .tawk-chat-panel,
+            div[id*="tawk"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+        console.log('🎨 Applied CSS to hide Tawk.to default elements');
     };
     
     Tawk_API.onStatusChange = function(status){
         console.log('📊 Tawk.to status changed to:', status);
-        // Ensure widget stays embedded
-        if (status === 'online' && typeof Tawk_API.hideWidget === 'function') {
+        // Ensure widget stays hidden regardless of status
+        if (typeof Tawk_API.hideWidget === 'function') {
             Tawk_API.hideWidget();
         }
     };
@@ -61,6 +82,10 @@
     
     Tawk_API.onChatMinimized = function(){
         console.log('📱 Chat minimized');
+        // Ensure widget stays hidden when minimized
+        if (typeof Tawk_API.hideWidget === 'function') {
+            Tawk_API.hideWidget();
+        }
     };
     
     // Handle any errors
@@ -69,6 +94,22 @@
             console.warn('⚠️ Tawk.to error caught:', e.message);
         }
     });
+    
+    // Additional safety measure - hide widget after a delay
+    setTimeout(function() {
+        if (window.Tawk_API && typeof window.Tawk_API.hideWidget === 'function') {
+            window.Tawk_API.hideWidget();
+            console.log('🔒 Safety hide executed');
+        }
+        
+        // Force hide with CSS as backup
+        const elements = document.querySelectorAll('[id*="tawk"], .tawk-bubble, .tawk-widget, .tawk-min-container');
+        elements.forEach(el => {
+            el.style.display = 'none';
+            el.style.visibility = 'hidden';
+            el.style.opacity = '0';
+        });
+    }, 2000);
     </script>
     <!--End of Tawk.to Script-->
   </body>

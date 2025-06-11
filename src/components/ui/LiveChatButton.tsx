@@ -45,47 +45,10 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
         setIsTawkLoaded(true);
         setChatStatus('ready');
         
-        // Override the onLoad handler to ensure proper setup
-        const originalOnLoad = window.Tawk_API.onLoad;
-        window.Tawk_API.onLoad = function() {
-          console.log('✅ Tawk.to widget fully loaded and configured');
-          setIsTawkLoaded(true);
-          setChatStatus('ready');
-          
-          // Hide the default widget immediately
-          if (window.Tawk_API?.hideWidget) {
-            window.Tawk_API.hideWidget();
-          }
-          
-          // Set visitor attributes to prevent external redirects
-          if (window.Tawk_API?.setAttributes) {
-            window.Tawk_API.setAttributes({
-              'name': 'Digital Legacy Diary User',
-              'email': '',
-              'hash': ''
-            });
-          }
-          
-          if (originalOnLoad) originalOnLoad();
-        };
-
-        // Override status change handler
-        const originalOnStatusChange = window.Tawk_API.onStatusChange;
-        window.Tawk_API.onStatusChange = function(status: string) {
-          console.log('📊 Tawk.to status changed:', status);
-          setChatStatus(status);
-          
-          // Ensure widget stays hidden
-          if (window.Tawk_API?.hideWidget) {
-            window.Tawk_API.hideWidget();
-          }
-          
-          if (originalOnStatusChange) originalOnStatusChange(status);
-        };
-
-        // If already loaded, configure immediately
+        // Ensure the default widget is hidden
         if (window.Tawk_API.hideWidget) {
           window.Tawk_API.hideWidget();
+          console.log('🙈 Ensured default widget is hidden');
         }
         
         clearInterval(checkInterval);
@@ -116,7 +79,7 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
   }, [isTawkLoaded]);
 
   const handleChatClick = () => {
-    console.log('🖱️ Chat button clicked, Tawk_API available:', !!window.Tawk_API);
+    console.log('🖱️ Custom chat button clicked, Tawk_API available:', !!window.Tawk_API);
     
     if (!window.Tawk_API) {
       console.warn('⚠️ Tawk_API not available yet');
@@ -130,73 +93,91 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     }
 
     try {
-      console.log('🚀 Attempting to open Tawk.to chat...');
+      console.log('🚀 Opening chat via custom button...');
       
-      // Method 1: Try to show and maximize the widget
-      if (window.Tawk_API.showWidget) {
-        console.log('📱 Showing widget...');
-        window.Tawk_API.showWidget();
+      // Method 1: Try to maximize directly (most reliable for embedded chat)
+      if (window.Tawk_API.maximize) {
+        console.log('📈 Using maximize method...');
+        window.Tawk_API.maximize();
+      } else if (window.Tawk_API.toggle) {
+        console.log('🔄 Using toggle method...');
+        window.Tawk_API.toggle();
+      } else if (window.Tawk_API.popup) {
+        console.log('🪟 Using popup method...');
+        window.Tawk_API.popup();
       }
       
-      // Small delay to ensure widget is shown
-      setTimeout(() => {
-        if (window.Tawk_API?.maximize) {
-          console.log('🔍 Maximizing chat...');
-          window.Tawk_API.maximize();
-        } else if (window.Tawk_API?.toggle) {
-          console.log('🔄 Toggling chat...');
-          window.Tawk_API.toggle();
-        } else if (window.Tawk_API?.popup) {
-          console.log('🪟 Opening chat popup...');
-          window.Tawk_API.popup();
-        }
-      }, 100);
-      
-      console.log('✅ Tawk.to chat command executed successfully');
+      console.log('✅ Chat opened successfully via custom button');
       
     } catch (error) {
-      console.error('❌ Error opening Tawk.to chat:', error);
+      console.error('❌ Error opening chat via custom button:', error);
       
-      // Fallback: try direct URL approach
-      console.log('🔄 Trying fallback approach...');
+      // Fallback: Create embedded chat iframe
+      console.log('🔄 Trying fallback embedded chat...');
       try {
-        // Create a hidden iframe to load the chat
+        // Remove any existing fallback chat
+        const existingChat = document.getElementById('fallback-chat');
+        if (existingChat) {
+          existingChat.remove();
+        }
+        
+        // Create embedded chat container
+        const chatContainer = document.createElement('div');
+        chatContainer.id = 'fallback-chat';
+        chatContainer.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 350px;
+          height: 500px;
+          border: none;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+          z-index: 9999;
+          background: white;
+          overflow: hidden;
+        `;
+        
+        // Create iframe for embedded chat
         const iframe = document.createElement('iframe');
         iframe.src = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
-        iframe.style.position = 'fixed';
-        iframe.style.bottom = '20px';
-        iframe.style.right = '20px';
-        iframe.style.width = '400px';
-        iframe.style.height = '600px';
-        iframe.style.border = 'none';
-        iframe.style.borderRadius = '10px';
-        iframe.style.boxShadow = '0 0 20px rgba(0,0,0,0.3)';
-        iframe.style.zIndex = '9999';
-        iframe.style.backgroundColor = 'white';
-        
-        document.body.appendChild(iframe);
+        iframe.style.cssText = `
+          width: 100%;
+          height: 100%;
+          border: none;
+          border-radius: 12px;
+        `;
+        iframe.allow = 'microphone; camera';
         
         // Add close button
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '×';
-        closeBtn.style.position = 'fixed';
-        closeBtn.style.top = '10px';
-        closeBtn.style.right = '10px';
-        closeBtn.style.width = '30px';
-        closeBtn.style.height = '30px';
-        closeBtn.style.border = 'none';
-        closeBtn.style.borderRadius = '50%';
-        closeBtn.style.backgroundColor = '#ff4444';
-        closeBtn.style.color = 'white';
-        closeBtn.style.fontSize = '18px';
-        closeBtn.style.cursor = 'pointer';
-        closeBtn.style.zIndex = '10000';
+        closeBtn.style.cssText = `
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 24px;
+          height: 24px;
+          border: none;
+          border-radius: 50%;
+          background: rgba(0,0,0,0.5);
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `;
         closeBtn.onclick = () => {
-          document.body.removeChild(iframe);
-          document.body.removeChild(closeBtn);
+          chatContainer.remove();
         };
         
-        document.body.appendChild(closeBtn);
+        chatContainer.appendChild(iframe);
+        chatContainer.appendChild(closeBtn);
+        document.body.appendChild(chatContainer);
+        
+        console.log('✅ Fallback embedded chat created');
         
       } catch (fallbackError) {
         console.error('❌ Fallback approach also failed:', fallbackError);
