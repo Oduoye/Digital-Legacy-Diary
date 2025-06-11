@@ -11,7 +11,6 @@ import LiveChatButton from '../components/ui/LiveChatButton';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import { getRandomPrompt } from '../utils/writingPrompts';
-import { useOnceAnimation } from '../hooks/useScrollAnimation';
 
 const DashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -20,12 +19,17 @@ const DashboardPage: React.FC = () => {
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   
-  // One-time animations for dashboard sections
-  const cardsSection = useOnceAnimation(0);
-  const promptSection = useOnceAnimation(200);
-  const statsSection = useOnceAnimation(400);
+  useEffect(() => {
+    // Trigger animations after component mounts
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -151,7 +155,12 @@ const DashboardPage: React.FC = () => {
 
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          <div className="flex justify-between items-start mb-8 animate-fade-in">
+          {/* Header Section with Enhanced Animation */}
+          <div 
+            className={`flex justify-between items-start mb-8 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+          >
             <div>
               <h2 className="text-lg text-white/80">Welcome back,</h2>
               <h1 className="text-2xl font-serif font-bold text-white">{currentUser?.name}</h1>
@@ -190,23 +199,17 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          <div 
-            ref={cardsSection.elementRef}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
-            style={{ 
-              transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
-              opacity: cardsSection.isVisible ? 1 : 0,
-              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
-            }}
-          >
+          {/* Dashboard Cards with Staggered Animation */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {dashboardCards.map((card, index) => (
               <Card 
                 key={index}
-                className={`backdrop-blur-xl ${card.bgClass || 'bg-white/10'} border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1`}
+                className={`backdrop-blur-xl ${card.bgClass || 'bg-white/10'} border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
                 style={{ 
-                  transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: cardsSection.isVisible ? 1 : 0,
-                  transition: `transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s, opacity 0.6s ease-out ${index * 0.1}s`
+                  transitionDelay: `${200 + index * 100}ms`,
+                  transitionDuration: '600ms'
                 }}
               >
                 <CardContent className="flex flex-col items-start py-6">
@@ -229,14 +232,12 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
 
+          {/* Writing Prompt Section with Enhanced Animation */}
           <div 
-            ref={promptSection.elementRef}
-            className="mb-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl"
-            style={{ 
-              transform: promptSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
-              opacity: promptSection.isVisible ? 1 : 0,
-              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
-            }}
+            className={`mb-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '800ms' }}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div className="mb-4 md:mb-0">
@@ -251,14 +252,12 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           
+          {/* Stats and Recent Entries with Enhanced Animation */}
           <div 
-            ref={statsSection.elementRef}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-            style={{ 
-              transform: statsSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
-              opacity: statsSection.isVisible ? 1 : 0,
-              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
-            }}
+            className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '1000ms' }}
           >
             <div className="lg:col-span-1">
               <div className="grid grid-cols-1 gap-6">
@@ -324,9 +323,17 @@ const DashboardPage: React.FC = () => {
                 <CardContent>
                   {recentEntries.length > 0 ? (
                     <div className="space-y-4">
-                      {recentEntries.map((entry) => (
+                      {recentEntries.map((entry, index) => (
                         <Link key={entry.id} to={`/journal/${entry.id}`}>
-                          <div className="p-4 rounded-lg hover:bg-white/10 transition-colors border border-white/20 backdrop-blur-sm">
+                          <div 
+                            className={`p-4 rounded-lg hover:bg-white/10 transition-all duration-500 border border-white/20 backdrop-blur-sm transform ${
+                              isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
+                            }`}
+                            style={{ 
+                              transitionDelay: `${1200 + index * 150}ms`,
+                              transitionDuration: '600ms'
+                            }}
+                          >
                             <div className="flex justify-between items-start mb-1">
                               <h3 className="font-semibold text-white">{entry.title}</h3>
                               <span className="text-xs text-white/70">
@@ -371,7 +378,13 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl animate-fade-in">
+          {/* Help Section with Enhanced Animation */}
+          <div 
+            className={`mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '1400ms' }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-medium text-white">Need Help?</h2>
@@ -381,7 +394,13 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-8 animate-fade-in">
+          {/* Contact Section with Enhanced Animation */}
+          <div 
+            className={`mt-8 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '1600ms' }}
+          >
             <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between">
@@ -405,7 +424,7 @@ const DashboardPage: React.FC = () => {
 
           {/* Contact Form Modal */}
           {showContactModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
               <div 
                 ref={modalRef}
                 className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-lg w-full p-6 animate-scale-in shadow-2xl"
@@ -456,7 +475,7 @@ const DashboardPage: React.FC = () => {
 
           {/* Success Message Modal */}
           {showSuccessModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
               <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-6 animate-scale-in shadow-2xl">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
