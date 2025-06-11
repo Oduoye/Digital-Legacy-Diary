@@ -5,17 +5,28 @@ import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
 const Header: React.FC = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = React.useState(false);
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    setShowMenu(false);
-    setShowProfileMenu(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/', { replace: true });
+      setShowMenu(false);
+      setShowProfileMenu(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
+
+  // Redirect authenticated users away from auth pages
+  React.useEffect(() => {
+    if (isAuthenticated && (window.location.pathname === '/login' || window.location.pathname === '/register')) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <header className="bg-gradient-to-br from-primary-600 to-accent-600 shadow-sm sticky top-0 z-50">

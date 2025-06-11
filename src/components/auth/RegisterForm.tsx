@@ -23,6 +23,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
   const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [validationErrors, setValidationErrors] = useState({
     name: '',
     email: '',
@@ -87,6 +88,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       const result = await register(name.trim(), email.trim(), password, selectedTier);
       
       if (result.emailConfirmationRequired) {
+        setRegisteredEmail(email.trim());
         setEmailConfirmationRequired(true);
       } else {
         setShowSuccessMessage(true);
@@ -107,7 +109,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
     setError('');
     
     try {
-      await resendVerificationEmail(email);
+      await resendVerificationEmail(registeredEmail);
       setResendSuccess(true);
       setTimeout(() => setResendSuccess(false), 5000);
     } catch (err: any) {
@@ -149,6 +151,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         }
         break;
     }
+    
+    // Clear general error when user starts typing
+    if (error) {
+      setError('');
+    }
   };
 
   // Email Verification Required Modal
@@ -162,7 +169,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           Check Your Email
         </h3>
         <p className="text-white/80 mb-4">
-          We've sent a verification link to <strong className="text-cyan-400">{email}</strong>
+          We've sent a verification link to <strong className="text-cyan-400">{registeredEmail}</strong>
         </p>
         
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6 border border-white/20">
@@ -175,7 +182,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
               <ol className="text-sm text-white/80 space-y-1 list-decimal list-inside">
                 <li>Check your email inbox (and spam folder)</li>
                 <li>Click the verification link in the email</li>
-                <li>Return here to sign in to your account</li>
+                <li>You'll be automatically redirected to your dashboard</li>
               </ol>
             </div>
           </div>

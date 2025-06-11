@@ -11,6 +11,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import AuthPages from './pages/AuthPages';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import EmailVerificationCallbackPage from './pages/EmailVerificationCallbackPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import SubscriptionPage from './pages/SubscriptionPage';
@@ -66,6 +67,7 @@ function App() {
             <Route path="/login" element={<AuthPages />} />
             <Route path="/register" element={<AuthPages />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/callback" element={<EmailVerificationCallbackPage />} />
             
             {/* Protected routes */}
             <Route 
