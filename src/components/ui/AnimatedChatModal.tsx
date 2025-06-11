@@ -61,7 +61,7 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
           console.log('📊 Tawk.to status changed to:', status);
           setTawkStatus(status as any);
           
-          // Keep widget hidden
+          // Keep default widget hidden
           if (window.Tawk_API?.hideWidget) {
             window.Tawk_API.hideWidget();
           }
@@ -144,8 +144,8 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
         onClick={handleBackdropClick}
       />
       
-      {/* Chat Modal - Properly Centered */}
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+      {/* Chat Modal - Properly Centered with special class for CSS targeting */}
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none chat-modal-container">
         <div
           ref={modalRef}
           className={`pointer-events-auto transition-all duration-500 ease-out transform ${
@@ -280,7 +280,7 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                         allow="microphone; camera"
                         title="Tawk.to Support Chat"
                         onLoad={() => {
-                          console.log('✅ Tawk.to iframe loaded successfully');
+                          console.log('✅ Tawk.to iframe loaded successfully in custom modal');
                         }}
                       />
                     </div>
