@@ -11,7 +11,7 @@ import LiveChatButton from '../components/ui/LiveChatButton';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import { getRandomPrompt } from '../utils/writingPrompts';
-import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { useOnceAnimation } from '../hooks/useScrollAnimation';
 
 const DashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -22,10 +22,10 @@ const DashboardPage: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   
-  // Scroll animations for dashboard cards
-  const cardsSection = useScrollAnimation({ threshold: 0.1 });
-  const promptSection = useScrollAnimation({ threshold: 0.2 });
-  const statsSection = useScrollAnimation({ threshold: 0.15 });
+  // One-time animations for dashboard sections
+  const cardsSection = useOnceAnimation(0);
+  const promptSection = useOnceAnimation(200);
+  const statsSection = useOnceAnimation(400);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -70,6 +70,67 @@ const DashboardPage: React.FC = () => {
       setShowSuccessModal(false);
     }, 3000);
   };
+
+  const dashboardCards = [
+    {
+      icon: Book,
+      title: "New Entry",
+      description: "Record your thoughts and memories.",
+      link: "/journal/new",
+      buttonText: "Create Entry",
+      gradient: "from-blue-400 to-cyan-400",
+      bgGradient: "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700",
+      variant: "primary"
+    },
+    {
+      icon: Users,
+      title: "Contacts",
+      description: "Manage your trusted contacts.",
+      link: "/contacts",
+      buttonText: "View Contacts",
+      gradient: "from-purple-400 to-pink-400",
+      bgGradient: "from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700",
+      variant: "secondary"
+    },
+    {
+      icon: Calendar,
+      title: "Journal",
+      description: "Browse your past entries.",
+      link: "/journal",
+      buttonText: "View Journal",
+      gradient: "from-green-400 to-cyan-400",
+      variant: "outline"
+    },
+    {
+      icon: Sparkles,
+      title: "Life Story",
+      description: "View AI-powered insights.",
+      link: "/life-story",
+      buttonText: "View Insights",
+      gradient: "from-yellow-400 to-orange-400",
+      variant: "outline"
+    },
+    {
+      icon: Network,
+      title: "Memory Map",
+      description: "Explore your memory constellation.",
+      link: "/memory-constellation",
+      buttonText: "View Map",
+      gradient: "from-purple-400 to-indigo-500",
+      variant: "outline",
+      bgClass: "bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border-purple-400/30"
+    },
+    {
+      icon: Bot,
+      title: "AI Assistant",
+      description: "Chat with your wisdom assistant.",
+      link: "/wisdom-chatbot",
+      buttonText: "Start Chat",
+      gradient: "from-pink-400 to-purple-500",
+      variant: "outline",
+      bgClass: "bg-gradient-to-br from-pink-500/20 to-purple-600/20 border-pink-400/30"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
@@ -131,64 +192,21 @@ const DashboardPage: React.FC = () => {
 
           <div 
             ref={cardsSection.elementRef}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"
             style={{ 
               transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
               opacity: cardsSection.isVisible ? 1 : 0,
-              transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
             }}
           >
-            {[
-              {
-                icon: Book,
-                title: "New Entry",
-                description: "Record your thoughts and memories.",
-                link: "/journal/new",
-                buttonText: "Create Entry",
-                gradient: "from-blue-400 to-cyan-400",
-                bgGradient: "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700",
-                delay: 0
-              },
-              {
-                icon: Users,
-                title: "Contacts",
-                description: "Manage your trusted contacts.",
-                link: "/contacts",
-                buttonText: "View Contacts",
-                gradient: "from-purple-400 to-pink-400",
-                bgGradient: "from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700",
-                delay: 0.1
-              },
-              {
-                icon: Calendar,
-                title: "Journal",
-                description: "Browse your past entries.",
-                link: "/journal",
-                buttonText: "View Journal",
-                gradient: "from-green-400 to-cyan-400",
-                bgGradient: "",
-                variant: "outline",
-                delay: 0.2
-              },
-              {
-                icon: Sparkles,
-                title: "Life Story",
-                description: "View AI-powered insights.",
-                link: "/life-story",
-                buttonText: "View Insights",
-                gradient: "from-yellow-400 to-orange-400",
-                bgGradient: "",
-                variant: "outline",
-                delay: 0.3
-              }
-            ].map((card, index) => (
+            {dashboardCards.map((card, index) => (
               <Card 
                 key={index}
-                className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500"
+                className={`backdrop-blur-xl ${card.bgClass || 'bg-white/10'} border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1`}
                 style={{ 
-                  transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(40px)',
+                  transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
                   opacity: cardsSection.isVisible ? 1 : 0,
-                  transition: `all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${card.delay}s`
+                  transition: `transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 0.1}s, opacity 0.6s ease-out ${index * 0.1}s`
                 }}
               >
                 <CardContent className="flex flex-col items-start py-6">
@@ -199,8 +217,8 @@ const DashboardPage: React.FC = () => {
                   <p className="text-white/80 mb-4">{card.description}</p>
                   <Link to={card.link}>
                     <Button 
-                      variant={card.variant as any || "primary"}
-                      icon={<Plus size={16} />}
+                      variant={card.variant as any}
+                      icon={<ArrowRight size={16} />}
                       className={card.bgGradient ? `bg-gradient-to-r ${card.bgGradient} shadow-xl` : "border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"}
                     >
                       {card.buttonText}
@@ -209,59 +227,6 @@ const DashboardPage: React.FC = () => {
                 </CardContent>
               </Card>
             ))}
-
-            {/* Additional cards with staggered animations */}
-            <Card 
-              className="backdrop-blur-xl bg-gradient-to-br from-purple-500/20 to-indigo-600/20 border border-purple-400/30 shadow-2xl hover:shadow-3xl transition-all duration-500"
-              style={{ 
-                transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(40px)',
-                opacity: cardsSection.isVisible ? 1 : 0,
-                transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s'
-              }}
-            >
-              <CardContent className="flex flex-col items-start py-6">
-                <div className="bg-gradient-to-r from-purple-400 to-indigo-500 p-3 rounded-full mb-4 shadow-lg">
-                  <Network className="h-6 w-6 text-white" />
-                </div>
-                <h2 className="text-xl font-serif font-semibold text-white mb-2">Memory Map</h2>
-                <p className="text-white/80 mb-4">Explore your memory constellation.</p>
-                <Link to="/memory-constellation">
-                  <Button 
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
-                    icon={<ArrowRight size={16} />}
-                  >
-                    View Map
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="backdrop-blur-xl bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-pink-400/30 shadow-2xl hover:shadow-3xl transition-all duration-500"
-              style={{ 
-                transform: cardsSection.isVisible ? 'translateY(0)' : 'translateY(40px)',
-                opacity: cardsSection.isVisible ? 1 : 0,
-                transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s'
-              }}
-            >
-              <CardContent className="flex flex-col items-start py-6">
-                <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-3 rounded-full mb-4 shadow-lg">
-                  <Bot className="h-6 w-6 text-white" />
-                </div>
-                <h2 className="text-xl font-serif font-semibold text-white mb-2">AI Assistant</h2>
-                <p className="text-white/80 mb-4">Chat with your wisdom assistant.</p>
-                <Link to="/wisdom-chatbot">
-                  <Button 
-                    variant="outline"
-                    className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
-                    icon={<ArrowRight size={16} />}
-                  >
-                    Start Chat
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
           </div>
 
           <div 
@@ -270,7 +235,7 @@ const DashboardPage: React.FC = () => {
             style={{ 
               transform: promptSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
               opacity: promptSection.isVisible ? 1 : 0,
-              transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
             }}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -292,19 +257,12 @@ const DashboardPage: React.FC = () => {
             style={{ 
               transform: statsSection.isVisible ? 'translateY(0)' : 'translateY(30px)',
               opacity: statsSection.isVisible ? 1 : 0,
-              transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+              transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease-out'
             }}
           >
             <div className="lg:col-span-1">
               <div className="grid grid-cols-1 gap-6">
-                <Card 
-                  className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl"
-                  style={{ 
-                    transform: statsSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                    opacity: statsSection.isVisible ? 1 : 0,
-                    transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s'
-                  }}
-                >
+                <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                   <CardHeader>
                     <h2 className="text-xl font-serif font-semibold text-white">Your Journey</h2>
                   </CardHeader>
@@ -326,14 +284,7 @@ const DashboardPage: React.FC = () => {
                   </CardContent>
                 </Card>
                 
-                <Card 
-                  className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl"
-                  style={{ 
-                    transform: statsSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                    opacity: statsSection.isVisible ? 1 : 0,
-                    transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s'
-                  }}
-                >
+                <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                   <CardHeader>
                     <h2 className="text-xl font-serif font-semibold text-white flex items-center">
                       <Tag className="mr-2 h-5 w-5 text-cyan-400" />
@@ -363,14 +314,7 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <div className="lg:col-span-2">
-              <Card 
-                className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl"
-                style={{ 
-                  transform: statsSection.isVisible ? 'translateY(0)' : 'translateY(20px)',
-                  opacity: statsSection.isVisible ? 1 : 0,
-                  transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s'
-                }}
-              >
+              <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                 <CardHeader className="flex justify-between items-center">
                   <h2 className="text-xl font-serif font-semibold text-white">Recent Entries</h2>
                   <Link to="/journal" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium">
