@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
-import ContactModal from '../components/ui/ContactModal';
+import FloatingContactButton from '../components/ui/FloatingContactButton';
 import ComingSoonModal from '../components/ui/ComingSoonModal';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
@@ -16,7 +16,6 @@ const DashboardPage: React.FC = () => {
   const { entries, trustedContacts, wills } = useDiary();
   const [currentDate] = useState(new Date());
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
-  const [showContactModal, setShowContactModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -47,11 +46,6 @@ const DashboardPage: React.FC = () => {
     const entryDate = new Date(entry.createdAt);
     return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
   }).length;
-
-  const handleContactSubmit = (data: any) => {
-    console.log('Contact form submitted:', data);
-    // Handle form submission here
-  };
 
   // Get subscription tier info for badge
   const getSubscriptionBadge = (tier: string = 'free') => {
@@ -456,35 +450,6 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Get in Touch Section with Enhanced Animation and Blue Button */}
-          <div 
-            className={`mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-            style={{ transitionDelay: '1600ms' }}
-          >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <h2 className="text-lg font-medium text-white">Need Help?</h2>
-                <p className="text-sm text-white/80">Our support team is here to assist you</p>
-              </div>
-              <Button
-                onClick={() => setShowContactModal(true)}
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-xl transform transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                <span className="block sm:hidden">Get Help</span>
-                <span className="hidden sm:block">Get in Touch</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Contact Modal */}
-          <ContactModal
-            isOpen={showContactModal}
-            onClose={() => setShowContactModal(false)}
-            onSubmit={handleContactSubmit}
-          />
-
           {/* KYC Coming Soon Modal */}
           <ComingSoonModal
             isOpen={showKYCModal}
@@ -493,6 +458,9 @@ const DashboardPage: React.FC = () => {
             message="We're developing advanced identity verification features to enhance security for your digital legacy. This will include document verification, biometric authentication, and enhanced heir verification processes to ensure your legacy reaches the right people securely."
           />
         </div>
+
+        {/* Floating Contact Button */}
+        <FloatingContactButton variant="floating" />
       </Layout>
     </div>
   );
