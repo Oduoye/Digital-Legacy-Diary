@@ -33,17 +33,7 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Loading component for better UX
-const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-      <p className="text-white text-lg">Loading your digital legacy...</p>
-    </div>
-  </div>
-);
-
-// Protected route component with improved loading handling
+// Protected route component
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -53,36 +43,11 @@ const ProtectedRoute: React.FC<{
 }) => {
   const { isAuthenticated, loading } = useAuth();
   
-  // Show loading screen while checking authentication
   if (loading) {
-    return <LoadingScreen />;
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
   
-  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Public route component that redirects authenticated users
-const PublicRoute: React.FC<{ 
-  children: React.ReactNode;
-  redirectTo?: string; 
-}> = ({ 
-  children, 
-  redirectTo = '/dashboard' 
-}) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  // Show loading screen while checking authentication
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
-  // Redirect to dashboard if already authenticated
-  if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
@@ -95,54 +60,22 @@ function App() {
       <AuthProvider>
         <DiaryProvider>
           <Routes>
-            {/* Public routes - redirect to dashboard if authenticated */}
-            <Route 
-              path="/" 
-              element={
-                <PublicRoute>
-                  <HomePage />
-                </PublicRoute>
-              } 
-            />
+            {/* Public routes */}
+            <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
-            
-            {/* Auth routes - redirect to dashboard if authenticated */}
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <AuthPages />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <PublicRoute>
-                  <AuthPages />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/reset-password" 
-              element={
-                <PublicRoute>
-                  <ResetPasswordPage />
-                </PublicRoute>
-              } 
-            />
-            
-            {/* Email verification callback - always accessible */}
+            <Route path="/login" element={<AuthPages />} />
+            <Route path="/register" element={<AuthPages />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<EmailVerificationCallbackPage />} />
             
             {/* Legacy access route - public but requires access code */}
             <Route path="/legacy/:accessCode" element={<LegacyAccessPage />} />
             
-            {/* Protected routes - require authentication */}
+            {/* Protected routes */}
             <Route 
               path="/dashboard" 
               element={
