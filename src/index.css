@@ -46,6 +46,10 @@
     animation: shrinkWidth 3s linear forwards;
   }
   
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
   .no-overscroll {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;

@@ -84,6 +84,9 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
     setError('');
 
     try {
+      // Simulate upload time for better UX
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       const willData = {
         title: title.trim(),
         content: content.trim(),
@@ -289,7 +292,9 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
         isOpen={showSuccessModal}
         onClose={handleSuccessClose}
         title={`Will ${currentWill ? 'Updated' : 'Uploaded'} Successfully!`}
-        message={`Your will "${title}" has been securely saved to your account.`}
+        message={`Your will "${title}" has been securely saved to your account. Your legal documents are now preserved in your digital legacy.`}
+        autoClose={true}
+        autoCloseDelay={4000}
       />
     </>
   );
