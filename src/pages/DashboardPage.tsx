@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText, Shield, Clock, AlertTriangle } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText, Shield, Clock, AlertTriangle, Award, ChevronRight } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
@@ -210,47 +210,63 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* KYC Verification Coming Soon Banner - Enhanced with Premium Styling */}
+          {/* Professional KYC Verification Card */}
           <div 
             className={`mb-8 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
             style={{ transitionDelay: '200ms' }}
           >
-            <Card className="backdrop-blur-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-400/20 shadow-xl relative">
-              <div className="absolute -top-px left-1/2 -translate-x-1/2 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-pulse" />
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl relative overflow-hidden">
+              {/* Professional header stripe */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
+              
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-4">
                     <div className="flex-shrink-0">
-                      <div className="rounded-full bg-amber-500/20 p-2 backdrop-blur-sm border border-amber-400/30">
-                        <Shield className="h-5 w-5 text-amber-200" />
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                        <Shield className="h-6 w-6 text-white" />
                       </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-base font-medium text-amber-100 flex items-center">
-                        KYC Verification
-                        <span className="ml-2 bg-amber-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
-                          Coming Soon
-                        </span>
-                      </h3>
-                      <p className="text-amber-200/80 text-sm mt-0.5">
-                        Enhanced security verification to protect your digital legacy.
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-lg font-semibold text-white">
+                          Identity Verification
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <div className="px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 rounded-full">
+                            <span className="text-xs font-medium text-blue-200">Enterprise Grade</span>
+                          </div>
+                          <div className="px-2.5 py-1 bg-amber-500/20 border border-amber-400/30 rounded-full">
+                            <span className="text-xs font-medium text-amber-200">Coming Soon</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-white/80 text-sm leading-relaxed mb-3">
+                        Enhanced security verification to protect your digital legacy with bank-level authentication protocols.
                       </p>
+                      <div className="flex items-center space-x-4 text-xs text-white/60">
+                        <div className="flex items-center space-x-1">
+                          <Award className="h-3 w-3" />
+                          <span>ISO 27001 Compliant</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Clock className="h-3 w-3" />
+                          <span>Q2 2025 Release</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 flex-shrink-0">
-                    <div className="hidden sm:flex items-center text-amber-200/70 text-xs">
-                      <Clock className="h-3 w-3 mr-1" />
-                      <span>In Development</span>
-                    </div>
+                  <div className="flex-shrink-0 ml-4">
                     <Button
                       onClick={() => setShowKYCModal(true)}
                       variant="outline"
                       size="sm"
-                      className="border-amber-400/50 text-amber-200 hover:bg-amber-500/20 backdrop-blur-sm text-xs px-3 py-1"
+                      className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm group"
                     >
-                      Learn More
+                      <span className="text-sm">Learn More</span>
+                      <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
                     </Button>
                   </div>
                 </div>
@@ -559,7 +575,7 @@ const DashboardPage: React.FC = () => {
           <ComingSoonModal
             isOpen={showKYCModal}
             onClose={() => setShowKYCModal(false)}
-            title="KYC Verification Coming Soon!"
+            title="Identity Verification Coming Soon!"
             message="We're developing advanced identity verification features to enhance security for your digital legacy. This will include document verification, biometric authentication, and enhanced heir verification processes to ensure your legacy reaches the right people securely."
           />
         </div>
