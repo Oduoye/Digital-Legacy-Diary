@@ -56,13 +56,12 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           if (originalOnStatusChange) originalOnStatusChange(status);
         };
 
-        // Customize Tawk.to widget size and appearance
+        // Customize Tawk.to widget
         window.Tawk_API.onLoad = function() {
           console.log('✅ Tawk.to loaded successfully');
           
-          // Customize the widget size and position
+          // Set custom attributes for the widget
           try {
-            // Set custom attributes for the widget
             window.Tawk_API?.setAttributes({
               name: 'Digital Legacy Diary User',
               email: '',
@@ -88,11 +87,11 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
   }, []);
 
   const handleChatClick = () => {
-    console.log('🖱️ Opening official Tawk.to chat widget...');
+    console.log('🖱️ Opening Tawk.to chat widget...');
     
     if (window.Tawk_API) {
       try {
-        // Show and maximize the official Tawk.to widget
+        // Show and maximize the Tawk.to widget (stays within the app)
         window.Tawk_API.showWidget();
         window.Tawk_API.maximize();
       } catch (error) {
