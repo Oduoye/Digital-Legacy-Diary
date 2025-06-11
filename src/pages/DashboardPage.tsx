@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText, Shield, Clock, AlertTriangle } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
@@ -10,6 +10,7 @@ import Card, { CardHeader, CardContent } from '../components/ui/Card';
 import LiveChatButton from '../components/ui/LiveChatButton';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
+import ComingSoonModal from '../components/ui/ComingSoonModal';
 import { getRandomPrompt } from '../utils/writingPrompts';
 
 const DashboardPage: React.FC = () => {
@@ -19,6 +20,7 @@ const DashboardPage: React.FC = () => {
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showKYCModal, setShowKYCModal] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   
@@ -208,6 +210,52 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
+          {/* KYC Verification Coming Soon Banner */}
+          <div 
+            className={`mb-8 transition-all duration-800 ease-out ${
+              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
+            }`}
+            style={{ transitionDelay: '200ms' }}
+          >
+            <Card className="backdrop-blur-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 shadow-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="rounded-full bg-orange-500/20 p-3 backdrop-blur-sm border border-orange-400/30">
+                        <Shield className="h-6 w-6 text-orange-300" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-white flex items-center">
+                        KYC Verification
+                        <span className="ml-2 bg-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
+                          Coming Soon
+                        </span>
+                      </h3>
+                      <p className="text-white/80 mt-1">
+                        Enhanced security verification to protect your digital legacy and ensure secure access for your heirs.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="hidden md:flex items-center text-white/70 text-sm">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>In Development</span>
+                    </div>
+                    <Button
+                      onClick={() => setShowKYCModal(true)}
+                      variant="outline"
+                      className="border-orange-400/50 text-orange-200 hover:bg-orange-500/20 backdrop-blur-sm"
+                    >
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Dashboard Cards with Staggered Animation */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {dashboardCards.map((card, index) => (
@@ -217,7 +265,7 @@ const DashboardPage: React.FC = () => {
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ 
-                  transitionDelay: `${200 + index * 100}ms`,
+                  transitionDelay: `${400 + index * 100}ms`,
                   transitionDuration: '600ms'
                 }}
               >
@@ -246,7 +294,7 @@ const DashboardPage: React.FC = () => {
             className={`mb-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
-            style={{ transitionDelay: '800ms' }}
+            style={{ transitionDelay: '1100ms' }}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div className="mb-4 md:mb-0">
@@ -266,7 +314,7 @@ const DashboardPage: React.FC = () => {
             className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
-            style={{ transitionDelay: '1000ms' }}
+            style={{ transitionDelay: '1200ms' }}
           >
             <div className="lg:col-span-1">
               <div className="grid grid-cols-1 gap-6">
@@ -343,7 +391,7 @@ const DashboardPage: React.FC = () => {
                               isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
                             }`}
                             style={{ 
-                              transitionDelay: `${1200 + index * 150}ms`,
+                              transitionDelay: `${1400 + index * 150}ms`,
                               transitionDuration: '600ms'
                             }}
                           >
@@ -396,7 +444,7 @@ const DashboardPage: React.FC = () => {
             className={`mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
-            style={{ transitionDelay: '1400ms' }}
+            style={{ transitionDelay: '1600ms' }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -412,7 +460,7 @@ const DashboardPage: React.FC = () => {
             className={`mt-8 transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
             }`}
-            style={{ transitionDelay: '1600ms' }}
+            style={{ transitionDelay: '1800ms' }}
           >
             <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
               <CardContent className="p-6">
@@ -504,6 +552,14 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* KYC Coming Soon Modal */}
+          <ComingSoonModal
+            isOpen={showKYCModal}
+            onClose={() => setShowKYCModal(false)}
+            title="KYC Verification Coming Soon!"
+            message="We're developing advanced identity verification features to enhance security for your digital legacy. This will include document verification, biometric authentication, and enhanced heir verification processes to ensure your legacy reaches the right people securely."
+          />
         </div>
       </Layout>
     </div>
