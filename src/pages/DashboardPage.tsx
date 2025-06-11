@@ -235,9 +235,6 @@ const DashboardPage: React.FC = () => {
                           Identity Verification
                         </h3>
                         <div className="flex items-center space-x-2">
-                          <div className="px-2.5 py-1 bg-blue-500/20 border border-blue-400/30 rounded-full">
-                            <span className="text-xs font-medium text-blue-200">Enterprise Grade</span>
-                          </div>
                           <div className="px-2.5 py-1 bg-amber-500/20 border border-amber-400/30 rounded-full">
                             <span className="text-xs font-medium text-amber-200">Coming Soon</span>
                           </div>
@@ -471,34 +468,6 @@ const DashboardPage: React.FC = () => {
               </div>
               <LiveChatButton variant="inline" />
             </div>
-          </div>
-
-          {/* Contact Section with Enhanced Animation */}
-          <div 
-            className={`mt-8 transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-            style={{ transitionDelay: '1800ms' }}
-          >
-            <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-center justify-between">
-                  <div className="mb-4 md:mb-0">
-                    <h2 className="text-xl font-serif font-semibold text-white flex items-center">
-                      <MessageSquare className="h-5 w-5 mr-2 text-cyan-400" />
-                      Get in Touch
-                    </h2>
-                    <p className="text-white/80 mt-1">Have questions or feedback? We'd love to hear from you.</p>
-                  </div>
-                  <Button 
-                    onClick={() => setShowContactModal(true)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-xl"
-                  >
-                    Contact Us
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Contact Form Modal */}
