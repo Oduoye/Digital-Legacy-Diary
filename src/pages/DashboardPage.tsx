@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText, Shield, Clock, AlertTriangle, Award, ChevronRight } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText, Shield, Clock, AlertTriangle, Award, ChevronRight, Crown, Star } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
@@ -76,6 +76,35 @@ const DashboardPage: React.FC = () => {
       setShowSuccessModal(false);
     }, 3000);
   };
+
+  // Get subscription tier info for badge
+  const getSubscriptionBadge = (tier: string = 'free') => {
+    switch (tier) {
+      case 'premium':
+        return {
+          icon: <Shield className="h-3 w-3" />,
+          text: 'Premium',
+          bgColor: 'bg-blue-500',
+          textColor: 'text-white'
+        };
+      case 'gold':
+        return {
+          icon: <Crown className="h-3 w-3" />,
+          text: 'Gold',
+          bgColor: 'bg-yellow-500',
+          textColor: 'text-white'
+        };
+      default:
+        return {
+          icon: <Star className="h-3 w-3" />,
+          text: 'Free',
+          bgColor: 'bg-gray-500',
+          textColor: 'text-white'
+        };
+    }
+  };
+
+  const subscriptionBadge = getSubscriptionBadge(currentUser?.subscription_tier);
 
   const dashboardCards = [
     {
@@ -200,7 +229,7 @@ const DashboardPage: React.FC = () => {
               to="/profile" 
               className="group relative"
             >
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-white/10 ring-4 ring-cyan-400 shadow-2xl transform transition-transform group-hover:scale-105 backdrop-blur-sm">
+              <div className="w-16 h-16 rounded-full overflow-hidden bg-white/10 ring-4 ring-cyan-400 shadow-2xl transform transition-transform group-hover:scale-105 backdrop-blur-sm relative">
                 {currentUser?.profilePicture ? (
                   <img 
                     src={currentUser.profilePicture} 
@@ -214,6 +243,12 @@ const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                 )}
+                
+                {/* Subscription Badge */}
+                <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white`}>
+                  {subscriptionBadge.icon}
+                  <span className="hidden sm:inline">{subscriptionBadge.text}</span>
+                </div>
               </div>
             </Link>
           </div>

@@ -14,17 +14,53 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Tawk.to Configuration - Disable Auto Widget -->
+    <!-- Tawk.to Live Chat -->
     <script type="text/javascript">
-    // Configure Tawk.to to NOT show the default widget
     var Tawk_API = Tawk_API || {};
     var Tawk_LoadStart = new Date();
     
-    // Disable the default widget before loading
-    Tawk_API.embedded = 'tawk_custom_modal'; // This prevents auto-widget creation
-    Tawk_API.hideWidget = true; // Additional flag to hide widget
+    // Hide the default widget initially - we'll show it via our custom button
+    Tawk_API.onLoad = function(){
+      console.log('✅ Tawk.to loaded successfully');
+      // Hide the default widget so we can control it with our custom button
+      Tawk_API.hideWidget();
+    };
     
-    // Load Tawk.to script but prevent default widget
+    // Customize widget size and appearance
+    Tawk_API.onChatMaximized = function(){
+      console.log('📈 Tawk.to chat maximized');
+      
+      // Apply custom CSS to make the widget larger and better positioned
+      setTimeout(() => {
+        try {
+          const tawkWidget = document.getElementById('tawkchat-container');
+          if (tawkWidget) {
+            // Make the widget larger
+            tawkWidget.style.width = '400px';
+            tawkWidget.style.height = '600px';
+            tawkWidget.style.maxHeight = '80vh';
+            tawkWidget.style.bottom = '20px';
+            tawkWidget.style.right = '20px';
+            tawkWidget.style.borderRadius = '12px';
+            tawkWidget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+          }
+          
+          // Find and style the iframe
+          const tawkIframe = document.querySelector('#tawkchat-container iframe');
+          if (tawkIframe) {
+            tawkIframe.style.borderRadius = '12px';
+          }
+        } catch (error) {
+          console.warn('Could not apply custom Tawk.to styling:', error);
+        }
+      }, 100);
+    };
+    
+    Tawk_API.onStatusChange = function(status){
+      console.log('📊 Tawk.to status changed to:', status);
+    };
+    
+    // Load Tawk.to script
     (function(){
       var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
       s1.async=true;
@@ -33,142 +69,33 @@
       s1.setAttribute('crossorigin','*');
       s0.parentNode.insertBefore(s1,s0);
     })();
-    
-    // Override Tawk.to's widget creation
-    Tawk_API.onLoad = function(){
-      console.log('✅ Tawk.to API loaded - widget creation disabled');
-      
-      // Immediately hide any widget that might have been created
-      if (typeof Tawk_API.hideWidget === 'function') {
-        Tawk_API.hideWidget();
-      }
-      
-      // Remove any Tawk.to DOM elements that aren't in our custom modal
-      setTimeout(() => {
-        const tawkElements = document.querySelectorAll('[id*="tawk"], [class*="tawk"]');
-        tawkElements.forEach(element => {
-          if (!element.closest('.chat-modal-container')) {
-            element.remove();
-          }
-        });
-        console.log('🧹 Cleaned up default Tawk.to elements');
-      }, 100);
-    };
-    
-    Tawk_API.onStatusChange = function(status){
-      console.log('📊 Tawk.to status:', status);
-      
-      // Continuously prevent widget from showing
-      if (typeof Tawk_API.hideWidget === 'function') {
-        Tawk_API.hideWidget();
-      }
-      
-      // Remove any new elements that might appear
-      setTimeout(() => {
-        const tawkElements = document.querySelectorAll('[id*="tawk"], [class*="tawk"]');
-        tawkElements.forEach(element => {
-          if (!element.closest('.chat-modal-container')) {
-            element.remove();
-          }
-        });
-      }, 50);
-    };
-    
-    // Prevent any Tawk.to widget from appearing
-    Tawk_API.onChatMaximized = function(){
-      console.log('🚫 Preventing default widget maximization');
-      if (typeof Tawk_API.hideWidget === 'function') {
-        Tawk_API.hideWidget();
-      }
-    };
-    
-    // Monitor for any Tawk.to elements and remove them
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) { // Element node
-            const element = node as Element;
-            
-            // Check if it's a Tawk.to element not in our modal
-            if ((element.id && element.id.includes('tawk')) || 
-                (element.className && element.className.includes('tawk'))) {
-              if (!element.closest('.chat-modal-container')) {
-                console.log('🗑️ Removing unwanted Tawk.to element:', element);
-                element.remove();
-              }
-            }
-            
-            // Also check child elements
-            const tawkChildren = element.querySelectorAll('[id*="tawk"], [class*="tawk"]');
-            tawkChildren.forEach(child => {
-              if (!child.closest('.chat-modal-container')) {
-                console.log('🗑️ Removing unwanted Tawk.to child element:', child);
-                child.remove();
-              }
-            });
-          }
-        });
-      });
-    });
-    
-    // Start observing
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-    
-    // Handle any errors
-    window.addEventListener('error', function(e) {
-      if (e.message && e.message.includes('tawk')) {
-        console.warn('⚠️ Tawk.to error caught:', e.message);
-      }
-    });
     </script>
     
     <style>
-    /* Aggressive CSS to prevent any Tawk.to widget from showing */
-    [id*="tawk"]:not(.chat-modal-container [id*="tawk"]),
-    [class*="tawk"]:not(.chat-modal-container [class*="tawk"]),
-    iframe[src*="tawk"]:not(.chat-modal-container iframe[src*="tawk"]) {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      position: absolute !important;
-      left: -99999px !important;
-      top: -99999px !important;
-      width: 0 !important;
-      height: 0 !important;
-      z-index: -99999 !important;
-      pointer-events: none !important;
+    /* Custom styling for Tawk.to widget */
+    #tawkchat-container {
+      transition: all 0.3s ease-in-out !important;
     }
     
-    /* Ensure our custom modal iframe is always visible */
-    .chat-modal-container iframe[src*="tawk"] {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      position: relative !important;
-      left: auto !important;
-      top: auto !important;
-      width: 100% !important;
-      height: 100% !important;
-      z-index: auto !important;
-      pointer-events: auto !important;
+    /* Ensure the widget appears above other elements */
+    #tawkchat-container iframe {
+      z-index: 9999 !important;
     }
     
-    /* Hide any floating Tawk.to elements */
-    body > [id*="tawk"],
-    body > [class*="tawk"],
-    body > div[style*="position: fixed"] {
-      display: none !important;
+    /* Custom animations for the widget */
+    @keyframes tawkSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
     
-    /* Allow our modal container */
-    .chat-modal-container,
-    .chat-modal-container * {
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
+    #tawkchat-container.tawk-maximized {
+      animation: tawkSlideIn 0.3s ease-out;
     }
     </style>
   </body>
