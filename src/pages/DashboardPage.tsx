@@ -161,7 +161,15 @@ const DashboardPage: React.FC = () => {
         
         {/* Mesh Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/2 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-white/1 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-white/3 to-transparent" />
+        
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10" 
+             style={{
+               backgroundImage: `radial-gradient(circle at 25% 25%, white 2px, transparent 2px),
+                                radial-gradient(circle at 75% 75%, white 2px, transparent 2px)`,
+               backgroundSize: '100px 100px'
+             }} />
       </div>
 
       <Layout>
@@ -454,7 +462,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Help Section with Enhanced Animation */}
+          {/* Get in Touch Section with Enhanced Animation */}
           <div 
             className={`mt-8 p-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl transition-all duration-800 ease-out ${
               isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
@@ -466,7 +474,13 @@ const DashboardPage: React.FC = () => {
                 <h2 className="text-lg font-medium text-white">Need Help?</h2>
                 <p className="text-sm text-white/80">Our support team is here to assist you</p>
               </div>
-              <LiveChatButton variant="inline" />
+              <Button
+                onClick={() => setShowContactModal(true)}
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+              >
+                Get in Touch
+              </Button>
             </div>
           </div>
 
