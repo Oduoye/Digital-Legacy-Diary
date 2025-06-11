@@ -7,6 +7,11 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    fs: {
+      deny: ['eslint.config.js']
+    }
+  },
   build: {
     rollupOptions: {
       external: ['eslint.config.js'],
