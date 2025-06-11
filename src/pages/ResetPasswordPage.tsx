@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, CheckCircle, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import AuthInput from '../components/ui/AuthInput';
 import Card, { CardContent } from '../components/ui/Card';
 import { supabase } from '../lib/supabase';
 
@@ -116,48 +116,70 @@ const ResetPasswordPage: React.FC = () => {
 
   if (isSuccess) {
     return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-green-500" />
-              </div>
-              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
-                Password Reset Successful!
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Your password has been successfully updated. You can now sign in with your new password.
-              </p>
-              <p className="text-sm text-gray-500">
-                Redirecting to login page...
-              </p>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/15 to-purple-600/15 rounded-full blur-3xl animate-float" 
+               style={{ animationDelay: '0s', animationDuration: '6s' }} />
+          <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-pink-400/10 to-red-600/10 rounded-full blur-3xl animate-float" 
+               style={{ animationDelay: '2s', animationDuration: '8s' }} />
+          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-cyan-400/15 to-blue-600/15 rounded-full blur-3xl animate-float" 
+               style={{ animationDelay: '4s', animationDuration: '7s' }} />
         </div>
-      </Layout>
+
+        <Layout>
+          <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
+            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
+                  <CheckCircle className="h-8 w-8 text-green-400" />
+                </div>
+                <h2 className="text-2xl font-serif font-bold text-white mb-2">
+                  Password Reset Successful!
+                </h2>
+                <p className="text-white/80 mb-4">
+                  Your password has been successfully updated. You can now sign in with your new password.
+                </p>
+                <p className="text-sm text-white/60">
+                  Redirecting to login page...
+                </p>
+              </div>
+            </div>
+          </div>
+        </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/15 to-purple-600/15 rounded-full blur-3xl animate-float" 
+             style={{ animationDelay: '0s', animationDuration: '6s' }} />
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-pink-400/10 to-red-600/10 rounded-full blur-3xl animate-float" 
+             style={{ animationDelay: '2s', animationDuration: '8s' }} />
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-cyan-400/15 to-blue-600/15 rounded-full blur-3xl animate-float" 
+             style={{ animationDelay: '4s', animationDuration: '7s' }} />
+      </div>
+
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in">
             <div className="text-center mb-8">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Lock className="h-6 w-6 text-primary-600" />
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-cyan-400/30">
+                <Lock className="h-6 w-6 text-cyan-400" />
               </div>
-              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-serif font-bold text-white mb-2">
                 Reset Your Password
               </h2>
-              <p className="text-gray-600">
+              <p className="text-white/80">
                 Enter your new password below
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm mb-6 animate-shake">
+              <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm mb-6 animate-shake backdrop-blur-sm border border-red-400/30">
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>{error}</span>
@@ -167,12 +189,12 @@ const ResetPasswordPage: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
-                <Input
+                <AuthInput
                   label="New Password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => handleFieldChange('password', e.target.value)}
-                  icon={<Lock className="h-5 w-5 text-gray-400" />}
+                  icon={<Lock className="h-5 w-5 text-white/60" />}
                   required
                   placeholder="••••••••"
                   error={validationErrors.password}
@@ -180,7 +202,7 @@ const ResetPasswordPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-8 text-white/60 hover:text-white"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -189,25 +211,25 @@ const ResetPasswordPage: React.FC = () => {
                   )}
                 </button>
                 {password && (
-                  <div className="mt-2 text-xs text-gray-500">
+                  <div className="mt-2 text-xs text-white/70">
                     Password strength: {
                       password.length >= 6 && /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)
-                        ? <span className="text-green-600 font-medium">Strong</span>
+                        ? <span className="text-green-400 font-medium">Strong</span>
                         : password.length >= 6
-                        ? <span className="text-yellow-600 font-medium">Medium</span>
-                        : <span className="text-red-600 font-medium">Weak</span>
+                        ? <span className="text-yellow-400 font-medium">Medium</span>
+                        : <span className="text-red-400 font-medium">Weak</span>
                     }
                   </div>
                 )}
               </div>
 
               <div className="relative">
-                <Input
+                <AuthInput
                   label="Confirm New Password"
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
-                  icon={<Lock className="h-5 w-5 text-gray-400" />}
+                  icon={<Lock className="h-5 w-5 text-white/60" />}
                   required
                   placeholder="••••••••"
                   error={validationErrors.confirmPassword}
@@ -215,7 +237,7 @@ const ResetPasswordPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-8 text-white/60 hover:text-white"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -228,16 +250,18 @@ const ResetPasswordPage: React.FC = () => {
               <Button
                 type="submit"
                 isLoading={isLoading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
                 disabled={isLoading}
               >
-                {isLoading ? 'Updating Password...' : 'Update Password'}
+                {/* Responsive button text - shorter on mobile */}
+                <span className="block sm:hidden">{isLoading ? 'Updating...' : 'Update'}</span>
+                <span className="hidden sm:block">{isLoading ? 'Updating Password...' : 'Update Password'}</span>
               </Button>
             </form>
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
+          </div>
+        </div>
+      </Layout>
+    </div>
   );
 };
 

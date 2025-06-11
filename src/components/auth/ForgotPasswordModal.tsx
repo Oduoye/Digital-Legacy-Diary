@@ -183,7 +183,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 disabled={isLoading}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
               >
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
+                {/* Responsive button text - shorter on mobile */}
+                <span className="block sm:hidden">Send Link</span>
+                <span className="hidden sm:block">{isLoading ? 'Sending...' : 'Send Reset Link'}</span>
               </Button>
             </div>
 
