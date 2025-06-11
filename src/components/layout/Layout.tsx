@@ -8,8 +8,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
