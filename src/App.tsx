@@ -65,28 +65,118 @@ const ProtectedRoute: React.FC<{
   );
 };
 
+// Public route component that redirects authenticated users
+const PublicRoute: React.FC<{ 
+  children: React.ReactNode;
+  redirectTo?: string; 
+}> = ({ 
+  children, 
+  redirectTo = '/dashboard' 
+}) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  // If user is authenticated, redirect to dashboard
+  if (isAuthenticated) {
+    return <Navigate to={redirectTo} replace />;
+  }
+  
+  return (
+    <>
+      {loading && <MinimalLoadingIndicator />}
+      {children}
+    </>
+  );
+};
+
 function App() {
   return (
     <Router>
       <AuthProvider>
         <DiaryProvider>
           <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/login" element={<AuthPages />} />
-            <Route path="/register" element={<AuthPages />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            {/* Public routes - redirect to dashboard if authenticated */}
+            <Route 
+              path="/" 
+              element={
+                <PublicRoute>
+                  <HomePage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/about" 
+              element={
+                <PublicRoute>
+                  <AboutPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/contact" 
+              element={
+                <PublicRoute>
+                  <ContactPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/privacy" 
+              element={
+                <PublicRoute>
+                  <PrivacyPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/terms" 
+              element={
+                <PublicRoute>
+                  <TermsPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/how-it-works" 
+              element={
+                <PublicRoute>
+                  <HowItWorksPage />
+                </PublicRoute>
+              } 
+            />
+            
+            {/* Auth routes - redirect to dashboard if authenticated */}
+            <Route 
+              path="/login" 
+              element={
+                <PublicRoute>
+                  <AuthPages />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <PublicRoute>
+                  <AuthPages />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/reset-password" 
+              element={
+                <PublicRoute>
+                  <ResetPasswordPage />
+                </PublicRoute>
+              } 
+            />
+            
+            {/* Email verification callback - always accessible */}
             <Route path="/auth/callback" element={<EmailVerificationCallbackPage />} />
             
             {/* Legacy access route - public but requires access code */}
             <Route path="/legacy/:accessCode" element={<LegacyAccessPage />} />
             
-            {/* Protected routes */}
+            {/* Protected routes - require authentication */}
             <Route 
               path="/dashboard" 
               element={
