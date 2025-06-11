@@ -2,6 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
 import AnimatedChatModal from './AnimatedChatModal';
 
+// Extend the Window interface to include Tawk_API
+declare global {
+  interface Window {
+    Tawk_API?: {
+      toggle: () => void;
+      maximize: () => void;
+      minimize: () => void;
+      hideWidget: () => void;
+      showWidget: () => void;
+      getStatus: () => string;
+      onLoad?: () => void;
+      onStatusChange?: (status: string) => void;
+      isChatMaximized: () => boolean;
+      isChatMinimized: () => boolean;
+      isChatHidden: () => boolean;
+      isChatOngoing: () => boolean;
+      isVisitorEngaged: () => boolean;
+      getWindowType: () => string;
+      setAttributes: (attributes: any, callback?: () => void) => void;
+      popup: () => void;
+    };
+  }
+}
+
 interface LiveChatButtonProps {
   variant?: 'floating' | 'inline';
 }
@@ -10,14 +34,38 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
   const [showTooltip, setShowTooltip] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [tawkStatus, setTawkStatus] = useState<'connecting' | 'online' | 'away' | 'offline'>('connecting');
 
   useEffect(() => {
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
+    // Check if Tawk.to API is available and ready
+    const checkTawkReady = () => {
+      if (window.Tawk_API) {
+        setIsReady(true);
+        
+        // Get initial status
+        try {
+          const status = window.Tawk_API.getStatus();
+          setTawkStatus(status as any);
+        } catch (error) {
+          console.warn('⚠️ Could not get Tawk.to status:', error);
+          setTawkStatus('offline');
+        }
+
+        // Set up status change listener
+        const originalOnStatusChange = window.Tawk_API.onStatusChange;
+        window.Tawk_API.onStatusChange = function(status: string) {
+          setTawkStatus(status as any);
+          if (originalOnStatusChange) originalOnStatusChange(status);
+        };
+      }
+    };
+
+    // Check immediately and set up interval
+    checkTawkReady();
+    const interval = setInterval(checkTawkReady, 1000);
+
+    // Clean up
+    return () => clearInterval(interval);
   }, []);
 
   const handleChatClick = () => {
@@ -30,13 +78,41 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     setIsChatOpen(false);
   };
 
+  const getStatusColor = () => {
+    if (!isReady) return 'bg-yellow-400 animate-pulse';
+    switch (tawkStatus) {
+      case 'online':
+        return 'bg-green-400 animate-bounce';
+      case 'away':
+        return 'bg-orange-400';
+      case 'offline':
+        return 'bg-red-400';
+      default:
+        return 'bg-yellow-400 animate-pulse';
+    }
+  };
+
+  const getTooltipText = () => {
+    if (!isReady) return 'Live Chat Loading...';
+    switch (tawkStatus) {
+      case 'online':
+        return 'Start Live Chat - Agents Online';
+      case 'away':
+        return 'Start Live Chat - Agents Away';
+      case 'offline':
+        return 'Leave a Message - Agents Offline';
+      default:
+        return 'Start Live Chat';
+    }
+  };
+
   if (variant === 'inline') {
     return (
       <>
         <button
           onClick={handleChatClick}
           className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-          title="Start live chat"
+          title={getTooltipText()}
         >
           <MessageCircle className="h-5 w-5" />
           <span>Live Support</span>
@@ -66,23 +142,17 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
             hover:bg-primary-700 active:scale-95 group relative
             ${!isReady ? 'opacity-75' : 'hover:shadow-xl'}
           `}
-          title="Start live chat"
+          title={getTooltipText()}
         >
           <MessageCircle className="h-6 w-6" />
           
-          {/* Status indicators with animations */}
-          {!isReady && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-          )}
-          
-          {isReady && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-bounce" />
-          )}
+          {/* Status indicator with dynamic color */}
+          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${getStatusColor()}`} />
           
           {/* Enhanced tooltip with fade-in animation */}
           {showTooltip && (
             <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap shadow-lg animate-fade-in">
-              {isReady ? 'Start Live Chat' : 'Live Chat Loading...'}
+              {getTooltipText()}
               <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-gray-900" />
             </div>
           )}

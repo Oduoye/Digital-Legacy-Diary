@@ -1,6 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Minimize2, Maximize2, Users, Mail } from 'lucide-react';
 
+// Extend the Window interface to include Tawk_API
+declare global {
+  interface Window {
+    Tawk_API?: {
+      toggle: () => void;
+      maximize: () => void;
+      minimize: () => void;
+      hideWidget: () => void;
+      showWidget: () => void;
+      getStatus: () => string;
+      onLoad?: () => void;
+      onStatusChange?: (status: string) => void;
+      isChatMaximized: () => boolean;
+      isChatMinimized: () => boolean;
+      isChatHidden: () => boolean;
+      isChatOngoing: () => boolean;
+      isVisitorEngaged: () => boolean;
+      getWindowType: () => string;
+      setAttributes: (attributes: any, callback?: () => void) => void;
+      popup: () => void;
+    };
+  }
+}
+
 interface AnimatedChatModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,32 +34,72 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
   const [isVisible, setIsVisible] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'offline'>('connecting');
-  const [agentsOnline, setAgentsOnline] = useState(false);
+  const [tawkStatus, setTawkStatus] = useState<'connecting' | 'online' | 'away' | 'offline'>('connecting');
+  const [tawkLoaded, setTawkLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Check Tawk.to API status and set up listeners
+  useEffect(() => {
+    const checkTawkStatus = () => {
+      if (window.Tawk_API) {
+        setTawkLoaded(true);
+        
+        // Get initial status
+        try {
+          const status = window.Tawk_API.getStatus();
+          setTawkStatus(status as any);
+          console.log('📊 Initial Tawk.to status:', status);
+        } catch (error) {
+          console.warn('⚠️ Could not get Tawk.to status:', error);
+          setTawkStatus('offline');
+        }
+
+        // Set up status change listener
+        const originalOnStatusChange = window.Tawk_API.onStatusChange;
+        window.Tawk_API.onStatusChange = function(status: string) {
+          console.log('📊 Tawk.to status changed to:', status);
+          setTawkStatus(status as any);
+          
+          // Keep widget hidden
+          if (window.Tawk_API?.hideWidget) {
+            window.Tawk_API.hideWidget();
+          }
+          
+          if (originalOnStatusChange) originalOnStatusChange(status);
+        };
+      }
+    };
+
+    // Check immediately and set up interval
+    checkTawkStatus();
+    const interval = setInterval(checkTawkStatus, 1000);
+
+    // Clean up
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
       setIsAnimating(true);
       setIsMinimized(false);
-      setConnectionStatus('connecting');
       
-      // Simulate connection check
-      const connectionTimer = setTimeout(() => {
-        setConnectionStatus('connected');
-        // Simulate checking if agents are online (in real app, this would come from Tawk.to API)
-        const isOnline = Math.random() > 0.5; // 50% chance for demo
-        setAgentsOnline(isOnline);
-      }, 2000);
+      // When modal opens, ensure Tawk.to widget is maximized within iframe
+      if (window.Tawk_API && tawkLoaded) {
+        try {
+          window.Tawk_API.maximize();
+          console.log('🔍 Tawk.to widget maximized for modal');
+        } catch (error) {
+          console.warn('⚠️ Could not maximize Tawk.to widget:', error);
+        }
+      }
       
       const animationTimer = setTimeout(() => {
         setIsAnimating(false);
       }, 500);
       
       return () => {
-        clearTimeout(connectionTimer);
         clearTimeout(animationTimer);
       };
     } else {
@@ -47,7 +111,7 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
       
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, tawkLoaded]);
 
   const handleClose = () => {
     setIsAnimating(true);
@@ -66,6 +130,9 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
 
   // Don't render if not visible
   if (!isVisible) return null;
+
+  const isAgentsOnline = tawkStatus === 'online';
+  const isConnecting = !tawkLoaded || tawkStatus === 'connecting';
 
   return (
     <>
@@ -112,13 +179,13 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                   <h3 className="font-semibold text-sm">Live Support</h3>
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${
-                      connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' :
-                      connectionStatus === 'connected' && agentsOnline ? 'bg-green-400' :
+                      isConnecting ? 'bg-yellow-400 animate-pulse' :
+                      isAgentsOnline ? 'bg-green-400' :
                       'bg-orange-400'
                     }`} />
                     <p className="text-xs text-white/80">
-                      {connectionStatus === 'connecting' ? 'Connecting...' :
-                       connectionStatus === 'connected' && agentsOnline ? 'Agents online' :
+                      {isConnecting ? 'Connecting...' :
+                       isAgentsOnline ? 'Agents online' :
                        'Leave a message'}
                     </p>
                   </div>
@@ -154,7 +221,7 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
             {!isMinimized && (
               <div className="flex-1 relative overflow-hidden">
                 {/* Loading State */}
-                {connectionStatus === 'connecting' && (
+                {isConnecting && (
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center z-10">
                     <div className="text-center">
                       <div className="relative mb-6">
@@ -174,60 +241,49 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
                   </div>
                 )}
                 
-                {/* Connection Status Display */}
-                {connectionStatus === 'connected' && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-white">
-                    {agentsOnline ? (
-                      // Live Chat Interface
-                      <div className="h-full flex flex-col">
-                        <div className="bg-green-50 border-b border-green-200 p-3">
-                          <div className="flex items-center space-x-2">
-                            <Users className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-green-800">Support agents are online</span>
-                          </div>
-                          <p className="text-xs text-green-600 mt-1">You'll be connected to the next available agent</p>
-                        </div>
-                        
-                        {/* Tawk.to Iframe for Live Chat */}
-                        <div className="flex-1">
-                          <iframe
-                            ref={iframeRef}
-                            src="https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev"
-                            className="w-full h-full border-none"
-                            allow="microphone; camera"
-                            title="Live Chat Support"
-                            onLoad={() => {
-                              console.log('✅ Live chat iframe loaded successfully');
-                            }}
-                          />
-                        </div>
+                {/* Tawk.to Interface */}
+                {!isConnecting && (
+                  <div className="h-full flex flex-col">
+                    {/* Status Header */}
+                    <div className={`border-b p-3 ${
+                      isAgentsOnline 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-orange-50 border-orange-200'
+                    }`}>
+                      <div className="flex items-center space-x-2">
+                        {isAgentsOnline ? (
+                          <Users className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Mail className="h-4 w-4 text-orange-600" />
+                        )}
+                        <span className={`text-sm font-medium ${
+                          isAgentsOnline ? 'text-green-800' : 'text-orange-800'
+                        }`}>
+                          {isAgentsOnline ? 'Support agents are online' : 'Support agents are offline'}
+                        </span>
                       </div>
-                    ) : (
-                      // Offline Contact Form Interface
-                      <div className="h-full flex flex-col">
-                        <div className="bg-orange-50 border-b border-orange-200 p-3">
-                          <div className="flex items-center space-x-2">
-                            <Mail className="h-4 w-4 text-orange-600" />
-                            <span className="text-sm font-medium text-orange-800">Support agents are offline</span>
-                          </div>
-                          <p className="text-xs text-orange-600 mt-1">Leave a message and we'll get back to you soon</p>
-                        </div>
-                        
-                        {/* Tawk.to Iframe for Contact Form */}
-                        <div className="flex-1">
-                          <iframe
-                            ref={iframeRef}
-                            src="https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev"
-                            className="w-full h-full border-none"
-                            allow="microphone; camera"
-                            title="Contact Form Support"
-                            onLoad={() => {
-                              console.log('✅ Contact form iframe loaded successfully');
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
+                      <p className={`text-xs mt-1 ${
+                        isAgentsOnline ? 'text-green-600' : 'text-orange-600'
+                      }`}>
+                        {isAgentsOnline 
+                          ? "You'll be connected to the next available agent" 
+                          : "Leave a message and we'll get back to you soon"}
+                      </p>
+                    </div>
+                    
+                    {/* Single Tawk.to Iframe - handles both online and offline states internally */}
+                    <div className="flex-1">
+                      <iframe
+                        ref={iframeRef}
+                        src="https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev"
+                        className="w-full h-full border-none"
+                        allow="microphone; camera"
+                        title="Tawk.to Support Chat"
+                        onLoad={() => {
+                          console.log('✅ Tawk.to iframe loaded successfully');
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -238,13 +294,13 @@ const AnimatedChatModal: React.FC<AnimatedChatModalProps> = ({ isOpen, onClose }
               <div className="flex-1 flex items-center justify-between px-4 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center space-x-2">
                   <div className={`w-2 h-2 rounded-full ${
-                    connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' :
-                    connectionStatus === 'connected' && agentsOnline ? 'bg-green-400' :
+                    isConnecting ? 'bg-yellow-400 animate-pulse' :
+                    isAgentsOnline ? 'bg-green-400' :
                     'bg-orange-400'
                   }`} />
                   <p className="text-gray-700 text-sm font-medium">
-                    {connectionStatus === 'connecting' ? 'Connecting...' :
-                     connectionStatus === 'connected' && agentsOnline ? 'Chat active' :
+                    {isConnecting ? 'Connecting...' :
+                     isAgentsOnline ? 'Chat active' :
                      'Message pending'}
                   </p>
                 </div>
