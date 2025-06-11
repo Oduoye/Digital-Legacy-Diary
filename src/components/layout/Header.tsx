@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard } from 'lucide-react';
+import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
@@ -138,6 +138,9 @@ const Header: React.FC = () => {
                   <Link to="/about" className="text-white hover:text-gray-200 transition-colors">
                     About
                   </Link>
+                  <Link to="/how-it-works" className="text-white hover:text-gray-200 transition-colors">
+                    How It Works
+                  </Link>
                   <Link to="/contact" className="text-white hover:text-gray-200 transition-colors">
                     Contact
                   </Link>
@@ -249,6 +252,13 @@ const Header: React.FC = () => {
                     onClick={() => setShowMenu(false)}
                   >
                     About
+                  </Link>
+                  <Link
+                    to="/how-it-works"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    How It Works
                   </Link>
                   <Link
                     to="/contact"

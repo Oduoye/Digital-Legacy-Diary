@@ -31,9 +31,12 @@ const Footer: React.FC = () => {
           </p>
         </div>
         <div className="mt-8 flex flex-col items-center">
-          <div className="flex space-x-6 mb-4">
+          <div className="flex flex-wrap justify-center space-x-6 mb-4">
             <Link to="/about" className="text-sm text-white/80 hover:text-white transition-colors">
               About
+            </Link>
+            <Link to="/how-it-works" className="text-sm text-white/80 hover:text-white transition-colors">
+              How It Works
             </Link>
             <Link to="/privacy" className="text-sm text-white/80 hover:text-white transition-colors">
               Privacy

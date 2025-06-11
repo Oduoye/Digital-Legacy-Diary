@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { Book, Shield, Users, ArrowRight, Heart, Star, Sparkles, CheckCircle } from 'lucide-react';
+import { Book, Shield, Users, ArrowRight, Heart, Star, Sparkles, CheckCircle, HelpCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import LiveChatButton from '../components/ui/LiveChatButton';
@@ -71,7 +71,7 @@ const HomePage: React.FC = () => {
                 Every memory tells a story. Create a lasting legacy by sharing your wisdom, experiences, and cherished moments with future generations.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <Link to="/register">
                   <Button 
                     size="lg" 
@@ -88,6 +88,18 @@ const HomePage: React.FC = () => {
                   >
                     Welcome Back
                   </Button>
+                </Link>
+              </div>
+
+              {/* How It Works Link */}
+              <div className="animate-fade-in">
+                <Link 
+                  to="/how-it-works"
+                  className="inline-flex items-center text-white/80 hover:text-white transition-colors group"
+                >
+                  <HelpCircle className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">How does legacy transfer work?</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
@@ -190,6 +202,19 @@ const HomePage: React.FC = () => {
                   Your memories will be preserved and shared with care, keeping your story alive for generations.
                 </p>
               </div>
+            </div>
+
+            {/* Learn More Button */}
+            <div className="text-center mt-12 animate-fade-in">
+              <Link to="/how-it-works">
+                <Button 
+                  variant="outline"
+                  className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8"
+                  icon={<ArrowRight className="ml-2" />}
+                >
+                  Learn How It Works
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
