@@ -160,7 +160,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
+          <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm animate-shake backdrop-blur-sm border border-red-400/30">
             <div className="flex items-start space-x-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
@@ -173,7 +173,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           type="text"
           value={name}
           onChange={(e) => handleFieldChange('name', e.target.value)}
-          icon={<User className="h-5 w-5 text-gray-400" />}
+          icon={<User className="h-5 w-5 text-white/60" />}
           required
           placeholder="John Doe"
           error={validationErrors.name}
@@ -184,7 +184,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           type="email"
           value={email}
           onChange={(e) => handleFieldChange('email', e.target.value)}
-          icon={<Mail className="h-5 w-5 text-gray-400" />}
+          icon={<Mail className="h-5 w-5 text-white/60" />}
           required
           placeholder="your.email@example.com"
           error={validationErrors.email}
@@ -196,7 +196,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => handleFieldChange('password', e.target.value)}
-            icon={<Lock className="h-5 w-5 text-gray-400" />}
+            icon={<Lock className="h-5 w-5 text-white/60" />}
             required
             placeholder="••••••••"
             error={validationErrors.password}
@@ -204,7 +204,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-8 text-white/60 hover:text-white"
           >
             {showPassword ? (
               <EyeOff className="h-5 w-5" />
@@ -213,11 +213,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
             )}
           </button>
           {password && (
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-white/70">
               Password strength: {
                 password.length >= 6
-                  ? <span className="text-green-600 font-medium">Good</span>
-                  : <span className="text-red-600 font-medium">Too short</span>
+                  ? <span className="text-green-400 font-medium">Good</span>
+                  : <span className="text-red-400 font-medium">Too short</span>
               }
             </div>
           )}
@@ -229,7 +229,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
             type={showConfirmPassword ? "text" : "password"}
             value={confirmPassword}
             onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
-            icon={<Lock className="h-5 w-5 text-gray-400" />}
+            icon={<Lock className="h-5 w-5 text-white/60" />}
             required
             placeholder="••••••••"
             error={validationErrors.confirmPassword}
@@ -237,7 +237,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-8 text-white/60 hover:text-white"
           >
             {showConfirmPassword ? (
               <EyeOff className="h-5 w-5" />
@@ -247,14 +247,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           </button>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600">
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+          <p className="text-sm text-white/80">
             By creating an account, you agree to our{' '}
-            <a href="/terms" className="text-primary-600 hover:text-primary-700">
+            <a href="/terms" className="text-cyan-400 hover:text-cyan-300">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-primary-600 hover:text-primary-700">
+            <a href="/privacy" className="text-cyan-400 hover:text-cyan-300">
               Privacy Policy
             </a>
             .
@@ -265,7 +265,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <Button 
             type="submit" 
             isLoading={isLoading} 
-            className="w-full"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
             disabled={isLoading}
           >
             {isLoading ? 'Creating Account...' : 'Create Account'}

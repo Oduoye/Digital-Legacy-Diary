@@ -100,7 +100,7 @@ const LoginForm: React.FC = () => {
       <div className="mb-6">
         <Link 
           to="/" 
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center text-white/70 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
@@ -127,7 +127,7 @@ const LoginForm: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm animate-shake">
+          <div className="bg-red-500/20 text-red-200 p-3 rounded-md text-sm animate-shake backdrop-blur-sm border border-red-400/30">
             <div className="flex items-start space-x-2">
               <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
@@ -141,7 +141,7 @@ const LoginForm: React.FC = () => {
             type="email"
             value={email}
             onChange={handleEmailChange}
-            icon={<Mail className="h-5 w-5 text-gray-400" />}
+            icon={<Mail className="h-5 w-5 text-white/60" />}
             required
             placeholder="your.email@example.com"
             error={validationErrors.email}
@@ -155,7 +155,7 @@ const LoginForm: React.FC = () => {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={handlePasswordChange}
-              icon={<Lock className="h-5 w-5 text-gray-400" />}
+              icon={<Lock className="h-5 w-5 text-white/60" />}
               required
               placeholder="••••••••"
               error={validationErrors.password}
@@ -163,7 +163,7 @@ const LoginForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-8 text-white/60 hover:text-white"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -176,7 +176,7 @@ const LoginForm: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="text-sm text-cyan-400 hover:text-cyan-300 font-medium"
             >
               Forgot your password?
             </button>
@@ -186,7 +186,7 @@ const LoginForm: React.FC = () => {
         <Button 
           type="submit" 
           isLoading={isLoading} 
-          className="w-full"
+          className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
           disabled={isLoading}
         >
           {isLoading ? 'Signing In...' : 'Sign In'}
