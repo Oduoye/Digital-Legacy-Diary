@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  loading: false,
+  loading: true,
   login: async () => {},
   register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
@@ -83,49 +83,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
+    let mounted = true;
+
+    // Get initial session and set up auth state listener
+    const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session);
+        console.log('🔄 Initializing auth...');
         
-        if (session?.user) {
-          // Always try to fetch user profile if we have a session
+        // Get current session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          if (mounted) {
+            setCurrentUser(null);
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('📋 Session check:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id,
+          emailConfirmed: !!session?.user?.email_confirmed_at
+        });
+
+        if (session?.user?.email_confirmed_at) {
+          console.log('✅ User has confirmed email, fetching profile...');
           await fetchUserProfile(session.user.id);
+        } else {
+          console.log('⚠️ No confirmed user session found');
+          if (mounted) {
+            setCurrentUser(null);
+            setLoading(false);
+          }
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
-      } finally {
-        setLoading(false);
+        console.error('❌ Error initializing auth:', error);
+        if (mounted) {
+          setCurrentUser(null);
+          setLoading(false);
+        }
       }
     };
 
-    getInitialSession();
-
-    // Listen for auth changes
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('User signed in, fetching profile');
+      console.log('🔄 Auth state change:', event, {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        emailConfirmed: !!session?.user?.email_confirmed_at
+      });
+
+      if (!mounted) return;
+
+      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+        console.log('✅ User signed in with confirmed email, fetching profile...');
         await fetchUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
+        console.log('👋 User signed out');
         setCurrentUser(null);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Handle token refresh - maintain user state
+        setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user?.email_confirmed_at) {
+        console.log('🔄 Token refreshed, maintaining session...');
+        // Only fetch profile if we don't have current user data
         if (!currentUser) {
           await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
         }
+      } else {
+        console.log('⚠️ Auth state change but no confirmed user');
+        setCurrentUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [currentUser]);
+    // Initialize auth
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []); // Remove currentUser dependency to prevent infinite loops
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('📡 Fetching user profile for:', userId);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -133,88 +181,125 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
-        // If user doesn't exist in our users table, they might need to complete registration
+        console.error('❌ Error fetching user profile:', error);
         if (error.code === 'PGRST116') {
-          console.log('User not found in users table, they may need to complete registration');
-          setCurrentUser(null);
+          console.log('⚠️ User profile not found in database');
         }
+        setCurrentUser(null);
+        setLoading(false);
         return;
       }
 
       if (data) {
-        console.log('User profile fetched:', data);
+        console.log('✅ User profile loaded successfully');
         setCurrentUser(convertDbUserToAppUser(data));
+      } else {
+        console.log('⚠️ No user profile data returned');
+        setCurrentUser(null);
       }
     } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
+      console.error('❌ Error in fetchUserProfile:', error);
+      setCurrentUser(null);
+    } finally {
+      setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    setLoading(true);
+    
+    try {
+      console.log('🔐 Attempting login for:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      throw new Error(error.message);
-    }
+      if (error) {
+        console.error('❌ Login error:', error);
+        throw new Error(error.message);
+      }
 
-    if (data.user) {
-      console.log('Login successful, fetching profile');
-      await fetchUserProfile(data.user.id);
+      if (data.user?.email_confirmed_at) {
+        console.log('✅ Login successful, fetching profile...');
+        await fetchUserProfile(data.user.id);
+      } else {
+        console.log('⚠️ User email not confirmed');
+        throw new Error('Please verify your email address before signing in.');
+      }
+    } catch (error) {
+      setLoading(false);
+      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    // First, sign up the user with correct redirect URL
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          subscription_tier: subscriptionTier,
-        },
-        // Use the correct production URL for email verification
-        emailRedirectTo: getRedirectUrl('/auth/callback')
-      }
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Check if email confirmation is required
-    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+    setLoading(true);
     
-    console.log('Registration result:', {
-      user: data.user,
-      session: data.session,
-      emailConfirmationRequired,
-      email_confirmed_at: data.user?.email_confirmed_at,
-      redirectUrl: getRedirectUrl('/auth/callback')
-    });
+    try {
+      console.log('📝 Attempting registration for:', email);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            subscription_tier: subscriptionTier,
+          },
+          emailRedirectTo: getRedirectUrl('/auth/callback')
+        }
+      });
 
-    // If user is immediately confirmed or email confirmation is disabled, fetch their profile
-    if (data.user && (data.user.email_confirmed_at || data.session)) {
-      // Wait a moment for the database trigger to create the user profile
-      setTimeout(async () => {
-        await fetchUserProfile(data.user!.id);
-      }, 1000);
-      return { emailConfirmationRequired: false };
+      if (error) {
+        console.error('❌ Registration error:', error);
+        throw new Error(error.message);
+      }
+
+      const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+      
+      console.log('📋 Registration result:', {
+        user: !!data.user,
+        session: !!data.session,
+        emailConfirmationRequired,
+        email_confirmed_at: data.user?.email_confirmed_at,
+      });
+
+      if (data.user?.email_confirmed_at && data.session) {
+        console.log('✅ Registration successful with immediate confirmation');
+        await fetchUserProfile(data.user.id);
+        return { emailConfirmationRequired: false };
+      }
+
+      setLoading(false);
+      return { emailConfirmationRequired: true };
+    } catch (error) {
+      setLoading(false);
+      throw error;
     }
-
-    return { emailConfirmationRequired: true };
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw new Error(error.message);
+    setLoading(true);
+    
+    try {
+      console.log('👋 Logging out...');
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('❌ Logout error:', error);
+        throw new Error(error.message);
+      }
+      
+      setCurrentUser(null);
+      console.log('✅ Logout successful');
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    setCurrentUser(null);
   };
 
   const updateProfile = async (updates: Partial<User>) => {
