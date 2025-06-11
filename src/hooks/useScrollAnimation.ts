@@ -92,7 +92,7 @@ export const useStaggeredScrollAnimation = (itemCount: number, options: UseScrol
         
         // Schedule next item with optimized delay
         animateItem(index + 1);
-      }, index * 80); // Reduced from 100ms to 80ms for smoother stagger
+      }, index * 60); // Further reduced from 80ms to 60ms for smoother performance
     };
 
     animateItem(0);
@@ -105,22 +105,25 @@ export const useStaggeredScrollAnimation = (itemCount: number, options: UseScrol
   return { elementRef, isVisible, visibleItems };
 };
 
-// Simple one-time animation hook for better performance
+// Optimized one-time animation hook for maximum performance
 export const useOnceAnimation = (delay: number = 0) => {
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLElement>(null);
   const hasTriggeredRef = useRef(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element || hasTriggeredRef.current) return;
 
-    const observer = new IntersectionObserver(
+    // Create optimized observer
+    observerRef.current = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasTriggeredRef.current) {
           hasTriggeredRef.current = true;
           
           const trigger = () => {
+            // Use requestAnimationFrame for smooth animation
             requestAnimationFrame(() => {
               setIsVisible(true);
             });
@@ -132,20 +135,26 @@ export const useOnceAnimation = (delay: number = 0) => {
             trigger();
           }
           
-          // Immediately disconnect to prevent re-triggering
-          observer.disconnect();
+          // Immediately disconnect and cleanup
+          if (observerRef.current) {
+            observerRef.current.disconnect();
+            observerRef.current = null;
+          }
         }
       },
       {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.05, // Lower threshold for earlier triggering
+        rootMargin: '0px 0px -20px 0px', // Reduced margin for better performance
       }
     );
 
-    observer.observe(element);
+    observerRef.current.observe(element);
 
     return () => {
-      observer.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
     };
   }, [delay]);
 
