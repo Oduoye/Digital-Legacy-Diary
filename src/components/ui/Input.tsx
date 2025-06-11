@@ -21,7 +21,7 @@ const Input: React.FC<InputProps> = ({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-white mb-1"
+          className="block text-sm font-medium text-gray-700 mb-1"
         >
           {label}
         </label>
@@ -35,8 +35,8 @@ const Input: React.FC<InputProps> = ({
         <input
           id={inputId}
           className={`
-            w-full rounded-md border border-white/20 shadow-sm px-4 py-2 bg-white/10 backdrop-blur-sm text-white placeholder-white/60
-            focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400
+            w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-gray-900 placeholder-gray-500
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
             ${icon ? 'pl-10' : ''}
             ${error ? 'border-red-400' : ''}
             ${className}
@@ -44,7 +44,7 @@ const Input: React.FC<InputProps> = ({
           {...props}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 };
