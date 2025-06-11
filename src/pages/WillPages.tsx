@@ -479,7 +479,9 @@ Export Date: ${format(new Date(), 'MMMM d, yyyy')}
                   icon={<Edit size={16} />}
                   className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
                 >
-                  Edit Will
+                  {/* Responsive button text - shorter on mobile */}
+                  <span className="block sm:hidden">Edit</span>
+                  <span className="hidden sm:block">Edit Will</span>
                 </Button>
               </div>
             </div>
