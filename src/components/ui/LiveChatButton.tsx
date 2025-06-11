@@ -70,59 +70,35 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🖱️ Custom chat button clicked');
+    console.log('🖱️ Opening Tawk.to chat widget via custom button...');
     
     if (window.Tawk_API && isReady) {
       try {
-        console.log('📞 Opening Tawk.to chat interface...');
-        
-        // Method 1: Try to show and maximize
+        // Show and maximize the Tawk.to widget
         window.Tawk_API.showWidget();
+        window.Tawk_API.maximize();
         
+        // Add maximized class for our custom styling
         setTimeout(() => {
-          if (window.Tawk_API) {
-            window.Tawk_API.maximize();
-            console.log('✅ Chat maximize called');
-            
-            // Force show the container if it's still hidden
-            setTimeout(() => {
-              const container = document.getElementById('tawkchat-container');
-              if (container) {
-                container.style.display = 'block';
-                container.classList.add('tawk-maximized');
-                console.log('✅ Chat container forced visible');
-              }
-            }, 200);
+          const tawkContainer = document.getElementById('tawkchat-container');
+          if (tawkContainer) {
+            tawkContainer.classList.add('tawk-maximized');
+            tawkContainer.style.display = 'block';
           }
         }, 100);
         
       } catch (error) {
-        console.error('❌ Error opening Tawk.to widget:', error);
-        
-        // Fallback: Try alternative methods
-        try {
-          if (window.Tawk_API.toggle) {
-            window.Tawk_API.toggle();
-          } else if (window.Tawk_API.popup) {
-            window.Tawk_API.popup();
-          }
-        } catch (fallbackError) {
-          console.error('❌ All fallback methods failed:', fallbackError);
-          
-          // Last resort: Open in new window
-          const chatUrl = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
-          window.open(chatUrl, 'tawk_chat', 'width=400,height=600,scrollbars=yes,resizable=yes');
-        }
+        console.error('Error opening Tawk.to widget:', error);
+        // Fallback: try to find and show any Tawk.to elements
+        const tawkElements = document.querySelectorAll('[id*="tawk"]');
+        tawkElements.forEach(el => {
+          (el as HTMLElement).style.display = 'block';
+          (el as HTMLElement).style.visibility = 'visible';
+        });
       }
     } else {
-      console.warn('⚠️ Tawk.to API not ready yet. Opening in new window as fallback.');
-      
-      // Fallback: Open chat in new window
-      const chatUrl = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
-      window.open(chatUrl, 'tawk_chat', 'width=400,height=600,scrollbars=yes,resizable=yes');
+      console.warn('Tawk.to API not ready yet. Status:', { isReady, hasAPI: !!window.Tawk_API });
     }
-    
-    return false;
   };
 
   const getStatusColor = () => {
@@ -159,7 +135,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
         onClick={handleChatClick}
         className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
         title={getTooltipText()}
-        type="button"
       >
         <MessageCircle className="h-5 w-5" />
         <span>Live Support</span>
@@ -183,7 +158,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           ${!isReady ? 'opacity-75' : 'hover:shadow-xl'}
         `}
         title={getTooltipText()}
-        type="button"
       >
         <MessageCircle className="h-6 w-6" />
         

@@ -14,47 +14,40 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Tawk.to Live Chat - Completely Hidden Default Widget -->
+    <!-- Tawk.to Live Chat - Custom Implementation -->
     <script type="text/javascript">
     var Tawk_API = Tawk_API || {};
     var Tawk_LoadStart = new Date();
     
-    // Configure Tawk.to to be completely hidden by default
+    // CRITICAL: Hide the widget completely on load and prevent default behavior
     Tawk_API.onLoad = function(){
       console.log('✅ Tawk.to loaded successfully');
-      // Completely hide the default widget
-      Tawk_API.hideWidget();
+      // Immediately hide the widget and prevent any default display
+      if (window.Tawk_API && window.Tawk_API.hideWidget) {
+        window.Tawk_API.hideWidget();
+      }
       
-      // Additional hiding to ensure no elements show
+      // Remove any default Tawk.to elements that might appear
       setTimeout(() => {
-        const elementsToHide = [
-          '#tawkchat-minified-box',
-          '#tawkchat-minified-container', 
-          '.tawk-min-container',
-          '#tawkchat-status-container',
-          '.tawk-chatinput-editor',
-          '[data-tawk]'
-        ];
-        
-        elementsToHide.forEach(selector => {
-          const elements = document.querySelectorAll(selector);
-          elements.forEach(el => {
-            if (el) {
-              el.style.display = 'none';
-              el.style.visibility = 'hidden';
-              el.style.opacity = '0';
-              el.style.pointerEvents = 'none';
-            }
-          });
+        const tawkElements = document.querySelectorAll('[id*="tawk"], [class*="tawk"]');
+        tawkElements.forEach(el => {
+          if (el.id !== 'tawkchat-container') {
+            el.style.display = 'none';
+          }
         });
-      }, 500);
+      }, 100);
     };
     
-    // Customize widget when it's opened via our custom button
+    // Prevent any default widget behavior
+    Tawk_API.onBeforeLoad = function(){
+      // Ensure widget starts hidden
+      return true;
+    };
+    
+    // Customize widget when maximized through our button
     Tawk_API.onChatMaximized = function(){
-      console.log('📈 Tawk.to chat maximized');
+      console.log('📈 Tawk.to chat maximized via custom button');
       
-      // Apply custom CSS to make the widget larger and better positioned
       setTimeout(() => {
         try {
           const tawkWidget = document.getElementById('tawkchat-container');
@@ -68,10 +61,9 @@
             tawkWidget.style.borderRadius = '12px';
             tawkWidget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
             tawkWidget.style.zIndex = '9999';
-            tawkWidget.style.position = 'fixed';
           }
           
-          // Find and style the iframe
+          // Style the iframe
           const tawkIframe = document.querySelector('#tawkchat-container iframe');
           if (tawkIframe) {
             tawkIframe.style.borderRadius = '12px';
@@ -82,57 +74,83 @@
       }, 100);
     };
     
+    // Hide widget when minimized
+    Tawk_API.onChatMinimized = function(){
+      console.log('📉 Tawk.to chat minimized');
+      if (window.Tawk_API && window.Tawk_API.hideWidget) {
+        window.Tawk_API.hideWidget();
+      }
+    };
+    
     Tawk_API.onStatusChange = function(status){
       console.log('📊 Tawk.to status changed to:', status);
     };
     
-    // Load Tawk.to script
+    // Load Tawk.to script with custom configuration
     (function(){
       var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
       s1.async=true;
       s1.src='https://embed.tawk.to/68495a4c2061f3190a9644ee/1itf8hfev';
       s1.charset='UTF-8';
       s1.setAttribute('crossorigin','*');
+      
+      // Add custom attributes to prevent default behavior
+      s1.setAttribute('data-tawk-hide-default', 'true');
+      
       s0.parentNode.insertBefore(s1,s0);
     })();
+    
+    // Additional safety measure to hide any default elements
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        // Hide any Tawk.to elements that might appear by default
+        const style = document.createElement('style');
+        style.textContent = `
+          /* Hide all default Tawk.to elements except our controlled container */
+          [id*="tawk"]:not(#tawkchat-container) {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          [class*="tawk"] {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          /* Only show when explicitly maximized */
+          #tawkchat-container {
+            display: none !important;
+          }
+          #tawkchat-container.tawk-maximized {
+            display: block !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }, 500);
+    });
     </script>
     
     <style>
-    /* Aggressively hide ALL Tawk.to default elements */
-    #tawkchat-minified-box,
-    #tawkchat-minified-container,
-    .tawk-min-container,
-    #tawkchat-status-container,
-    .tawk-chatinput-editor,
-    [data-tawk],
-    div[id*="tawk"]:not(#tawkchat-container),
-    iframe[src*="tawk"]:not(#tawkchat-container iframe) {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      position: absolute !important;
-      left: -9999px !important;
-      top: -9999px !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
-    
-    /* Only allow the main chat container when explicitly opened */
+    /* Enhanced custom styling for Tawk.to widget */
     #tawkchat-container {
       transition: all 0.3s ease-in-out !important;
       display: none !important; /* Hidden by default */
     }
     
-    /* Show chat container only when maximized */
+    /* Only show when maximized */
     #tawkchat-container.tawk-maximized {
       display: block !important;
-      animation: tawkSlideIn 0.3s ease-out;
     }
     
     /* Ensure the widget appears above other elements */
     #tawkchat-container iframe {
       z-index: 9999 !important;
+      border-radius: 12px !important;
+    }
+    
+    /* Hide any default Tawk.to elements */
+    [id*="tawk"]:not(#tawkchat-container),
+    [class*="tawk"]:not(#tawkchat-container) {
+      display: none !important;
+      visibility: hidden !important;
     }
     
     /* Custom animations for the widget */
@@ -149,16 +167,6 @@
     
     #tawkchat-container.tawk-maximized {
       animation: tawkSlideIn 0.3s ease-out;
-    }
-    
-    /* Hide any other Tawk.to elements that might appear */
-    body > div:not(#root):not(#tawkchat-container) {
-      display: none !important;
-    }
-    
-    /* Exception for the chat container when active */
-    #tawkchat-container.tawk-maximized {
-      display: block !important;
     }
     </style>
   </body>

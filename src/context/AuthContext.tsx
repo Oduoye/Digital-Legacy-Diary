@@ -123,10 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('🔄 Initializing authentication...');
         
-        // Get initial session without blocking UI - increased timeout to 30 seconds
+        // Get initial session without blocking UI - reduced timeout to 10 seconds
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 30000)
+          setTimeout(() => reject(new Error('Session timeout')), 10000)
         );
 
         const { data: { session }, error } = await Promise.race([
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('📡 Fetching user profile for:', userId);
       
-      // Increased timeout to 30 seconds
+      // Reduced timeout to 10 seconds
       const profilePromise = supabase
         .from('users')
         .select('*')
@@ -212,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 30000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       );
 
       const { data, error } = await Promise.race([
