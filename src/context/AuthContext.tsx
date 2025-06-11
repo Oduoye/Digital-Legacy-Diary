@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('🔄 Initializing authentication...');
         
+        // Get current session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -100,11 +101,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        if (session?.user?.email_confirmed_at) {
-          console.log('✅ Found confirmed user session');
+        // If we have a session with a confirmed user, fetch their profile
+        if (session?.user) {
+          console.log('✅ Found user session, fetching profile...');
           await fetchUserProfile(session.user.id);
         } else {
-          console.log('⚠️ No confirmed user session');
+          console.log('⚠️ No user session found');
           if (mounted) {
             setCurrentUser(null);
             setLoading(false);
@@ -119,28 +121,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state change:', event);
       
       if (!mounted) return;
 
       try {
-        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-          console.log('✅ User signed in');
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in, fetching profile...');
           await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setCurrentUser(null);
           setLoading(false);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user?.email_confirmed_at) {
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed');
+          // Only fetch profile if we don't have a current user
           if (!currentUser) {
             await fetchUserProfile(session.user.id);
           } else {
             setLoading(false);
           }
         } else {
-          console.log('⚠️ Auth event without confirmed user');
+          console.log('⚠️ Auth event without user session');
           setCurrentUser(null);
           setLoading(false);
         }
@@ -151,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
+    // Initialize auth
     initializeAuth();
 
     return () => {
@@ -171,7 +176,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Profile fetch error:', error);
+        // Don't throw error, just set user to null and continue
         setCurrentUser(null);
+        setLoading(false);
         return;
       }
 
@@ -186,6 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Profile fetch exception:', error);
       setCurrentUser(null);
     } finally {
+      // Always set loading to false
       setLoading(false);
     }
   };
@@ -200,11 +208,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(error.message);
     }
 
-    if (data.user?.email_confirmed_at) {
+    if (data.user) {
       console.log('✅ Login successful');
-      await fetchUserProfile(data.user.id);
-    } else {
-      throw new Error('Please verify your email address before signing in.');
+      // Don't fetch profile here, let the auth state change handle it
     }
   };
 
@@ -234,7 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (data.user?.email_confirmed_at && data.session) {
       console.log('✅ Registration with immediate confirmation');
-      await fetchUserProfile(data.user.id);
+      // Don't fetch profile here, let the auth state change handle it
       return { emailConfirmationRequired: false };
     }
 
@@ -246,7 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       throw new Error(error.message);
     }
-    setCurrentUser(null);
+    // Don't set user to null here, let the auth state change handle it
   };
 
   const updateProfile = async (updates: Partial<User>) => {
