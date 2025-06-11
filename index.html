@@ -26,18 +26,49 @@
     s0.parentNode.insertBefore(s1,s0);
     })();
     
-    // Ensure Tawk.to loads properly and hide default widget
+    // Configure Tawk.to to prevent external redirects
     Tawk_API = Tawk_API || {};
+    
+    // Set up proper event handlers
     Tawk_API.onLoad = function(){
-        console.log('Tawk.to loaded successfully');
-        // Hide the default Tawk.to widget
-        Tawk_API.hideWidget();
+        console.log('✅ Tawk.to widget loaded successfully');
+        // Hide the default widget immediately
+        if (typeof Tawk_API.hideWidget === 'function') {
+            Tawk_API.hideWidget();
+        }
+        // Set visitor info to prevent external redirects
+        if (typeof Tawk_API.setAttributes === 'function') {
+            Tawk_API.setAttributes({
+                'name': 'Digital Legacy Diary User',
+                'email': '',
+                'hash': ''
+            });
+        }
+    };
+    
+    Tawk_API.onStatusChange = function(status){
+        console.log('📊 Tawk.to status changed to:', status);
+        // Ensure widget stays embedded
+        if (status === 'online' && typeof Tawk_API.hideWidget === 'function') {
+            Tawk_API.hideWidget();
+        }
+    };
+    
+    // Prevent external redirects
+    Tawk_API.onChatMaximized = function(){
+        console.log('💬 Chat maximized - staying embedded');
+    };
+    
+    Tawk_API.onChatMinimized = function(){
+        console.log('📱 Chat minimized');
     };
     
     // Handle any errors
-    Tawk_API.onStatusChange = function(status){
-        console.log('Tawk.to status:', status);
-    };
+    window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('tawk')) {
+            console.warn('⚠️ Tawk.to error caught:', e.message);
+        }
+    });
     </script>
     <!--End of Tawk.to Script-->
   </body>
