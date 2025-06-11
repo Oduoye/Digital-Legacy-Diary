@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout';
 import Card, { CardHeader, CardContent, CardFooter } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
+import SuccessModal from '../components/ui/SuccessModal';
 import { useAuth } from '../context/AuthContext';
 
 const SettingsPage: React.FC = () => {
@@ -14,9 +15,9 @@ const SettingsPage: React.FC = () => {
   const [error, setError] = useState('');
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successAction, setSuccessAction] = useState<'deactivate' | 'delete' | ''>('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successAction, setSuccessAction] = useState<'deactivate' | 'delete' | 'update' | ''>('');
   
   const handleLogout = () => {
     logout();
@@ -41,8 +42,9 @@ const SettingsPage: React.FC = () => {
       }
 
       await updateProfile(updates);
-      setShowSuccessMessage('Profile updated successfully!');
-      setTimeout(() => setShowSuccessMessage(''), 3000);
+      setSuccessAction('update');
+      setSuccessMessage('Profile updated successfully!');
+      setShowSuccessModal(true);
     } catch (err) {
       setError('Failed to update profile. Please try again.');
     } finally {
@@ -66,8 +68,9 @@ const SettingsPage: React.FC = () => {
       }
 
       await updatePassword(newPassword);
-      setShowSuccessMessage('Password updated successfully!');
-      setTimeout(() => setShowSuccessMessage(''), 3000);
+      setSuccessAction('update');
+      setSuccessMessage('Password updated successfully!');
+      setShowSuccessModal(true);
       form.reset();
     } catch (err) {
       setError('Failed to update password. Please check your current password and try again.');
@@ -81,12 +84,13 @@ const SettingsPage: React.FC = () => {
       setShowDeactivateModal(false);
       await deactivateAccount();
       setSuccessAction('deactivate');
+      setSuccessMessage('Your account has been successfully deactivated. You can reactivate it anytime by logging back in.');
       setShowSuccessModal(true);
       
       // Redirect after showing success message
       setTimeout(() => {
         navigate('/login');
-      }, 3000);
+      }, 4000);
     } catch (err) {
       setError('Failed to deactivate account. Please try again.');
     }
@@ -97,12 +101,13 @@ const SettingsPage: React.FC = () => {
       setShowDeleteModal(false);
       await deleteAccount();
       setSuccessAction('delete');
+      setSuccessMessage('Your account and all associated data have been permanently deleted. Thank you for using Digital Legacy Diary.');
       setShowSuccessModal(true);
       
       // Redirect after showing success message
       setTimeout(() => {
         navigate('/login');
-      }, 3000);
+      }, 4000);
     } catch (err) {
       setError('Failed to delete account. Please try again.');
     }
@@ -116,12 +121,6 @@ const SettingsPage: React.FC = () => {
         {error && (
           <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-md animate-shake">
             {error}
-          </div>
-        )}
-
-        {showSuccessMessage && (
-          <div className="mb-6 bg-green-50 text-green-700 p-4 rounded-md animate-slide-down">
-            {showSuccessMessage}
           </div>
         )}
         
@@ -354,29 +353,18 @@ const SettingsPage: React.FC = () => {
         )}
 
         {/* Success Modal */}
-        {showSuccessModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-500" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {successAction === 'deactivate' ? 'Account Deactivated' : 'Account Deleted'}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {successAction === 'deactivate' 
-                    ? 'Your account has been successfully deactivated. You can reactivate it anytime by logging back in.'
-                    : 'Your account and all associated data have been permanently deleted. Thank you for using Digital Legacy Diary.'
-                  }
-                </p>
-                <p className="text-sm text-gray-500">
-                  Redirecting to login page...
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title={
+            successAction === 'deactivate' ? 'Account Deactivated Successfully!' :
+            successAction === 'delete' ? 'Account Deleted Successfully!' :
+            'Settings Updated Successfully!'
+          }
+          message={successMessage}
+          autoClose={successAction === 'update'}
+          autoCloseDelay={successAction === 'update' ? 3000 : 4000}
+        />
       </div>
     </Layout>
   );

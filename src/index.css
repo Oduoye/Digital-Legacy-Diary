@@ -38,6 +38,14 @@
     animation: gradientX 15s linear infinite;
   }
   
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .animate-shrink-width {
+    animation: shrinkWidth 3s linear forwards;
+  }
+  
   .no-overscroll {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -108,6 +116,26 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shrinkWidth {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
   }
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle } from 'lucide-react';
+import { Book, Users, Calendar, Plus, ArrowRight, Tag, Sparkles, Network, Bot, Mail, Phone, MessageSquare, CheckCircle, FileText } from 'lucide-react';
 import { useDiary } from '../context/DiaryContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
@@ -14,7 +14,7 @@ import { getRandomPrompt } from '../utils/writingPrompts';
 
 const DashboardPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const { entries, trustedContacts } = useDiary();
+  const { entries, trustedContacts, wills } = useDiary();
   const [currentDate] = useState(new Date());
   const [randomPrompt, setRandomPrompt] = useState(getRandomPrompt());
   const [showContactModal, setShowContactModal] = useState(false);
@@ -103,6 +103,15 @@ const DashboardPage: React.FC = () => {
       link: "/journal",
       buttonText: "View Journal",
       gradient: "from-green-400 to-cyan-400",
+      variant: "outline"
+    },
+    {
+      icon: FileText,
+      title: "Wills",
+      description: "Manage your legal documents.",
+      link: "/wills",
+      buttonText: "View Wills",
+      gradient: "from-indigo-400 to-purple-400",
       variant: "outline"
     },
     {
@@ -278,6 +287,10 @@ const DashboardPage: React.FC = () => {
                       <div className="flex justify-between items-center pb-2 border-b border-white/20">
                         <span className="text-white/80">Trusted Contacts</span>
                         <span className="text-2xl font-semibold text-pink-400">{trustedContacts.length}</span>
+                      </div>
+                      <div className="flex justify-between items-center pb-2 border-b border-white/20">
+                        <span className="text-white/80">Wills</span>
+                        <span className="text-2xl font-semibold text-green-400">{wills.length}</span>
                       </div>
                     </div>
                   </CardContent>

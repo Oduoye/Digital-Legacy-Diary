@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
+import SuccessModal from '../components/ui/SuccessModal';
 import { useAuth } from '../context/AuthContext';
 
 const ProfilePage: React.FC = () => {
@@ -13,7 +14,8 @@ const ProfilePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
@@ -38,8 +40,8 @@ const ProfilePage: React.FC = () => {
         reader.onloadend = async () => {
           try {
             await updateProfile({ profilePicture: reader.result as string });
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
+            setSuccessMessage('Profile picture updated successfully!');
+            setShowSuccessModal(true);
           } catch (err: any) {
             setError('Failed to update profile picture. Please try again.');
             console.error('Profile picture update error:', err);
@@ -63,8 +65,8 @@ const ProfilePage: React.FC = () => {
     try {
       await updateProfile(formData);
       setIsEditing(false);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setSuccessMessage('Profile updated successfully!');
+      setShowSuccessModal(true);
     } catch (err: any) {
       setError('Failed to update profile. Please try again.');
       console.error('Profile update error:', err);
@@ -105,16 +107,6 @@ const ProfilePage: React.FC = () => {
           <h1 className="text-3xl font-serif font-bold text-gray-900">Your Profile</h1>
           <p className="text-gray-600 mt-2">Manage your personal information and social links</p>
         </div>
-
-        {/* Success Message */}
-        {showSuccess && (
-          <div className="mb-6 bg-green-50 text-green-700 p-4 rounded-md animate-slide-down">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5" />
-              <span>Profile updated successfully!</span>
-            </div>
-          </div>
-        )}
 
         {/* Error Message */}
         {error && (
@@ -338,6 +330,14 @@ const ProfilePage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Success Modal */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="Profile Updated!"
+          message={successMessage}
+        />
       </div>
     </Layout>
   );

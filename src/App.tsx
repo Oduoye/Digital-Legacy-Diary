@@ -20,6 +20,10 @@ import {
   EditJournalEntryPage,
   ViewJournalEntryPage 
 } from './pages/JournalPages';
+import { 
+  WillListPage, 
+  ViewWillPage 
+} from './pages/WillPages';
 import ContactsPage from './pages/ContactsPage';
 import SettingsPage from './pages/SettingsPage';
 import LifeStoryPage from './pages/LifeStoryPage';
@@ -121,6 +125,22 @@ function App() {
               } 
             />
             <Route 
+              path="/wills" 
+              element={
+                <ProtectedRoute>
+                  <WillListPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/wills/:id" 
+              element={
+                <ProtectedRoute>
+                  <ViewWillPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/contacts" 
               element={
                 <ProtectedRoute>
@@ -162,7 +182,7 @@ function App() {
             />
             
             {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/\" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </DiaryProvider>
       </AuthProvider>
