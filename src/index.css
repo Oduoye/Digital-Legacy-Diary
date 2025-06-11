@@ -77,6 +77,31 @@
     transform: translateY(-20px);
     transition: opacity 300ms ease-out, transform 300ms ease-out;
   }
+
+  /* Chat Animation Classes */
+  .chat-fade-in {
+    animation: chatFadeIn 0.4s ease-out forwards;
+  }
+  
+  .chat-fade-out {
+    animation: chatFadeOut 0.3s ease-out forwards;
+  }
+  
+  .chat-content-fade-in {
+    animation: chatContentFadeIn 0.3s ease-out forwards;
+  }
+  
+  .chat-header-fade-in {
+    animation: chatHeaderFadeIn 0.3s ease-out 0.1s forwards;
+  }
+  
+  .chat-close-fade-in {
+    animation: chatCloseFadeIn 0.3s ease-out 0.3s forwards;
+  }
+  
+  .pulse-glow {
+    animation: pulseGlow 2s infinite;
+  }
 }
 
 @keyframes fadeIn {
@@ -164,5 +189,68 @@
   }
   100% {
     transform: translateY(0px);
+  }
+}
+
+/* Chat-specific animations */
+@keyframes chatFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chatFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+@keyframes chatContentFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes chatHeaderFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chatCloseFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
   }
 }

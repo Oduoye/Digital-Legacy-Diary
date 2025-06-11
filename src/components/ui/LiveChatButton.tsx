@@ -82,8 +82,8 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     // Remove any existing fallback chat
     const existingChat = document.getElementById('fallback-chat');
     if (existingChat) {
-      // Fade out existing chat
-      existingChat.style.animation = 'fadeOut 0.3s ease-out forwards';
+      // Fade out existing chat using CSS class
+      existingChat.className = 'chat-fade-out';
       setTimeout(() => {
         existingChat.remove();
       }, 300);
@@ -93,6 +93,7 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     // Create fade-in chat container
     const chatContainer = document.createElement('div');
     chatContainer.id = 'fallback-chat';
+    chatContainer.className = 'chat-fade-in';
     chatContainer.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -106,25 +107,26 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
       background: white;
       overflow: hidden;
       opacity: 0;
-      animation: fadeIn 0.4s ease-out forwards;
     `;
     
     // Create iframe for embedded chat
     const iframe = document.createElement('iframe');
     iframe.src = 'https://tawk.to/chat/68495a4c2061f3190a9644ee/1itf8hfev';
+    iframe.className = 'chat-content-fade-in';
     iframe.style.cssText = `
       width: 100%;
-      height: 100%;
+      height: calc(100% - 50px);
       border: none;
-      border-radius: 16px;
+      border-radius: 0 0 16px 16px;
+      margin-top: 50px;
       opacity: 0;
-      animation: fadeIn 0.3s ease-out 0.2s forwards;
     `;
     iframe.allow = 'microphone; camera';
     
     // Add fade-in close button
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '×';
+    closeBtn.className = 'chat-close-fade-in';
     closeBtn.style.cssText = `
       position: absolute;
       top: 12px;
@@ -144,7 +146,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
       justify-content: center;
       transition: all 0.2s ease;
       opacity: 0;
-      animation: fadeIn 0.3s ease-out 0.3s forwards;
     `;
     
     closeBtn.onmouseenter = () => {
@@ -158,8 +159,8 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     };
     
     closeBtn.onclick = () => {
-      // Fade out
-      chatContainer.style.animation = 'fadeOut 0.3s ease-out forwards';
+      // Fade out using CSS class
+      chatContainer.className = 'chat-fade-out';
       setTimeout(() => {
         chatContainer.remove();
       }, 300);
@@ -167,6 +168,7 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     
     // Add header with fade-in
     const header = document.createElement('div');
+    header.className = 'chat-header-fade-in';
     header.style.cssText = `
       position: absolute;
       top: 0;
@@ -182,21 +184,17 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
       font-weight: 600;
       font-size: 14px;
       z-index: 10001;
+      border-radius: 16px 16px 0 0;
       opacity: 0;
-      animation: fadeIn 0.3s ease-out 0.1s forwards;
     `;
     header.textContent = '💬 Live Support Chat';
-    
-    // Adjust iframe to account for header
-    iframe.style.marginTop = '50px';
-    iframe.style.height = 'calc(100% - 50px)';
     
     chatContainer.appendChild(header);
     chatContainer.appendChild(iframe);
     chatContainer.appendChild(closeBtn);
     document.body.appendChild(chatContainer);
     
-    console.log('✅ Fade-in chat popup created');
+    console.log('✅ Fade-in chat popup created with CSS animations');
   };
 
   const handleChatClick = () => {
@@ -239,44 +237,6 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
     }
   };
 
-  // Add CSS animations to the document
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeIn {
-        0% {
-          opacity: 0;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      
-      @keyframes fadeOut {
-        0% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-      
-      @keyframes pulseGlow {
-        0%, 100% {
-          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
   if (variant === 'inline') {
     return (
       <button
@@ -305,11 +265,8 @@ const LiveChatButton: React.FC<LiveChatButtonProps> = ({ variant = 'floating' })
           hover:bg-primary-700 active:scale-95 group relative
           ${!isTawkLoaded ? 'opacity-75' : ''}
           ${chatStatus === 'failed' ? 'bg-red-500' : ''}
-          ${isTawkLoaded ? 'hover:shadow-xl' : ''}
+          ${isTawkLoaded ? 'hover:shadow-xl pulse-glow' : ''}
         `}
-        style={{
-          animation: isTawkLoaded ? 'pulseGlow 2s infinite' : 'none'
-        }}
         title={
           chatStatus === 'failed' ? "Chat failed to load" :
           isTawkLoaded ? "Start live chat" : "Live chat is loading..."
