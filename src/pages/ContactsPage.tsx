@@ -8,7 +8,6 @@ import TrustedContactForm from '../components/contacts/TrustedContactForm';
 import TrustedContactCard from '../components/contacts/TrustedContactCard';
 import DeadMansSwitchModal from '../components/contacts/DeadMansSwitchModal';
 import WillUploadModal from '../components/contacts/WillUploadModal';
-import ComingSoonModal from '../components/ui/ComingSoonModal';
 import { useDiary } from '../context/DiaryContext';
 import { TrustedContact, DeadMansSwitch, Will } from '../types';
 
@@ -21,7 +20,6 @@ const ContactsPage: React.FC = () => {
   const [currentSwitch, setCurrentSwitch] = useState<DeadMansSwitch | null>(null);
   const [currentWill, setCurrentWill] = useState<Will | null>(null);
   const [showFeatureMessage, setShowFeatureMessage] = useState(false);
-  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
   const [deleteModalContact, setDeleteModalContact] = useState<TrustedContact | null>(null);
   
   const handleAddSubmit = (contact: Omit<TrustedContact, 'id'>) => {
@@ -64,7 +62,7 @@ const ContactsPage: React.FC = () => {
     setShowFeatureMessage(true);
     setTimeout(() => {
       setShowFeatureMessage(false);
-      setShowComingSoonModal(true);
+      setShowDeadMansSwitchModal(true);
     }, 3000);
   };
 
@@ -288,14 +286,6 @@ const ContactsPage: React.FC = () => {
             onClose={() => setShowWillUploadModal(false)}
             currentWill={currentWill || undefined}
             onSave={handleSaveWill}
-          />
-
-          {/* Coming Soon Modal - Fixed positioning */}
-          <ComingSoonModal
-            isOpen={showComingSoonModal}
-            onClose={() => setShowComingSoonModal(false)}
-            title="Premium Feature Coming Soon!"
-            message="We're working hard to bring you our premium Dead Man's Switch feature with advanced automation, multiple notification methods, and enhanced security. Stay tuned for exciting updates!"
           />
 
           {/* Delete Confirmation Modal */}
