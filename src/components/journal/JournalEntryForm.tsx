@@ -139,14 +139,14 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
         images: allImages,
       });
 
-      // Show success modal
+      // Show enhanced success modal
       setShowSuccessModal(true);
       
-      // Auto-close after 3 seconds if not editing
+      // Auto-close after 4 seconds if not editing
       if (!initialEntry.id) {
         setTimeout(() => {
           setShowSuccessModal(false);
-        }, 3000);
+        }, 4000);
       }
     } catch (error) {
       console.error('Error submitting entry:', error);
@@ -506,14 +506,14 @@ const JournalEntryForm: React.FC<JournalEntryFormProps> = ({
         </div>
       </form>
 
-      {/* Success Modal */}
+      {/* Enhanced Success Modal */}
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleSuccessClose}
         title={`Journal Entry ${initialEntry.id ? 'Updated' : 'Created'} Successfully!`}
-        message={`Your journal entry "${title}" has been ${initialEntry.id ? 'updated' : 'saved'} successfully. Your memories are now preserved in your digital legacy.`}
+        message={`Your journal entry "${title}" has been ${initialEntry.id ? 'updated' : 'saved'} successfully. Your memories are now preserved in your digital legacy diary and will be accessible to your trusted contacts when the time comes.`}
         autoClose={!initialEntry.id}
-        autoCloseDelay={3000}
+        autoCloseDelay={4000}
       />
     </>
   );

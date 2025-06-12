@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, UserPlus, X, ArrowLeft, Shield, Crown } from 'lucide-react';
+import { Users, UserPlus, X, ArrowLeft, Shield, Crown, CheckCircle, AlertTriangle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Card, { CardHeader, CardContent } from '../components/ui/Card';
@@ -8,6 +8,7 @@ import TrustedContactForm from '../components/contacts/TrustedContactForm';
 import TrustedContactCard from '../components/contacts/TrustedContactCard';
 import DeadMansSwitchModal from '../components/contacts/DeadMansSwitchModal';
 import WillUploadModal from '../components/contacts/WillUploadModal';
+import SuccessModal from '../components/ui/SuccessModal';
 import { useDiary } from '../context/DiaryContext';
 import { TrustedContact, DeadMansSwitch, Will } from '../types';
 
@@ -21,16 +22,42 @@ const ContactsPage: React.FC = () => {
   const [currentWill, setCurrentWill] = useState<Will | null>(null);
   const [showFeatureMessage, setShowFeatureMessage] = useState(false);
   const [deleteModalContact, setDeleteModalContact] = useState<TrustedContact | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successTitle, setSuccessTitle] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  const handleAddSubmit = (contact: Omit<TrustedContact, 'id'>) => {
-    addTrustedContact(contact);
-    setShowAddForm(false);
+  const handleAddSubmit = async (contact: Omit<TrustedContact, 'id'>) => {
+    try {
+      await addTrustedContact(contact);
+      setShowAddForm(false);
+      
+      // Show success message
+      setSuccessTitle('Contact Added Successfully!');
+      setSuccessMessage(`${contact.name} has been added to your trusted contacts. They will be able to access your digital legacy when the time comes.`);
+      setShowSuccessModal(true);
+      
+      setTimeout(() => setShowSuccessModal(false), 4000);
+    } catch (error) {
+      console.error('Error adding contact:', error);
+    }
   };
   
-  const handleEditSubmit = (contact: Omit<TrustedContact, 'id'>) => {
+  const handleEditSubmit = async (contact: Omit<TrustedContact, 'id'>) => {
     if (editingContact) {
-      updateTrustedContact(editingContact.id, contact);
-      setEditingContact(null);
+      try {
+        await updateTrustedContact(editingContact.id, contact);
+        setEditingContact(null);
+        
+        // Show success message
+        setSuccessTitle('Contact Updated Successfully!');
+        setSuccessMessage(`${contact.name}'s information has been updated in your trusted contacts.`);
+        setShowSuccessModal(true);
+        
+        setTimeout(() => setShowSuccessModal(false), 3000);
+      } catch (error) {
+        console.error('Error updating contact:', error);
+      }
     }
   };
   
@@ -51,10 +78,24 @@ const ContactsPage: React.FC = () => {
     setDeleteModalContact(contact);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteModalContact) {
-      removeTrustedContact(deleteModalContact.id);
-      setDeleteModalContact(null);
+      setIsDeleting(true);
+      try {
+        await removeTrustedContact(deleteModalContact.id);
+        
+        // Show success message
+        setSuccessTitle('Contact Removed Successfully!');
+        setSuccessMessage(`${deleteModalContact.name} has been removed from your trusted contacts.`);
+        setShowSuccessModal(true);
+        
+        setDeleteModalContact(null);
+        setTimeout(() => setShowSuccessModal(false), 3000);
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -69,11 +110,25 @@ const ContactsPage: React.FC = () => {
   const handleSaveSwitch = (data: Partial<DeadMansSwitch>) => {
     console.log('Saving Dead Man\'s Switch:', data);
     setShowDeadMansSwitchModal(false);
+    
+    // Show success message
+    setSuccessTitle('Dead Man\'s Switch Configured!');
+    setSuccessMessage('Your automated legacy transfer system has been set up successfully. Your trusted contacts will be notified if you don\'t check in as scheduled.');
+    setShowSuccessModal(true);
+    
+    setTimeout(() => setShowSuccessModal(false), 4000);
   };
 
   const handleSaveWill = (data: Partial<Will>) => {
     console.log('Saving Will:', data);
     setShowWillUploadModal(false);
+    
+    // Show success message
+    setSuccessTitle('Will Uploaded Successfully!');
+    setSuccessMessage('Your will has been securely stored and will be accessible to your trusted contacts when needed.');
+    setShowSuccessModal(true);
+    
+    setTimeout(() => setShowSuccessModal(false), 4000);
   };
 
   return (
@@ -290,31 +345,49 @@ const ContactsPage: React.FC = () => {
 
           {/* Delete Confirmation Modal */}
           {deleteModalContact && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200]">
-              <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
+              <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in shadow-2xl">
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Are you sure you want to delete this entry? This action cannot be undone.
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Remove Trusted Contact
                   </h3>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to remove "{deleteModalContact.name}" from your trusted contacts? They will no longer have access to your digital legacy.
+                  </p>
                   <div className="flex justify-end space-x-3">
                     <Button
                       variant="outline"
                       onClick={() => setDeleteModalContact(null)}
+                      disabled={isDeleting}
                     >
                       Cancel
                     </Button>
                     <Button
-                      variant="primary"
-                      className="bg-blue-600 hover:bg-blue-700"
+                      variant="danger"
                       onClick={handleDelete}
+                      isLoading={isDeleting}
+                      disabled={isDeleting}
                     >
-                      OK
+                      {isDeleting ? 'Removing...' : 'Remove Contact'}
                     </Button>
                   </div>
                 </div>
               </div>
             </div>
           )}
+
+          {/* Enhanced Success Modal */}
+          <SuccessModal
+            isOpen={showSuccessModal}
+            onClose={() => setShowSuccessModal(false)}
+            title={successTitle}
+            message={successMessage}
+            autoClose={true}
+            autoCloseDelay={4000}
+          />
         </div>
       </Layout>
     </div>

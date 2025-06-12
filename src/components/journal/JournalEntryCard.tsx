@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, AlertTriangle, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, X, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { DiaryEntry } from '../../types';
 import Card, { CardHeader, CardContent, CardFooter } from '../ui/Card';
 import Button from '../ui/Button';
+import SuccessModal from '../ui/SuccessModal';
 import { useDiary } from '../../context/DiaryContext';
 
 interface JournalEntryCardProps {
@@ -17,6 +18,8 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = () => {
     navigate(`/journal/edit/${entry.id}`);
@@ -26,9 +29,22 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    deleteEntry(entry.id);
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteEntry(entry.id);
+      setShowDeleteModal(false);
+      setShowSuccessModal(true);
+      
+      // Auto-close success modal after 3 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const cancelDelete = () => {
@@ -167,7 +183,7 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
       {/* Image Viewer Modal */}
       {showImageViewer && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[200]"
           onClick={closeImageViewer}
         >
           <button
@@ -206,8 +222,8 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in shadow-2xl">
             <div className="text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -216,26 +232,39 @@ const JournalEntryCard: React.FC<JournalEntryCardProps> = ({ entry }) => {
                 Delete Entry
               </h3>
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this entry? This action cannot be undone.
+                Are you sure you want to delete "{entry.title}"? This action cannot be undone.
               </p>
               <div className="flex justify-end space-x-3">
                 <Button
                   variant="outline"
                   onClick={cancelDelete}
+                  disabled={isDeleting}
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="danger"
                   onClick={confirmDelete}
+                  isLoading={isDeleting}
+                  disabled={isDeleting}
                 >
-                  Delete
+                  {isDeleting ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Enhanced Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Entry Deleted Successfully!"
+        message={`Your journal entry "${entry.title}" has been permanently removed from your digital legacy.`}
+        autoClose={true}
+        autoCloseDelay={3000}
+      />
     </>
   );
 };
