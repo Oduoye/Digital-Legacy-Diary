@@ -42,18 +42,18 @@ const DeadMansSwitchModal: React.FC<DeadMansSwitchModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100] animate-fade-in">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in shadow-2xl">
-        <div className="sticky top-0 bg-white z-10 p-6 pb-4 border-b">
-          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto relative animate-fade-in shadow-2xl">
+        <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 border-b">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mb-2">
             Dead Man's Switch Setup
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Configure when and how your legacy will be shared with your trusted contacts.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-4 rounded-lg border border-primary-100">
             <div className="flex items-start space-x-3">
               <Clock className="h-5 w-5 text-primary-600 mt-1 flex-shrink-0" />
@@ -85,7 +85,7 @@ const DeadMansSwitchModal: React.FC<DeadMansSwitchModalProps> = ({
                 <p className="text-sm text-gray-600 mb-2">
                   Choose who should receive your legacy
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {trustedContacts.map((contact) => (
                     <label
                       key={contact.id}
@@ -105,8 +105,8 @@ const DeadMansSwitchModal: React.FC<DeadMansSwitchModalProps> = ({
                         }}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                       />
-                      <span className="text-gray-900">{contact.name}</span>
-                      <span className="text-gray-500 text-sm">
+                      <span className="text-gray-900 text-sm">{contact.name}</span>
+                      <span className="text-gray-500 text-xs">
                         ({contact.relationship})
                       </span>
                     </label>
@@ -128,7 +128,7 @@ const DeadMansSwitchModal: React.FC<DeadMansSwitchModalProps> = ({
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
                   placeholder="Enter your message here..."
-                  className="h-24"
+                  className="h-20"
                 />
               </div>
             </div>
@@ -149,11 +149,18 @@ const DeadMansSwitchModal: React.FC<DeadMansSwitchModalProps> = ({
           </div>
 
           <div className="sticky bottom-0 bg-white border-t pt-4 pb-2 mt-6">
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={onClose}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button 
+                type="submit"
+                className="w-full sm:w-auto"
+              >
                 {currentSwitch ? 'Update Switch' : 'Activate Switch'}
               </Button>
             </div>

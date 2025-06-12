@@ -130,7 +130,7 @@ const LoginForm: React.FC = () => {
 
       {/* Enhanced Success Modal with higher z-index */}
       {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[100] animate-fade-in">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[200] animate-fade-in">
           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in relative overflow-hidden">
             {/* Enhanced animated background elements */}
             <div className="absolute inset-0 overflow-hidden">

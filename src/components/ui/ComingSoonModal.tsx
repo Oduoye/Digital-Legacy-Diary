@@ -18,7 +18,7 @@ const ComingSoonModal: React.FC<ComingSoonModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100] animate-fade-in">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
       <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in shadow-2xl">
         <div className="text-center">
           <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">

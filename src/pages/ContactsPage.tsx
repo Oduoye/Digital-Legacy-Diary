@@ -192,7 +192,7 @@ const ContactsPage: React.FC = () => {
 
           {/* Feature Coming Soon Message */}
           {showFeatureMessage && (
-            <div className="fixed left-1/2 transform -translate-x-1/2 top-4 max-w-sm w-full z-50">
+            <div className="fixed left-1/2 transform -translate-x-1/2 top-4 max-w-sm w-full z-[150]">
               <div className="bg-white rounded-lg shadow-lg p-4 border border-accent-200 mx-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
@@ -290,7 +290,7 @@ const ContactsPage: React.FC = () => {
 
           {/* Delete Confirmation Modal */}
           {deleteModalContact && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200]">
               <div className="bg-white rounded-lg max-w-md w-full p-6 animate-scale-in">
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">

@@ -58,7 +58,7 @@ const Header: React.FC = () => {
   const subscriptionBadge = getSubscriptionBadge(currentUser?.subscription_tier);
 
   return (
-    <header className="bg-gradient-to-br from-primary-600 to-accent-600 shadow-sm sticky top-0 z-50">
+    <header className="bg-gradient-to-br from-primary-600 to-accent-600 shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -126,7 +126,7 @@ const Header: React.FC = () => {
                     </button>
                     
                     {showProfileMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50">
                         <Link
                           to="/profile"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

@@ -139,18 +139,18 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100] animate-fade-in">
-        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in shadow-2xl">
-          <div className="sticky top-0 bg-white z-10 p-6 pb-4 border-b">
-            <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
+        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto relative animate-fade-in shadow-2xl">
+          <div className="sticky top-0 bg-white z-10 p-4 sm:p-6 pb-4 border-b">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mb-2">
               {currentWill ? 'Update Your Will' : 'Upload Your Will'}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm sm:text-base">
               Securely store your will and related documents
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
@@ -178,7 +178,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Enter the content of your will..."
-                className="h-48"
+                className="h-32 sm:h-48"
                 required
                 disabled={isLoading}
               />
@@ -188,15 +188,15 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Attachments
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-accent-300 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 hover:border-accent-300 transition-colors">
                 <div className="text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
                   <div className="mt-2">
                     <label
                       htmlFor="file-upload"
                       className={`cursor-pointer text-accent-600 hover:text-accent-500 ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                     >
-                      <span>Upload files</span>
+                      <span className="text-sm sm:text-base">Upload files</span>
                       <input
                         id="file-upload"
                         type="file"
@@ -208,7 +208,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                         disabled={isLoading}
                       />
                     </label>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs sm:text-sm text-gray-500">
                       or drag and drop files here
                     </p>
                   </div>
@@ -239,7 +239,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                       <button
                         type="button"
                         onClick={() => removeAttachment(attachment.id)}
-                        className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                        className="text-gray-400 hover:text-gray-600 disabled:opacity-50 text-sm"
                         disabled={isLoading}
                       >
                         Remove
@@ -265,12 +265,13 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
             </div>
 
             <div className="sticky bottom-0 bg-white border-t pt-4 pb-2">
-              <div className="flex justify-end space-x-3">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <Button 
                   type="button"
                   variant="outline" 
                   onClick={handleClose} 
                   disabled={isLoading}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -278,6 +279,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
                   type="submit" 
                   isLoading={isLoading}
                   disabled={isLoading || !title.trim() || !content.trim()}
+                  className="w-full sm:w-auto"
                 >
                   {isLoading ? 'Saving...' : (currentWill ? 'Update Will' : 'Upload Will')}
                 </Button>
