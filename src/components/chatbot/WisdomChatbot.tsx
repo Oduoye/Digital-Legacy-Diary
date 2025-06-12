@@ -70,6 +70,31 @@ const WisdomChatbot: React.FC = () => {
 
     const lowercaseMessage = userMessage.toLowerCase();
     
+    // Enhanced greeting detection with personalized response
+    const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
+    const isGreeting = greetings.some(greeting => lowercaseMessage.includes(greeting));
+    
+    if (isGreeting) {
+      // Check if user has journal entries
+      if (entries.length > 0) {
+        const firstEntry = entries[entries.length - 1]; // Get the first entry (oldest)
+        const recentEntry = entries[0]; // Get the most recent entry
+        
+        // Create a personalized greeting based on their journal history
+        const greetingResponses = [
+          `Hello there! It's wonderful to connect with you. I see you've been documenting your journey with ${entries.length} journal entries. Your first entry "${firstEntry.title}" caught my attention. Would you like to reflect on how far you've come since then?`,
+          `Hi! Great to see you again. I've been reading through your memories, and your recent entry "${recentEntry.title}" seems particularly meaningful. Would you like to explore that further, or is there something else on your mind today?`,
+          `Hello! I'm delighted you're here. Looking at your journal, I can see you've shared some beautiful memories, starting with "${firstEntry.title}". What would you like to talk about today - perhaps something from your past experiences or a new reflection?`,
+          `Hey there! Welcome back to our conversation. I notice you've been thoughtfully documenting your life with ${entries.length} entries. Your journey from "${firstEntry.title}" to "${recentEntry.title}" shows such growth. What's on your heart today?`
+        ];
+        
+        return greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
+      } else {
+        // If no entries, encourage them to start their legacy journey
+        return "Hello! I'm so glad you're here. I'm your Wisdom Assistant, and I'm here to help you explore and preserve your memories. Since you're just starting your digital legacy journey, would you like me to suggest some meaningful topics to reflect on, or is there something specific you'd like to discuss?";
+      }
+    }
+    
     // Check for question patterns
     if (lowercaseMessage.includes('?')) {
       if (lowercaseMessage.includes('why')) {
