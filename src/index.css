@@ -291,3 +291,21 @@
     box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
   }
 }
+
+/* Enhanced shrinkWidth animation for login success */
+@keyframes shrinkWidth {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Ping animation for ripple effects */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}

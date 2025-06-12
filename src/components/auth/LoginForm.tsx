@@ -73,7 +73,7 @@ const LoginForm: React.FC = () => {
       // Redirect after showing success message with proper timing
       setTimeout(() => {
         navigate('/dashboard');
-      }, 2500); // Increased delay to 2.5 seconds for better UX
+      }, 3000); // Increased delay to 3 seconds for better UX
     } catch (err: any) {
       let errorMessage = err.message || 'Invalid email or password. Please try again.';
       
@@ -128,9 +128,9 @@ const LoginForm: React.FC = () => {
         </Link>
       </div>
 
-      {/* Enhanced Success Modal */}
+      {/* Enhanced Success Modal with higher z-index */}
       {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[70] animate-fade-in">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[100] animate-fade-in">
           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in relative overflow-hidden">
             {/* Enhanced animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
@@ -164,7 +164,7 @@ const LoginForm: React.FC = () => {
                   <div 
                     className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width shadow-lg"
                     style={{ 
-                      animation: `shrinkWidth 2500ms linear forwards`
+                      animation: `shrinkWidth 3000ms linear forwards`
                     }}
                   />
                 </div>
