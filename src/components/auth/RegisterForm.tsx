@@ -225,18 +225,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <p className="text-sm text-white/70">
             Didn't receive the email? Check your spam folder or try resending.
           </p>
-          
-          <div className="pt-4 border-t border-white/20">
-            <p className="text-sm text-white/70">
-              Already verified your email?{' '}
-              <button
-                onClick={() => navigate('/login')}
-                className="text-cyan-400 hover:text-cyan-300 font-medium"
-              >
-                Sign In Here
-              </button>
-            </p>
-          </div>
         </div>
       </div>
     );
