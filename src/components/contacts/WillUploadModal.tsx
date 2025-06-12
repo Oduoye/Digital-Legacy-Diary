@@ -139,7 +139,7 @@ const WillUploadModal: React.FC<WillUploadModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
         <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-fade-in">
           <div className="sticky top-0 bg-white z-10 p-6 pb-4 border-b">
             <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">
