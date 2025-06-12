@@ -33,21 +33,21 @@ const Header: React.FC = () => {
     switch (tier) {
       case 'premium':
         return {
-          icon: <Shield className="h-3 w-3" />,
+          icon: <Shield className="h-2.5 w-2.5" />,
           text: 'Premium',
           bgColor: 'bg-blue-500',
           textColor: 'text-white'
         };
       case 'gold':
         return {
-          icon: <Crown className="h-3 w-3" />,
+          icon: <Crown className="h-2.5 w-2.5" />,
           text: 'Gold',
           bgColor: 'bg-yellow-500',
           textColor: 'text-white'
         };
       default:
         return {
-          icon: <Star className="h-3 w-3" />,
+          icon: <Star className="h-2.5 w-2.5" />,
           text: 'Free',
           bgColor: 'bg-gray-500',
           textColor: 'text-white'
@@ -115,10 +115,9 @@ const Header: React.FC = () => {
                           )}
                         </div>
                         
-                        {/* Subscription Badge - Fixed positioning outside profile picture */}
-                        <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border border-white min-w-[20px] justify-center`}>
+                        {/* Desktop Subscription Badge - Smaller and positioned better */}
+                        <div className={`absolute -bottom-0.5 -right-0.5 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full p-0.5 shadow-lg border border-white flex items-center justify-center w-4 h-4`}>
                           {subscriptionBadge.icon}
-                          <span className="hidden sm:inline text-xs">{subscriptionBadge.text}</span>
                         </div>
                       </div>
                       <span className="text-sm font-medium">{currentUser.name}</span>
@@ -240,7 +239,7 @@ const Header: React.FC = () => {
                         )}
                       </div>
                       
-                      {/* Mobile Subscription Badge - Smaller and icon-only */}
+                      {/* Mobile Subscription Badge - Icon only, smaller */}
                       <div className={`absolute -bottom-0.5 -right-0.5 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full p-1 shadow-lg border border-white flex items-center justify-center w-5 h-5`}>
                         {React.cloneElement(subscriptionBadge.icon, { className: 'h-2.5 w-2.5' })}
                       </div>

@@ -52,21 +52,21 @@ const DashboardPage: React.FC = () => {
     switch (tier) {
       case 'premium':
         return {
-          icon: <Shield className="h-3 w-3" />,
+          icon: <Shield className="h-2.5 w-2.5" />,
           text: 'Premium',
           bgColor: 'bg-blue-500',
           textColor: 'text-white'
         };
       case 'gold':
         return {
-          icon: <Crown className="h-3 w-3" />,
+          icon: <Crown className="h-2.5 w-2.5" />,
           text: 'Gold',
           bgColor: 'bg-yellow-500',
           textColor: 'text-white'
         };
       default:
         return {
-          icon: <Star className="h-3 w-3" />,
+          icon: <Star className="h-2.5 w-2.5" />,
           text: 'Free',
           bgColor: 'bg-gray-500',
           textColor: 'text-white'
@@ -216,10 +216,9 @@ const DashboardPage: React.FC = () => {
                   )}
                 </div>
                 
-                {/* Subscription Badge - Fixed positioning outside profile picture */}
-                <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white min-w-[28px] justify-center`}>
+                {/* Dashboard Subscription Badge - Much smaller and better positioned */}
+                <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full p-1 shadow-lg border border-white flex items-center justify-center w-6 h-6`}>
                   {subscriptionBadge.icon}
-                  <span className="hidden sm:inline">{subscriptionBadge.text}</span>
                 </div>
               </div>
             </Link>
