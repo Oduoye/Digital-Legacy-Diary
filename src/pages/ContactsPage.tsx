@@ -190,16 +190,16 @@ const ContactsPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Feature Coming Soon Message */}
+          {/* Feature Coming Soon Message - Fixed positioning */}
           {showFeatureMessage && (
-            <div className="fixed left-1/2 transform -translate-x-1/2 top-4 max-w-sm w-full z-[150]">
-              <div className="bg-white rounded-lg shadow-lg p-4 border border-accent-200 mx-4">
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-[200] pointer-events-none">
+              <div className="bg-white rounded-lg shadow-2xl p-6 border border-accent-200 max-w-sm w-full mx-4 animate-scale-in pointer-events-auto">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <Crown className="h-5 w-5 text-yellow-400" />
+                    <Crown className="h-6 w-6 text-yellow-400" />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-gray-900">Premium Feature Preview</h3>
+                    <h3 className="text-base font-medium text-gray-900">Premium Feature Preview</h3>
                     <p className="mt-1 text-sm text-gray-500">
                       You're accessing a preview of our premium Dead Man's Switch feature. The full functionality will be available in our upcoming update!
                     </p>
