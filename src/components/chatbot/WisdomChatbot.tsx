@@ -70,7 +70,7 @@ const WisdomChatbot: React.FC = () => {
 
     const lowercaseMessage = userMessage.toLowerCase();
     
-    // Enhanced greeting detection with personalized response
+    // Enhanced greeting detection with personalized response based on journal entries
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
     const isGreeting = greetings.some(greeting => lowercaseMessage.includes(greeting));
     
@@ -82,16 +82,21 @@ const WisdomChatbot: React.FC = () => {
         
         // Create a personalized greeting based on their journal history
         const greetingResponses = [
-          `Hello there! It's wonderful to connect with you. I see you've been documenting your journey with ${entries.length} journal entries. Your first entry "${firstEntry.title}" caught my attention. Would you like to reflect on how far you've come since then?`,
-          `Hi! Great to see you again. I've been reading through your memories, and your recent entry "${recentEntry.title}" seems particularly meaningful. Would you like to explore that further, or is there something else on your mind today?`,
-          `Hello! I'm delighted you're here. Looking at your journal, I can see you've shared some beautiful memories, starting with "${firstEntry.title}". What would you like to talk about today - perhaps something from your past experiences or a new reflection?`,
-          `Hey there! Welcome back to our conversation. I notice you've been thoughtfully documenting your life with ${entries.length} entries. Your journey from "${firstEntry.title}" to "${recentEntry.title}" shows such growth. What's on your heart today?`
+          `Hello there! It's wonderful to connect with you again. I see you've been documenting your journey with ${entries.length} journal entries. Your first entry "${firstEntry.title}" caught my attention - it seems like that was an important moment for you. How are you feeling about your journey since then?`,
+          
+          `Hi! Great to see you back. I've been reflecting on your memories, and your recent entry "${recentEntry.title}" seems particularly meaningful. I can sense there's depth to your experiences. Would you like to explore that further, or is there something else on your mind today?`,
+          
+          `Hello! I'm delighted you're here. Looking at your journal, I can see you've shared some beautiful memories, starting with "${firstEntry.title}". There's something special about first entries - they often capture a moment of decision to preserve our stories. What inspired you to begin this journey?`,
+          
+          `Hey there! Welcome back to our conversation. I notice you've been thoughtfully documenting your life with ${entries.length} entries. Your journey from "${firstEntry.title}" to "${recentEntry.title}" shows such growth and reflection. What's been on your heart lately that you'd like to explore together?`,
+          
+          `Hello! It's so good to see you again. I've been thinking about your story, especially your entry "${firstEntry.title}" - there was something profound about how you expressed yourself there. How has your perspective evolved since you wrote that?`
         ];
         
         return greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
       } else {
         // If no entries, encourage them to start their legacy journey
-        return "Hello! I'm so glad you're here. I'm your Wisdom Assistant, and I'm here to help you explore and preserve your memories. Since you're just starting your digital legacy journey, would you like me to suggest some meaningful topics to reflect on, or is there something specific you'd like to discuss?";
+        return "Hello! I'm so glad you're here. I'm your Wisdom Assistant, and I'm here to help you explore and preserve your memories. Since you're just starting your digital legacy journey, I'd love to hear about what brought you here today. What story or memory would you like to begin with?";
       }
     }
     
