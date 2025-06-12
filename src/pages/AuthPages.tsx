@@ -47,11 +47,11 @@ const AuthPages: React.FC = () => {
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
       case 'premium':
-        return <Shield className="h-5 w-5 md:h-5 md:w-5" />;
+        return <Shield className="h-4 w-4 md:h-5 md:w-5" />;
       case 'gold':
-        return <Crown className="h-5 w-5 md:h-5 md:w-5" />;
+        return <Crown className="h-4 w-4 md:h-5 md:w-5" />;
       default:
-        return <Zap className="h-5 w-5 md:h-5 md:w-5" />;
+        return <Zap className="h-4 w-4 md:h-5 md:w-5" />;
     }
   };
 
@@ -94,14 +94,14 @@ const AuthPages: React.FC = () => {
              }} />
       </div>
 
-      {/* Left side (form) */}
-      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center p-6 md:p-12 relative z-10">
+      {/* Left side - Form (Mobile: Full width, Desktop: 50%) */}
+      <div className="w-full md:w-1/2 min-h-screen flex items-center justify-center p-4 md:p-8 relative z-10">
         <div className="w-full max-w-md">
           {/* Glass morphism container */}
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
-            <div className="text-center mb-8 animate-fade-in-up [animation-delay:200ms]">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl">
+            <div className="text-center mb-6 md:mb-8 animate-fade-in-up [animation-delay:200ms]">
               <Link to="/" className="inline-flex items-center justify-center">
-                <div className="h-16 w-16 bg-black rounded-full flex items-center justify-center p-2 shadow-2xl border border-white/20">
+                <div className="h-12 w-12 md:h-16 md:w-16 bg-black rounded-full flex items-center justify-center p-2 shadow-2xl border border-white/20">
                   <img 
                     src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
                     alt="Digital Legacy Diary"
@@ -111,22 +111,22 @@ const AuthPages: React.FC = () => {
                       target.style.display = 'none';
                       const parent = target.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<span class="text-3xl font-serif font-bold text-white">D</span>';
+                        parent.innerHTML = '<span class="text-2xl md:text-3xl font-serif font-bold text-white">D</span>';
                       }
                     }}
                   />
                 </div>
               </Link>
               <div className="relative mt-4">
-                <h1 className="text-3xl font-serif font-bold text-white mb-2">
+                <h1 className="text-2xl md:text-3xl font-serif font-bold text-white mb-2">
                   Digital Legacy Diary
                 </h1>
-                <div className="h-1 w-24 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mx-auto rounded-full animate-pulse" />
+                <div className="h-1 w-20 md:w-24 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mx-auto rounded-full animate-pulse" />
               </div>
-              <h2 className="mt-4 text-2xl font-serif font-bold text-white">
+              <h2 className="mt-4 text-xl md:text-2xl font-serif font-bold text-white">
                 {currentForm === 'login' ? 'Welcome Back' : (showSubscription ? 'Choose Your Plan' : 'Create Your Account')}
               </h2>
-              <p className="mt-2 text-white/80">
+              <p className="mt-2 text-sm md:text-base text-white/80">
                 {currentForm === 'login' 
                   ? 'Sign in to continue your legacy journey' 
                   : (showSubscription ? 'Select a plan to begin your journey' : 'Start preserving your memories and wisdom')}
@@ -142,12 +142,13 @@ const AuthPages: React.FC = () => {
               {currentForm === 'login' ? (
                 <LoginForm />
               ) : showSubscription ? (
-                <div className="space-y-4 md:space-y-6">
-                  <div className="grid gap-3 md:gap-4">
+                <div className="space-y-4">
+                  {/* Desktop: Horizontal layout, Mobile: Vertical */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {subscriptionTiers.map((tier, index) => (
                       <div
                         key={tier.id}
-                        className={`relative p-4 md:p-6 rounded-xl md:rounded-2xl border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 transform backdrop-blur-sm ${
+                        className={`relative p-3 md:p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 animate-fade-in-up hover:scale-105 transform backdrop-blur-sm ${
                           selectedTier === tier.id
                             ? 'border-cyan-400 bg-white/20 shadow-2xl shadow-cyan-500/25'
                             : 'border-white/20 hover:border-cyan-300/50 hover:shadow-xl hover:bg-white/15'
@@ -156,56 +157,53 @@ const AuthPages: React.FC = () => {
                         onClick={() => handleTierSelect(tier.id)}
                       >
                         {tier.id === 'gold' && (
-                          <div className="absolute -top-2 -right-2 md:-top-3 md:-right-3">
-                            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium flex items-center shadow-lg">
+                          <div className="absolute -top-2 -right-2">
+                            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center shadow-lg">
                               <Crown className="h-3 w-3 mr-1" />
-                              <span className="hidden md:inline">Most Popular</span>
-                              <span className="md:hidden">Popular</span>
+                              <span className="hidden md:inline">Popular</span>
                             </div>
                           </div>
                         )}
                         
-                        <div className="flex justify-between items-start mb-3 md:mb-4">
-                          <div className="flex items-center space-x-2 md:space-x-3">
-                            <div className={`p-1.5 md:p-2 rounded-lg bg-gradient-to-r ${getTierColor(tier.id)} text-white shadow-lg`}>
-                              {getTierIcon(tier.id)}
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-base md:text-lg text-white">{tier.name}</h3>
-                              <p className="text-xs md:text-sm text-white/70">
-                                ${tier.price}{tier.price > 0 ? '/month' : ' forever'}
-                              </p>
-                            </div>
+                        <div className="text-center">
+                          <div className={`p-2 rounded-lg bg-gradient-to-r ${getTierColor(tier.id)} text-white shadow-lg mx-auto w-fit mb-2`}>
+                            {getTierIcon(tier.id)}
                           </div>
-                          <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          <h3 className="font-bold text-sm md:text-base text-white mb-1">{tier.name}</h3>
+                          <p className="text-xs md:text-sm text-white/70 mb-2">
+                            ${tier.price}{tier.price > 0 ? '/mo' : ' forever'}
+                          </p>
+                          
+                          {/* Key features - show fewer on mobile */}
+                          <ul className="space-y-1 text-xs text-white/80">
+                            {tier.features.slice(0, 2).map((feature, index) => (
+                              <li key={index} className="flex items-center justify-center">
+                                <Check className="h-3 w-3 text-cyan-400 mr-1 flex-shrink-0" />
+                                <span className="truncate">{feature}</span>
+                              </li>
+                            ))}
+                            {tier.features.length > 2 && (
+                              <li className="text-xs text-white/60 italic">
+                                +{tier.features.length - 2} more
+                              </li>
+                            )}
+                          </ul>
+                          
+                          <div className={`mt-2 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors mx-auto ${
                             selectedTier === tier.id
                               ? 'border-cyan-400 bg-cyan-400'
                               : 'border-white/40'
                           }`}>
                             {selectedTier === tier.id && (
-                              <Check className="h-3 w-3 md:h-4 md:w-4 text-white" />
+                              <Check className="h-2.5 w-2.5 text-white" />
                             )}
                           </div>
                         </div>
-                        
-                        <ul className="space-y-1 md:space-y-2">
-                          {tier.features.slice(0, typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4).map((feature, index) => (
-                            <li key={index} className="text-xs md:text-sm text-white/80 flex items-center">
-                              <Check className="h-3 w-3 md:h-4 md:w-4 text-cyan-400 mr-1.5 md:mr-2 flex-shrink-0" />
-                              {feature}
-                            </li>
-                          ))}
-                          {tier.features.length > (typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4) && (
-                            <li className="text-xs md:text-sm text-white/60 italic">
-                              +{tier.features.length - (typeof window !== 'undefined' && window.innerWidth < 768 ? 3 : 4)} more features
-                            </li>
-                          )}
-                        </ul>
                       </div>
                     ))}
                   </div>
                   
-                  <div className="flex flex-col space-y-3 md:space-y-4 animate-fade-in-up [animation-delay:700ms]">
+                  <div className="flex flex-col space-y-3 animate-fade-in-up [animation-delay:700ms]">
                     <Button 
                       onClick={() => {
                         setIsTransitioning(true);
@@ -238,7 +236,7 @@ const AuthPages: React.FC = () => {
               )}
             </div>
 
-            <div className="mt-8 text-center animate-fade-in-up [animation-delay:400ms]">
+            <div className="mt-6 md:mt-8 text-center animate-fade-in-up [animation-delay:400ms]">
               <p className="text-sm text-white/70">
                 {currentForm === 'login' 
                   ? "Don't have an account?" 
@@ -256,54 +254,74 @@ const AuthPages: React.FC = () => {
         </div>
       </div>
 
-      {/* Right side (enhanced content) */}
+      {/* Right side - Enhanced content (Desktop only) */}
       <div className="hidden md:block w-1/2 relative z-10 overflow-hidden">
-        <div className="h-full flex items-center justify-center p-12">
-          <div className="max-w-md text-white text-center">
+        <div className="h-full flex items-center justify-center p-8 lg:p-12">
+          <div className="max-w-lg text-white text-center">
             {/* Glass morphism content container */}
-            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl animate-fade-in-up [animation-delay:500ms]">
-              <h2 className="text-4xl font-serif font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 lg:p-10 shadow-2xl animate-fade-in-up [animation-delay:500ms]">
+              <h2 className="text-3xl lg:text-4xl font-serif font-bold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Your Story Deserves to Be Remembered
               </h2>
-              <p className="text-lg mb-8 text-white/90 leading-relaxed">
+              <p className="text-lg lg:text-xl mb-8 text-white/90 leading-relaxed">
                 Digital Legacy Diary helps you preserve your memories, wisdom, and final wishes for your loved ones, ensuring your legacy lives on forever.
               </p>
               
-              {/* Enhanced Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="backdrop-blur-sm bg-white/10 p-4 rounded-2xl border border-white/20 animate-fade-in-up [animation-delay:600ms]">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              {/* Enhanced Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-8">
+                <div className="backdrop-blur-sm bg-white/10 p-4 lg:p-6 rounded-2xl border border-white/20 animate-fade-in-up [animation-delay:600ms]">
+                  <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                     {Math.floor(Math.random() * 50000) + 10000}
                   </p>
-                  <p className="text-sm text-white/80">Stories Preserved</p>
+                  <p className="text-sm lg:text-base text-white/80">Stories Preserved</p>
                 </div>
-                <div className="backdrop-blur-sm bg-white/10 p-4 rounded-2xl border border-white/20 animate-fade-in-up [animation-delay:700ms]">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <div className="backdrop-blur-sm bg-white/10 p-4 lg:p-6 rounded-2xl border border-white/20 animate-fade-in-up [animation-delay:700ms]">
+                  <p className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                     {Math.floor(Math.random() * 5000) + 1000}
                   </p>
-                  <p className="text-sm text-white/80">Families Connected</p>
+                  <p className="text-sm lg:text-base text-white/80">Families Connected</p>
                 </div>
               </div>
               
-              {/* Enhanced Features */}
+              {/* Enhanced Features List */}
               <div className="space-y-4 animate-fade-in-up [animation-delay:800ms]">
-                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 rounded-xl border border-white/10">
+                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 lg:p-4 rounded-xl border border-white/10">
                   <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-cyan-400 rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm text-white/90">Bank-level security for your memories</span>
+                  <span className="text-sm lg:text-base text-white/90">Bank-level security for your memories</span>
                 </div>
-                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 rounded-xl border border-white/10">
+                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 lg:p-4 rounded-xl border border-white/10">
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm text-white/90">AI-powered writing assistance</span>
+                  <span className="text-sm lg:text-base text-white/90">AI-powered writing assistance</span>
                 </div>
-                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 rounded-xl border border-white/10">
+                <div className="flex items-center space-x-3 text-left backdrop-blur-sm bg-white/5 p-3 lg:p-4 rounded-xl border border-white/10">
                   <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm text-white/90">Seamless legacy transfer</span>
+                  <span className="text-sm lg:text-base text-white/90">Seamless legacy transfer</span>
+                </div>
+              </div>
+
+              {/* Trust indicators */}
+              <div className="mt-8 pt-6 border-t border-white/20 animate-fade-in-up [animation-delay:900ms]">
+                <div className="flex items-center justify-center space-x-4 text-white/70">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm">Secure</span>
+                  </div>
+                  <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                  <div className="flex items-center space-x-2">
+                    <Heart className="h-4 w-4" />
+                    <span className="text-sm">Trusted</span>
+                  </div>
+                  <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                  <div className="flex items-center space-x-2">
+                    <Check className="h-4 w-4" />
+                    <span className="text-sm">Verified</span>
+                  </div>
                 </div>
               </div>
             </div>
