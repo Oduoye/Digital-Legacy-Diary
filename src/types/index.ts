@@ -166,3 +166,25 @@ export interface PersonalValue {
   relatedEntries: string[];
   confidence: number;
 }
+
+// New interfaces for chat history
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  text: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+  sessionId?: string;
+  context?: string; // Additional context for the message
+}
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  lastMessageAt: Date;
+  messageCount: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

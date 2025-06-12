@@ -1,30 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot } from 'lucide-react';
+import { Send, Bot, Plus, MessageSquare, Trash2, Edit2, MoreVertical } from 'lucide-react';
 import { useDiary } from '../../context/DiaryContext';
+import { ChatMessage, ChatSession } from '../../types';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-}
-
 const WisdomChatbot: React.FC = () => {
-  const { entries } = useDiary();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hello! I'm your Wisdom Assistant. I can help you explore your memories and reflect on your experiences. What would you like to discuss?",
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ]);
+  const { 
+    entries, 
+    chatMessages, 
+    chatSessions, 
+    currentChatSession,
+    addChatMessage, 
+    loadChatHistory,
+    createNewChatSession,
+    updateChatSession,
+    deleteChatSession,
+    setCurrentChatSession
+  } = useDiary();
+  
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState('');
   const [messageContext, setMessageContext] = useState<string[]>([]);
+  const [showSessionMenu, setShowSessionMenu] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -33,7 +34,19 @@ const WisdomChatbot: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [chatMessages]);
+
+  // Initialize with welcome message if no messages exist
+  useEffect(() => {
+    if (currentChatSession && chatMessages.length === 0) {
+      const welcomeMessage = "Hello! I'm your Wisdom Assistant. I can help you explore your memories and reflect on your experiences. What would you like to discuss?";
+      addChatMessage({
+        text: welcomeMessage,
+        sender: 'bot',
+        sessionId: currentChatSession.id,
+      });
+    }
+  }, [currentChatSession, chatMessages.length]);
 
   const analyzeContext = (userMessage: string): string[] => {
     const keywords = userMessage.toLowerCase().split(' ');
@@ -104,95 +117,235 @@ const WisdomChatbot: React.FC = () => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: input,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setLastUserMessage(input);
-    setMessages(prev => [...prev, userMessage]);
+    const userMessageText = input;
+    setLastUserMessage(userMessageText);
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: generateResponse(input),
-        sender: 'bot',
-        timestamp: new Date()
-      };
+    // Add user message
+    await addChatMessage({
+      text: userMessageText,
+      sender: 'user',
+      sessionId: currentChatSession?.id,
+    });
 
-      setMessages(prev => [...prev, botResponse]);
+    // Generate and add bot response after a delay
+    setTimeout(async () => {
+      const botResponse = generateResponse(userMessageText);
+      await addChatMessage({
+        text: botResponse,
+        sender: 'bot',
+        sessionId: currentChatSession?.id,
+      });
       setIsTyping(false);
     }, 800 + Math.random() * 800);
   };
 
+  const handleNewSession = async () => {
+    await createNewChatSession();
+    setShowSessionMenu(false);
+  };
+
+  const handleSessionSelect = async (session: ChatSession) => {
+    setCurrentChatSession(session);
+    await loadChatHistory(session.id);
+    setShowSessionMenu(false);
+  };
+
+  const handleEditSession = (session: ChatSession) => {
+    setEditingSessionId(session.id);
+    setEditingTitle(session.title);
+  };
+
+  const handleSaveSessionTitle = async () => {
+    if (editingSessionId && editingTitle.trim()) {
+      await updateChatSession(editingSessionId, { title: editingTitle.trim() });
+      setEditingSessionId(null);
+      setEditingTitle('');
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (chatSessions.length > 1) {
+      await deleteChatSession(sessionId);
+    }
+  };
+
   return (
-    <Card className="h-[600px] flex flex-col">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(message => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+    <div className="relative">
+      {/* Session Management Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Bot className="h-6 w-6 text-primary-600" />
+          <h2 className="text-lg font-semibold text-white">
+            {currentChatSession?.title || 'Wisdom Assistant'}
+          </h2>
+        </div>
+        
+        <div className="relative">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSessionMenu(!showSessionMenu)}
+            icon={<MoreVertical className="h-4 w-4" />}
+            className="border-white/30 text-white hover:bg-white/10"
           >
-            <div
-              className={`
-                max-w-[80%] rounded-lg p-3 animate-fade-in-up
-                ${message.sender === 'user'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
-                }
-              `}
-            >
-              {message.sender === 'bot' && (
-                <div className="flex items-center mb-2">
-                  <Bot className="h-5 w-5 mr-2" />
-                  <span className="font-medium">Wisdom Assistant</span>
-                </div>
-              )}
-              <p className="text-sm">{message.text}</p>
-              <p className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            Sessions
+          </Button>
+          
+          {showSessionMenu && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-80 overflow-y-auto">
+              <div className="p-3 border-b border-gray-200">
+                <Button
+                  onClick={handleNewSession}
+                  size="sm"
+                  icon={<Plus className="h-4 w-4" />}
+                  className="w-full"
+                >
+                  New Chat Session
+                </Button>
+              </div>
+              
+              <div className="p-2">
+                {chatSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`group flex items-center justify-between p-2 rounded-md hover:bg-gray-50 cursor-pointer ${
+                      currentChatSession?.id === session.id ? 'bg-primary-50 border border-primary-200' : ''
+                    }`}
+                  >
+                    <div 
+                      className="flex-1 min-w-0"
+                      onClick={() => handleSessionSelect(session)}
+                    >
+                      {editingSessionId === session.id ? (
+                        <input
+                          type="text"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onBlur={handleSaveSessionTitle}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveSessionTitle();
+                            if (e.key === 'Escape') {
+                              setEditingSessionId(null);
+                              setEditingTitle('');
+                            }
+                          }}
+                          className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                          autoFocus
+                        />
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {session.title}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {session.messageCount} messages • {session.lastMessageAt.toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditSession(session);
+                        }}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                      {chatSessions.length > 1 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSession(session.id);
+                          }}
+                          className="p-1 text-gray-400 hover:text-red-600 rounded"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
-          <Button 
-            type="submit" 
-            disabled={!input.trim() || isTyping}
-            icon={<Send className="h-4 w-4" />}
-            className="transform transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 min-w-[80px]"
-          >
-            Send
-          </Button>
+          )}
         </div>
-      </form>
-    </Card>
+      </div>
+
+      {/* Chat Interface */}
+      <Card className="h-[600px] flex flex-col backdrop-blur-xl bg-white/10 border border-white/20">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {chatMessages.map(message => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`
+                  max-w-[80%] rounded-lg p-3 animate-fade-in-up
+                  ${message.sender === 'user'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white/20 text-white backdrop-blur-sm border border-white/30'
+                  }
+                `}
+              >
+                {message.sender === 'bot' && (
+                  <div className="flex items-center mb-2">
+                    <Bot className="h-5 w-5 mr-2" />
+                    <span className="font-medium">Wisdom Assistant</span>
+                  </div>
+                )}
+                <p className="text-sm">{message.text}</p>
+                <p className="text-xs mt-1 opacity-70">
+                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm border border-white/30">
+                <div className="flex items-center space-x-2">
+                  <Bot className="h-5 w-5" />
+                  <span className="font-medium">Wisdom Assistant</span>
+                </div>
+                <div className="flex space-x-2 mt-2">
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-4 border-t border-white/20">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 rounded-md border border-white/30 px-3 py-2 text-sm bg-white/10 text-white placeholder-white/60 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <Button 
+              type="submit" 
+              disabled={!input.trim() || isTyping}
+              icon={<Send className="h-4 w-4" />}
+              className="transform transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 min-w-[80px] bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
+            >
+              Send
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
   );
 };
 

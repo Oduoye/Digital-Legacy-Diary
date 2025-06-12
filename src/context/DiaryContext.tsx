@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { DiaryEntry, TrustedContact, Will } from '../types';
+import { DiaryEntry, TrustedContact, Will, ChatMessage, ChatSession } from '../types';
 import { useAuth } from './AuthContext';
 import { generateLifeStory } from '../utils/lifeStoryWeaver';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,9 @@ interface DiaryContextType {
   entries: DiaryEntry[];
   trustedContacts: TrustedContact[];
   wills: Will[];
+  chatMessages: ChatMessage[];
+  chatSessions: ChatSession[];
+  currentChatSession: ChatSession | null;
   addEntry: (entry: Omit<DiaryEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<void>;
   updateEntry: (id: string, entry: Partial<DiaryEntry>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
@@ -20,12 +23,22 @@ interface DiaryContextType {
   deleteWill: (id: string) => Promise<void>;
   getWill: (id: string) => Will | undefined;
   generateLifeStoryInsights: () => Promise<void>;
+  // Chat-related methods
+  addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp' | 'userId'>) => Promise<void>;
+  loadChatHistory: (sessionId?: string) => Promise<void>;
+  createNewChatSession: (title?: string) => Promise<ChatSession>;
+  updateChatSession: (sessionId: string, updates: Partial<ChatSession>) => Promise<void>;
+  deleteChatSession: (sessionId: string) => Promise<void>;
+  setCurrentChatSession: (session: ChatSession | null) => void;
 }
 
 const DiaryContext = createContext<DiaryContextType>({
   entries: [],
   trustedContacts: [],
   wills: [],
+  chatMessages: [],
+  chatSessions: [],
+  currentChatSession: null,
   addEntry: async () => {},
   updateEntry: async () => {},
   deleteEntry: async () => {},
@@ -38,6 +51,12 @@ const DiaryContext = createContext<DiaryContextType>({
   deleteWill: async () => {},
   getWill: () => undefined,
   generateLifeStoryInsights: async () => {},
+  addChatMessage: async () => {},
+  loadChatHistory: async () => {},
+  createNewChatSession: async () => ({ id: '', userId: '', title: '', lastMessageAt: new Date(), messageCount: 0, isActive: true, createdAt: new Date(), updatedAt: new Date() }),
+  updateChatSession: async () => {},
+  deleteChatSession: async () => {},
+  setCurrentChatSession: () => {},
 });
 
 export const useDiary = () => useContext(DiaryContext);
@@ -81,11 +100,41 @@ const convertDbWillToAppWill = (dbWill: any): Will => {
   };
 };
 
+// Helper function to convert database chat message to app chat message
+const convertDbChatMessageToAppChatMessage = (dbMessage: any): ChatMessage => {
+  return {
+    id: dbMessage.id,
+    userId: dbMessage.user_id,
+    text: dbMessage.text,
+    sender: dbMessage.sender,
+    timestamp: new Date(dbMessage.timestamp),
+    sessionId: dbMessage.session_id,
+    context: dbMessage.context,
+  };
+};
+
+// Helper function to convert database chat session to app chat session
+const convertDbChatSessionToAppChatSession = (dbSession: any): ChatSession => {
+  return {
+    id: dbSession.id,
+    userId: dbSession.user_id,
+    title: dbSession.title,
+    lastMessageAt: new Date(dbSession.last_message_at),
+    messageCount: dbSession.message_count,
+    isActive: dbSession.is_active,
+    createdAt: new Date(dbSession.created_at),
+    updatedAt: new Date(dbSession.updated_at),
+  };
+};
+
 export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, updateProfile } = useAuth();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>([]);
   const [wills, setWills] = useState<Will[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentChatSession, setCurrentChatSession] = useState<ChatSession | null>(null);
 
   // Load data when user changes
   useEffect(() => {
@@ -93,10 +142,14 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       loadEntries();
       loadTrustedContacts();
       loadWills();
+      loadChatSessions();
     } else {
       setEntries([]);
       setTrustedContacts([]);
       setWills([]);
+      setChatMessages([]);
+      setChatSessions([]);
+      setCurrentChatSession(null);
     }
   }, [currentUser]);
 
@@ -166,6 +219,198 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch (error) {
       console.error('Error in loadWills:', error);
+    }
+  };
+
+  const loadChatSessions = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('last_message_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading chat sessions:', error);
+        return;
+      }
+
+      if (data) {
+        const sessions = data.map(convertDbChatSessionToAppChatSession);
+        setChatSessions(sessions);
+        
+        // Set the most recent active session as current if none is set
+        if (!currentChatSession && sessions.length > 0) {
+          const activeSession = sessions.find(s => s.isActive) || sessions[0];
+          setCurrentChatSession(activeSession);
+          loadChatHistory(activeSession.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error in loadChatSessions:', error);
+    }
+  };
+
+  const loadChatHistory = async (sessionId?: string) => {
+    if (!currentUser) return;
+    
+    const targetSessionId = sessionId || currentChatSession?.id;
+    if (!targetSessionId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .eq('session_id', targetSessionId)
+        .order('timestamp', { ascending: true });
+
+      if (error) {
+        console.error('Error loading chat history:', error);
+        return;
+      }
+
+      if (data) {
+        setChatMessages(data.map(convertDbChatMessageToAppChatMessage));
+      }
+    } catch (error) {
+      console.error('Error in loadChatHistory:', error);
+    }
+  };
+
+  const createNewChatSession = async (title?: string): Promise<ChatSession> => {
+    if (!currentUser) throw new Error('No user logged in');
+
+    const now = new Date().toISOString();
+    const sessionTitle = title || `Chat Session ${new Date().toLocaleDateString()}`;
+    
+    const dbSession = {
+      user_id: currentUser.id,
+      title: sessionTitle,
+      last_message_at: now,
+      message_count: 0,
+      is_active: true,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { data, error } = await supabase
+      .from('chat_sessions')
+      .insert(dbSession)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data) {
+      const newSession = convertDbChatSessionToAppChatSession(data);
+      setChatSessions(prev => [newSession, ...prev]);
+      setCurrentChatSession(newSession);
+      setChatMessages([]); // Clear messages for new session
+      return newSession;
+    }
+
+    throw new Error('Failed to create chat session');
+  };
+
+  const updateChatSession = async (sessionId: string, updates: Partial<ChatSession>) => {
+    if (!currentUser) throw new Error('No user logged in');
+
+    const dbUpdates: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.lastMessageAt !== undefined) dbUpdates.last_message_at = updates.lastMessageAt.toISOString();
+    if (updates.messageCount !== undefined) dbUpdates.message_count = updates.messageCount;
+    if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive;
+
+    const { error } = await supabase
+      .from('chat_sessions')
+      .update(dbUpdates)
+      .eq('id', sessionId)
+      .eq('user_id', currentUser.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    setChatSessions(prev => prev.map(session => 
+      session.id === sessionId 
+        ? { ...session, ...updates, updatedAt: new Date() }
+        : session
+    ));
+
+    if (currentChatSession?.id === sessionId) {
+      setCurrentChatSession(prev => prev ? { ...prev, ...updates, updatedAt: new Date() } : null);
+    }
+  };
+
+  const deleteChatSession = async (sessionId: string) => {
+    if (!currentUser) throw new Error('No user logged in');
+
+    const { error } = await supabase
+      .from('chat_sessions')
+      .delete()
+      .eq('id', sessionId)
+      .eq('user_id', currentUser.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    setChatSessions(prev => prev.filter(session => session.id !== sessionId));
+    
+    if (currentChatSession?.id === sessionId) {
+      const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
+      setCurrentChatSession(remainingSessions.length > 0 ? remainingSessions[0] : null);
+      setChatMessages([]);
+    }
+  };
+
+  const addChatMessage = async (message: Omit<ChatMessage, 'id' | 'timestamp' | 'userId'>) => {
+    if (!currentUser) throw new Error('No user logged in');
+
+    // Create session if none exists
+    let sessionId = message.sessionId || currentChatSession?.id;
+    if (!sessionId) {
+      const newSession = await createNewChatSession();
+      sessionId = newSession.id;
+    }
+
+    const now = new Date().toISOString();
+    const dbMessage = {
+      user_id: currentUser.id,
+      text: message.text,
+      sender: message.sender,
+      timestamp: now,
+      session_id: sessionId,
+      context: message.context,
+    };
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .insert(dbMessage)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data) {
+      const newMessage = convertDbChatMessageToAppChatMessage(data);
+      setChatMessages(prev => [...prev, newMessage]);
+
+      // Update session with new message count and timestamp
+      await updateChatSession(sessionId, {
+        lastMessageAt: new Date(),
+        messageCount: chatMessages.length + 1,
+      });
     }
   };
 
@@ -415,6 +660,9 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         entries,
         trustedContacts,
         wills,
+        chatMessages,
+        chatSessions,
+        currentChatSession,
         addEntry,
         updateEntry,
         deleteEntry,
@@ -427,6 +675,12 @@ export const DiaryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteWill,
         getWill,
         generateLifeStoryInsights,
+        addChatMessage,
+        loadChatHistory,
+        createNewChatSession,
+        updateChatSession,
+        deleteChatSession,
+        setCurrentChatSession,
       }}
     >
       {children}
