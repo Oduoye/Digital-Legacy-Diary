@@ -66,12 +66,14 @@ const LoginForm: React.FC = () => {
 
     try {
       await login(email, password);
+      
+      // Show success modal immediately after successful login
       setShowSuccessMessage(true);
       
       // Redirect after showing success message with proper timing
       setTimeout(() => {
         navigate('/dashboard');
-      }, 2000);
+      }, 2500); // Increased delay to 2.5 seconds for better UX
     } catch (err: any) {
       let errorMessage = err.message || 'Invalid email or password. Please try again.';
       
@@ -126,38 +128,55 @@ const LoginForm: React.FC = () => {
         </Link>
       </div>
 
+      {/* Enhanced Success Modal */}
       {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[70] animate-fade-in">
           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-8 shadow-2xl animate-scale-in relative overflow-hidden">
-            {/* Animated background elements */}
+            {/* Enhanced animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-400/10 via-cyan-400/5 to-blue-500/10 animate-gradient-x" />
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-400/20 to-cyan-400/20 rounded-full blur-xl animate-float" />
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }} />
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-400/15 via-cyan-400/10 to-blue-500/15 animate-gradient-x" />
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-400/30 to-cyan-400/30 rounded-full blur-xl animate-float" />
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }} />
+              <div className="absolute top-1/2 -right-6 w-16 h-16 bg-gradient-to-br from-cyan-400/25 to-green-400/25 rounded-full blur-lg animate-float" style={{ animationDelay: '2s' }} />
             </div>
 
             <div className="text-center relative z-10">
-              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-green-400/30 animate-pulse">
-                <CheckCircle className="h-10 w-10 text-green-400 animate-scale-in" style={{ animationDelay: '200ms' }} />
+              {/* Enhanced success icon with multiple animation layers */}
+              <div className="relative mb-6">
+                <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto backdrop-blur-sm border border-green-400/30 animate-pulse">
+                  <CheckCircle className="h-12 w-12 text-green-400 animate-scale-in" style={{ animationDelay: '200ms' }} />
+                </div>
+                {/* Ripple effect */}
+                <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-green-400/30 animate-ping" style={{ animationDelay: '500ms' }} />
+                <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border border-green-400/20 animate-ping" style={{ animationDelay: '800ms' }} />
               </div>
-              <h3 className="text-2xl font-serif font-bold text-white mb-3 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                Login Successful!
+
+              <h3 className="text-2xl font-serif font-bold text-white mb-4 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                Welcome Back!
               </h3>
-              <p className="text-white/90 leading-relaxed animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-                Welcome back! Redirecting to your dashboard...
+              <p className="text-white/90 leading-relaxed mb-6 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                You've successfully signed in to your Digital Legacy Diary. Redirecting you to your dashboard...
               </p>
               
+              {/* Enhanced progress bar */}
               <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-                <div className="w-full bg-white/20 rounded-full h-1 overflow-hidden backdrop-blur-sm">
+                <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden backdrop-blur-sm border border-white/30">
                   <div 
-                    className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width"
+                    className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width shadow-lg"
                     style={{ 
-                      animation: `shrinkWidth 2000ms linear forwards`
+                      animation: `shrinkWidth 2500ms linear forwards`
                     }}
                   />
                 </div>
-                <p className="text-xs text-white/60 mt-2">
-                  Redirecting...
+                <p className="text-xs text-white/70 mt-3 font-medium">
+                  Taking you to your dashboard...
+                </p>
+              </div>
+
+              {/* Welcome message */}
+              <div className="mt-6 p-4 bg-white/10 rounded-xl border border-white/20 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '800ms' }}>
+                <p className="text-sm text-white/80">
+                  ✨ Ready to continue your legacy journey
                 </p>
               </div>
             </div>
