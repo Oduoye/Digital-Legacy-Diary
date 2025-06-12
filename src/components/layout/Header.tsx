@@ -240,15 +240,18 @@ const Header: React.FC = () => {
                         )}
                       </div>
                       
-                      {/* Subscription Badge - Fixed positioning outside profile picture */}
-                      <div className={`absolute -bottom-1 -right-1 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full px-1.5 py-0.5 text-xs font-medium flex items-center gap-1 shadow-lg border-2 border-white min-w-[24px] justify-center`}>
-                        {subscriptionBadge.icon}
-                        <span>{subscriptionBadge.text}</span>
+                      {/* Mobile Subscription Badge - Smaller and icon-only */}
+                      <div className={`absolute -bottom-0.5 -right-0.5 ${subscriptionBadge.bgColor} ${subscriptionBadge.textColor} rounded-full p-1 shadow-lg border border-white flex items-center justify-center w-5 h-5`}>
+                        {React.cloneElement(subscriptionBadge.icon, { className: 'h-2.5 w-2.5' })}
                       </div>
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">{currentUser.name}</div>
-                      <div className="text-sm text-gray-500">{currentUser.email}</div>
+                      <div className="text-sm text-gray-500 flex items-center gap-1">
+                        {currentUser.email}
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-gray-400">{subscriptionBadge.text}</span>
+                      </div>
                     </div>
                   </div>
                   <Link
