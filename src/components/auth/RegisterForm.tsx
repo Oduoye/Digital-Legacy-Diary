@@ -205,7 +205,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <div className="bg-green-500/20 text-green-200 p-3 rounded-md text-sm mb-4 animate-slide-down backdrop-blur-sm border border-green-400/30">
             <div className="flex items-start space-x-2">
               <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>Verification email sent successfully! Please check your inbox.</span>
+              <span>Verification email sent successfully!</span>
             </div>
           </div>
         )}
@@ -225,12 +225,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
           <p className="text-sm text-white/70">
             Didn't receive the email? Check your spam folder or try resending.
           </p>
-          
-          <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-400/30">
-            <p className="text-xs text-blue-200">
-              <strong>Troubleshooting:</strong> If you continue to have issues, try using a different email address or contact support.
-            </p>
-          </div>
         </div>
       </div>
     );
