@@ -33,7 +33,7 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Protected route component with loading indicator
+// Protected route component - no loading indicator
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -41,18 +41,7 @@ const ProtectedRoute: React.FC<{
   children, 
   redirectTo = '/login' 
 }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/80">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const { isAuthenticated } = useAuth();
   
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
@@ -69,18 +58,7 @@ const PublicRoute: React.FC<{
   children, 
   redirectTo = '/dashboard' 
 }) => {
-  const { isAuthenticated, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white/80">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const { isAuthenticated } = useAuth();
   
   // If user is authenticated, redirect to dashboard
   if (isAuthenticated) {
