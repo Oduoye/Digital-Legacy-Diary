@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  loading: true,
+  loading: false,
   login: async () => {},
   register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
@@ -95,7 +95,7 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
   // Helper function to handle auth errors and clear session
@@ -129,7 +129,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await handleAuthError(error, 'Session initialization');
           if (mounted) {
             setSessionInitialized(true);
-            setLoading(false);
           }
           return;
         }
@@ -145,7 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         if (mounted) {
           setSessionInitialized(true);
-          setLoading(false);
         }
       }
     };
@@ -159,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in, fetching profile');
+          setLoading(true);
           await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
@@ -171,6 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         await handleAuthError(error, 'Auth state change');
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     });
 
@@ -244,47 +247,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            subscription_tier: subscriptionTier,
-          },
-          emailRedirectTo: getRedirectUrl('/auth/callback')
-        }
-      });
-
-      if (error) {
-        throw new Error(error.message);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          subscription_tier: subscriptionTier,
+        },
+        emailRedirectTo: getRedirectUrl('/auth/callback')
       }
+    });
 
-      // Check if email confirmation is required
-      const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
-      
-      console.log('Registration result:', {
-        user: data.user,
-        session: data.session,
-        emailConfirmationRequired,
-        email_confirmed_at: data.user?.email_confirmed_at,
-        redirectUrl: getRedirectUrl('/auth/callback')
-      });
-
-      // If user is immediately confirmed, fetch their profile
-      if (data.user && (data.user.email_confirmed_at || data.session)) {
-        setTimeout(async () => {
-          await fetchUserProfile(data.user!.id);
-        }, 1000);
-        return { emailConfirmationRequired: false };
-      }
-
-      return { emailConfirmationRequired: true };
-    } finally {
-      setLoading(false);
+    if (error) {
+      throw new Error(error.message);
     }
+
+    // Check if email confirmation is required
+    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+    
+    console.log('Registration result:', {
+      user: data.user,
+      session: data.session,
+      emailConfirmationRequired,
+      email_confirmed_at: data.user?.email_confirmed_at,
+      redirectUrl: getRedirectUrl('/auth/callback')
+    });
+
+    // If user is immediately confirmed, fetch their profile
+    if (data.user && (data.user.email_confirmed_at || data.session)) {
+      setTimeout(async () => {
+        await fetchUserProfile(data.user!.id);
+      }, 1000);
+      return { emailConfirmationRequired: false };
+    }
+
+    return { emailConfirmationRequired: true };
   };
 
   const logout = async () => {
@@ -415,7 +413,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     currentUser,
-    loading: loading && !sessionInitialized, // Only show loading during initial session check
+    loading: loading,
     login,
     register,
     logout,
