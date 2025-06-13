@@ -24,11 +24,11 @@ const EmailVerificationCallbackPage: React.FC = () => {
       setStatus('loading');
       setMessage('Verifying your email address...');
 
+      // Get URL parameters
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
       const type = searchParams.get('type');
       const tokenHash = searchParams.get('token_hash');
-      const next = searchParams.get('next');
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
 
@@ -37,7 +37,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
         hasRefreshToken: !!refreshToken, 
         type, 
         hasTokenHash: !!tokenHash,
-        next,
         error,
         errorDescription
       });
@@ -57,9 +56,34 @@ const EmailVerificationCallbackPage: React.FC = () => {
         return;
       }
 
-      // Handle different verification methods
+      // Modern Supabase auth flow - use exchangeCodeForSession if we have a code
+      const code = searchParams.get('code');
+      if (code) {
+        console.log('Using modern auth flow with code exchange');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error('Code exchange error:', error);
+          throw error;
+        }
+
+        if (data.user && data.session) {
+          console.log('Email verified successfully with code exchange:', data.user);
+          setUserEmail(data.user.email || '');
+          setStatus('success');
+          setMessage('Your email has been verified successfully! Redirecting to dashboard...');
+          
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 2000);
+          return;
+        }
+      }
+
+      // Fallback: Handle token_hash method (newer Supabase versions)
       if (tokenHash && type) {
-        // New method using token_hash
+        console.log('Using token hash verification');
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type as any,
@@ -76,7 +100,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
           
-          // Redirect to dashboard after a short delay
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 2000);
@@ -84,8 +107,9 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
       }
 
-      // Fallback to access_token method
+      // Legacy fallback: access_token method
       if (accessToken && refreshToken) {
+        console.log('Using legacy access token method');
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -102,7 +126,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
           
-          // Redirect to dashboard after a short delay
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 2000);
@@ -110,7 +133,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
       }
 
-      // Check if user is already verified but just needs to be logged in
+      // Check if user is already verified
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         console.log('User is already verified:', user);
@@ -137,7 +160,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
       } else if (error.message?.includes('invalid')) {
         setMessage('The verification link is invalid. Please try requesting a new verification email.');
       } else if (error.message?.includes('already_verified') || error.message?.includes('Email link is invalid or has expired')) {
-        // User might already be verified, let them try to login
         setMessage('Your email may already be verified. Please try logging in to your account.');
       } else {
         setMessage('Email verification failed. The link may be invalid or expired. Please try requesting a new verification email.');
@@ -151,12 +173,10 @@ const EmailVerificationCallbackPage: React.FC = () => {
   };
 
   const handleResendVerification = async () => {
-    // Get email from URL params or ask user to enter it
     const emailFromParams = searchParams.get('email');
     const emailToUse = emailFromParams || userEmail;
     
     if (!emailToUse) {
-      // Redirect to register page to get email
       navigate('/register', { 
         state: { 
           message: 'Please enter your email to receive a new verification link.' 
@@ -266,7 +286,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
                     {message}
                   </p>
 
-                  {/* Show resend success message */}
                   {resendSuccess && (
                     <div className="bg-green-500/20 text-green-200 p-3 rounded-md text-sm mb-4 animate-slide-down backdrop-blur-sm border border-green-400/30">
                       <div className="flex items-start space-x-2">
@@ -277,7 +296,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
                   )}
 
                   <div className="space-y-3">
-                    {/* Try Again Button - Only show if we haven't tried too many times */}
                     {retryCount < 2 && !message.includes('already be verified') && (
                       <Button
                         onClick={handleRetry}
@@ -288,7 +306,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
                       </Button>
                     )}
                     
-                    {/* Resend Verification Email */}
                     <Button
                       onClick={handleResendVerification}
                       isLoading={isResendingEmail}
@@ -298,7 +315,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
                       {isResendingEmail ? 'Sending...' : 'Request New Verification Email'}
                     </Button>
                     
-                    {/* Go to Login - Primary option if user might already be verified */}
                     {message.includes('already be verified') ? (
                       <Button
                         onClick={handleGoToLogin}
@@ -316,7 +332,6 @@ const EmailVerificationCallbackPage: React.FC = () => {
                       </Button>
                     )}
 
-                    {/* Go to Register - If user needs to start over */}
                     <Button
                       onClick={handleGoToRegister}
                       variant="outline"
