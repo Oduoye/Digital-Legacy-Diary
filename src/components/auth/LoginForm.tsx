@@ -73,7 +73,7 @@ const LoginForm: React.FC = () => {
       // Redirect after showing success message with proper timing
       setTimeout(() => {
         navigate('/dashboard');
-      }, 3000); // Increased delay to 3 seconds for better UX
+      }, 2000); // Reduced to 2 seconds for better UX
     } catch (err: any) {
       let errorMessage = err.message || 'Invalid email or password. Please try again.';
       
@@ -83,6 +83,10 @@ const LoginForm: React.FC = () => {
       } else if (err.message?.includes('Invalid login credentials')) {
         errorMessage = 'The email or password you entered is incorrect.';
         setShowInvalidCredentialsHelp(true);
+      } else if (err.message?.includes('Too many requests')) {
+        errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
+      } else if (err.message?.includes('User not found')) {
+        errorMessage = 'No account found with this email address. Please check your email or create a new account.';
       }
       
       setError(errorMessage);
@@ -164,7 +168,7 @@ const LoginForm: React.FC = () => {
                   <div 
                     className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width shadow-lg"
                     style={{ 
-                      animation: `shrinkWidth 3000ms linear forwards`
+                      animation: `shrinkWidth 2000ms linear forwards`
                     }}
                   />
                 </div>

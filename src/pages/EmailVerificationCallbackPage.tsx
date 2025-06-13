@@ -33,7 +33,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       const errorDescription = searchParams.get('error_description');
       const code = searchParams.get('code');
 
-      console.log('Email verification params:', { 
+      console.log('📧 Email verification params:', { 
         hasAccessToken: !!accessToken, 
         hasRefreshToken: !!refreshToken, 
         type, 
@@ -45,7 +45,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Handle error from URL params first
       if (error) {
-        console.error('URL error:', error, errorDescription);
+        console.error('❌ URL error:', error, errorDescription);
         setStatus('error');
         
         if (error === 'access_denied' || errorDescription?.includes('expired')) {
@@ -61,7 +61,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       // Check if user is already verified first
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser && currentUser.email_confirmed_at) {
-        console.log('User is already verified:', currentUser);
+        console.log('✅ User is already verified:', currentUser);
         setUserEmail(currentUser.email || '');
         setStatus('success');
         setMessage('Your email is already verified! Redirecting to dashboard...');
@@ -74,12 +74,12 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Modern Supabase auth flow - use exchangeCodeForSession if we have a code
       if (code) {
-        console.log('Using modern auth flow with code exchange');
+        console.log('🔄 Using modern auth flow with code exchange');
         
         const { data, error: codeError } = await supabase.auth.exchangeCodeForSession(code);
 
         if (codeError) {
-          console.error('Code exchange error:', codeError);
+          console.error('❌ Code exchange error:', codeError);
           
           if (codeError.message?.includes('expired') || codeError.message?.includes('invalid')) {
             setStatus('error');
@@ -91,7 +91,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
 
         if (data.user && data.session) {
-          console.log('Email verified successfully with code exchange:', data.user);
+          console.log('✅ Email verified successfully with code exchange:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -106,7 +106,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Fallback: Handle token_hash method (newer Supabase versions)
       if (tokenHash && type) {
-        console.log('Using token hash verification');
+        console.log('🔄 Using token hash verification');
         
         const { data, error: hashError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
@@ -114,7 +114,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         });
 
         if (hashError) {
-          console.error('Token hash verification error:', hashError);
+          console.error('❌ Token hash verification error:', hashError);
           
           if (hashError.message?.includes('expired') || hashError.message?.includes('invalid')) {
             setStatus('error');
@@ -126,7 +126,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
 
         if (data.user && data.session) {
-          console.log('Email verified successfully with token hash:', data.user);
+          console.log('✅ Email verified successfully with token hash:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -140,7 +140,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Legacy fallback: access_token method
       if (accessToken && refreshToken) {
-        console.log('Using legacy access token method');
+        console.log('🔄 Using legacy access token method');
         
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
@@ -148,7 +148,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         });
 
         if (sessionError) {
-          console.error('Session error:', sessionError);
+          console.error('❌ Session error:', sessionError);
           
           if (sessionError.message?.includes('expired') || sessionError.message?.includes('invalid')) {
             setStatus('error');
@@ -160,7 +160,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
 
         if (data.user) {
-          console.log('Email verified successfully with session:', data.user);
+          console.log('✅ Email verified successfully with session:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -174,7 +174,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // If no verification parameters are present
       if (!code && !tokenHash && !accessToken && !refreshToken) {
-        console.error('No verification parameters found in URL');
+        console.error('❌ No verification parameters found in URL');
         setStatus('error');
         setMessage('The verification link appears to be incomplete. Please try requesting a new verification email.');
         return;
@@ -184,7 +184,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       throw new Error('Unable to verify email with provided parameters');
 
     } catch (error: any) {
-      console.error('Email verification error:', error);
+      console.error('❌ Email verification error:', error);
       setStatus('error');
       
       // Provide more specific error messages
@@ -237,7 +237,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       setResendSuccess(true);
       setTimeout(() => setResendSuccess(false), 5000);
     } catch (err: any) {
-      console.error('Error resending verification email:', err);
+      console.error('❌ Error resending verification email:', err);
       setMessage('Failed to resend verification email. Please try again or contact support.');
     } finally {
       setIsResendingEmail(false);

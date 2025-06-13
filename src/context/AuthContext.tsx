@@ -58,21 +58,6 @@ const getRedirectUrl = (path: string = '/auth/callback') => {
   return `${window.location.origin}${path}`;
 };
 
-// Helper function to check if error is related to invalid refresh token
-const isRefreshTokenError = (error: any): boolean => {
-  if (!error) return false;
-  
-  const errorMessage = error.message?.toLowerCase() || '';
-  const errorCode = error.code?.toLowerCase() || '';
-  
-  return (
-    errorMessage.includes('refresh token not found') ||
-    errorMessage.includes('invalid refresh token') ||
-    errorCode === 'refresh_token_not_found' ||
-    errorCode === 'invalid_grant'
-  );
-};
-
 // Helper function to convert database user to app user
 const convertDbUserToAppUser = (dbUser: any): User => {
   return {
@@ -101,22 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
-  // Helper function to handle auth errors and clear session
-  const handleAuthError = async (error: any, context: string) => {
-    console.error(`❌ ${context} error:`, error);
-    
-    if (isRefreshTokenError(error)) {
-      console.log('🔄 Invalid refresh token detected, clearing session...');
-      try {
-        await supabase.auth.signOut();
-        setCurrentUser(null);
-      } catch (signOutError) {
-        console.error('❌ Error during signOut:', signOutError);
-        setCurrentUser(null);
-      }
-    }
-  };
-
   useEffect(() => {
     let mounted = true;
 
@@ -125,19 +94,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('🔄 Initializing authentication...');
         
-        // Get initial session with increased timeout (30 seconds)
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 30000)
-        );
-
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('Session error:', error);
+          console.error('❌ Session initialization error:', error);
           if (mounted) {
             setLoading(false);
             setSessionInitialized(true);
@@ -150,14 +111,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log('👤 Session user found, fetching profile...');
           await fetchUserProfile(session.user.id);
+        } else {
+          if (mounted) {
+            setLoading(false);
+          }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        await handleAuthError(error, 'Auth initialization');
+        console.error('❌ Auth initialization error:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       } finally {
         if (mounted) {
           setSessionInitialized(true);
-          setLoading(false);
         }
       }
     };
@@ -181,10 +147,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (!currentUser) {
             await fetchUserProfile(session.user.id);
           }
+        } else if (event === 'USER_UPDATED' && session?.user) {
+          console.log('👤 User updated');
+          await fetchUserProfile(session.user.id);
         }
       } catch (error) {
-        console.error('Auth state change error:', error);
-        await handleAuthError(error, 'Auth state change');
+        console.error('❌ Auth state change error:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -233,6 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     try {
       console.log('🔄 Attempting login for:', email);
       
@@ -242,21 +211,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
+        setLoading(false);
         throw new Error(error.message);
       }
 
       if (data.user) {
         console.log('✅ Login successful, user:', data.user.id);
         // Profile will be fetched via auth state change listener
+        // Don't set loading to false here, let the auth state change handle it
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error);
+      setLoading(false);
       throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
+    setLoading(true);
     try {
       const redirectUrl = getRedirectUrl('/auth/callback');
       console.log('🔄 Registering user with redirect URL:', redirectUrl);
@@ -274,36 +247,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        console.error('Registration error:', error);
+        console.error('❌ Registration error:', error);
+        setLoading(false);
         throw new Error(error.message);
       }
 
       // Check if email confirmation is required
       const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
       
-      console.log('Registration result:', {
+      console.log('📋 Registration result:', {
         user: !!data.user,
         session: !!data.session,
         emailConfirmationRequired,
         email_confirmed_at: data.user?.email_confirmed_at
       });
 
+      // If user is immediately confirmed and has a session, they're logged in
+      if (data.user && data.session && data.user.email_confirmed_at) {
+        console.log('✅ User immediately confirmed and logged in');
+        // Profile will be fetched via auth state change listener
+        return { emailConfirmationRequired: false };
+      }
+
+      setLoading(false);
       return { emailConfirmationRequired };
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('❌ Registration failed:', error);
+      setLoading(false);
       throw error;
     }
   };
 
   const logout = async () => {
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
+        console.error('❌ Logout error:', error);
         throw new Error(error.message);
       }
       setCurrentUser(null);
+      setLoading(false);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
+      setLoading(false);
       throw error;
     }
   };
