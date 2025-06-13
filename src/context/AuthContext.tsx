@@ -41,17 +41,7 @@ export const useAuth = () => useContext(AuthContext);
 
 // Get the correct redirect URL based on environment
 const getRedirectUrl = (path: string = '/auth/callback') => {
-  // Check if we're in production (Netlify)
-  if (window.location.hostname === 'digitallegacydiary.netlify.app') {
-    return `https://digitallegacydiary.netlify.app${path}`;
-  }
-  
-  // Check for other production domains
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return `${window.location.origin}${path}`;
-  }
-  
-  // Default to current origin for development
+  // Always use the current origin for the redirect URL
   return `${window.location.origin}${path}`;
 };
 
@@ -247,6 +237,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
+    const redirectUrl = getRedirectUrl('/auth/callback');
+    console.log('🔄 Registering user with redirect URL:', redirectUrl);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -255,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name,
           subscription_tier: subscriptionTier,
         },
-        emailRedirectTo: getRedirectUrl('/auth/callback')
+        emailRedirectTo: redirectUrl
       }
     });
 
@@ -271,7 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       session: data.session,
       emailConfirmationRequired,
       email_confirmed_at: data.user?.email_confirmed_at,
-      redirectUrl: getRedirectUrl('/auth/callback')
+      redirectUrl
     });
 
     // If user is immediately confirmed, fetch their profile
@@ -372,11 +365,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Email is required to resend verification');
     }
 
+    const redirectUrl = getRedirectUrl('/auth/callback');
+    console.log('🔄 Resending verification email with redirect URL:', redirectUrl);
+
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: getRedirectUrl('/auth/callback')
+        emailRedirectTo: redirectUrl
       }
     });
 
