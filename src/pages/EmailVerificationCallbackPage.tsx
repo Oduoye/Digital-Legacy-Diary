@@ -31,14 +31,18 @@ const EmailVerificationCallbackPage: React.FC = () => {
       const tokenHash = searchParams.get('token_hash');
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
+      const code = searchParams.get('code');
 
       console.log('Email verification params:', { 
         hasAccessToken: !!accessToken, 
         hasRefreshToken: !!refreshToken, 
         type, 
         hasTokenHash: !!tokenHash,
+        hasCode: !!code,
         error,
-        errorDescription
+        errorDescription,
+        fullUrl: window.location.href,
+        searchParams: Object.fromEntries(searchParams.entries())
       });
 
       // Handle error from URL params first
@@ -56,8 +60,21 @@ const EmailVerificationCallbackPage: React.FC = () => {
         return;
       }
 
+      // Check if user is already verified first
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser && currentUser.email_confirmed_at) {
+        console.log('User is already verified:', currentUser);
+        setUserEmail(currentUser.email || '');
+        setStatus('success');
+        setMessage('Your email is already verified! Redirecting to dashboard...');
+        
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 2000);
+        return;
+      }
+
       // Modern Supabase auth flow - use exchangeCodeForSession if we have a code
-      const code = searchParams.get('code');
       if (code) {
         console.log('Using modern auth flow with code exchange');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -133,17 +150,11 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
       }
 
-      // Check if user is already verified
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        console.log('User is already verified:', user);
-        setUserEmail(user.email || '');
-        setStatus('success');
-        setMessage('Your email is already verified! Redirecting to dashboard...');
-        
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 2000);
+      // If no verification parameters are present, this might be a configuration issue
+      if (!code && !tokenHash && !accessToken && !refreshToken) {
+        console.error('No verification parameters found in URL');
+        setStatus('error');
+        setMessage('The verification link appears to be incomplete. This might be a configuration issue. Please try requesting a new verification email or contact support if the problem persists.');
         return;
       }
 
@@ -161,6 +172,8 @@ const EmailVerificationCallbackPage: React.FC = () => {
         setMessage('The verification link is invalid. Please try requesting a new verification email.');
       } else if (error.message?.includes('already_verified') || error.message?.includes('Email link is invalid or has expired')) {
         setMessage('Your email may already be verified. Please try logging in to your account.');
+      } else if (error.message?.includes('Unable to verify email with provided parameters')) {
+        setMessage('The verification link is missing required information. This might be a configuration issue. Please try requesting a new verification email.');
       } else {
         setMessage('Email verification failed. The link may be invalid or expired. Please try requesting a new verification email.');
       }
