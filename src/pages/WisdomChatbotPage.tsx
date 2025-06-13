@@ -30,9 +30,9 @@ const WisdomChatbotPage: React.FC = () => {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-serif font-bold text-white">Wisdom Chatbot</h1>
+            <h1 className="text-3xl font-serif font-bold text-white">Legacy Scribe</h1>
             <p className="text-white/80 mt-2">
-              Chat with an AI assistant that helps you explore and reflect on your memories
+              Your personal memory companion - an AI assistant that understands your journey and helps you explore the deeper meanings in your life story
             </p>
           </div>
 

@@ -39,7 +39,7 @@ const WisdomChatbot: React.FC = () => {
   // Initialize with welcome message if no messages exist
   useEffect(() => {
     if (currentChatSession && chatMessages.length === 0) {
-      const welcomeMessage = "Hello! I'm your Wisdom Assistant. I can help you explore your memories and reflect on your experiences. What would you like to discuss?";
+      const welcomeMessage = "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey. What would you like to discuss today?";
       addChatMessage({
         text: welcomeMessage,
         sender: 'bot',
@@ -53,94 +53,161 @@ const WisdomChatbot: React.FC = () => {
     const relevantEntries = entries.filter(entry =>
       keywords.some(keyword =>
         entry.content.toLowerCase().includes(keyword) ||
-        entry.tags.some(tag => tag.toLowerCase().includes(keyword))
+        entry.tags.some(tag => tag.toLowerCase().includes(keyword)) ||
+        entry.title.toLowerCase().includes(keyword)
       )
     );
 
     return relevantEntries.map(entry => entry.content);
   };
 
-  const generateResponse = (userMessage: string): string => {
+  const generateIntelligentResponse = (userMessage: string): string => {
     const context = analyzeContext(userMessage);
     setMessageContext(context);
     
     if (userMessage === lastUserMessage) {
-      return "I notice you've mentioned this before. Let's explore this from a different angle. What specific aspects would you like to discuss?";
+      return "I notice you've mentioned this before. Let me help you explore this from a different perspective. What specific aspects of this topic resonate most deeply with you right now?";
     }
 
     const lowercaseMessage = userMessage.toLowerCase();
     
-    // Enhanced greeting detection with personalized response based on journal entries
+    // Enhanced greeting detection with personalized response
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings'];
     const isGreeting = greetings.some(greeting => lowercaseMessage.includes(greeting));
     
     if (isGreeting) {
-      // Check if user has journal entries
       if (entries.length > 0) {
-        const firstEntry = entries[entries.length - 1]; // Get the first entry (oldest)
-        const recentEntry = entries[0]; // Get the most recent entry
+        const recentEntry = entries[0];
+        const totalEntries = entries.length;
+        const uniqueTags = [...new Set(entries.flatMap(entry => entry.tags))];
         
-        // Create a personalized greeting based on their journal history
         const greetingResponses = [
-          `Hello there! It's wonderful to connect with you again. I see you've been documenting your journey with ${entries.length} journal entries. Your first entry "${firstEntry.title}" caught my attention - it seems like that was an important moment for you. How are you feeling about your journey since then?`,
+          `Welcome back! I've been reflecting on your ${totalEntries} journal entries, and I'm particularly drawn to your recent piece "${recentEntry.title}". There's such depth in how you express yourself. What's been on your mind lately that you'd like to explore together?`,
           
-          `Hi! Great to see you back. I've been reflecting on your memories, and your recent entry "${recentEntry.title}" seems particularly meaningful. I can sense there's depth to your experiences. Would you like to explore that further, or is there something else on your mind today?`,
+          `Hello! It's wonderful to connect with you again. I've noticed some beautiful patterns in your writing - themes around ${uniqueTags.slice(0, 2).join(' and ')} keep appearing. Your voice has such authenticity. What aspect of your life story would you like to delve into today?`,
           
-          `Hello! I'm delighted you're here. Looking at your journal, I can see you've shared some beautiful memories, starting with "${firstEntry.title}". There's something special about first entries - they often capture a moment of decision to preserve our stories. What inspired you to begin this journey?`,
+          `Hi there! I've been contemplating your journey through your journal entries. Your recent reflection in "${recentEntry.title}" shows such insight. I'm curious - what memories or thoughts are stirring in you right now?`,
           
-          `Hey there! Welcome back to our conversation. I notice you've been thoughtfully documenting your life with ${entries.length} entries. Your journey from "${firstEntry.title}" to "${recentEntry.title}" shows such growth and reflection. What's been on your heart lately that you'd like to explore together?`,
-          
-          `Hello! It's so good to see you again. I've been thinking about your story, especially your entry "${firstEntry.title}" - there was something profound about how you expressed yourself there. How has your perspective evolved since you wrote that?`
+          `Greetings! Your ${totalEntries} entries paint such a rich tapestry of experiences. I'm particularly moved by how you write about ${uniqueTags[0] || 'your experiences'}. What would you like to explore or reflect on in our conversation today?`
         ];
         
         return greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
       } else {
-        // If no entries, encourage them to start their legacy journey
-        return "Hello! I'm so glad you're here. I'm your Wisdom Assistant, and I'm here to help you explore and preserve your memories. Since you're just starting your digital legacy journey, I'd love to hear about what brought you here today. What story or memory would you like to begin with?";
+        return "Hello! I'm Legacy Scribe, and I'm here to be your companion in exploring life's deeper meanings. While you haven't written any journal entries yet, I'm excited to help you begin this journey of reflection and discovery. What's something meaningful that's happened in your life recently that you'd like to talk about?";
       }
     }
     
-    // Check for question patterns
+    // Enhanced emotional intelligence
+    const emotionalWords = {
+      joy: ['happy', 'joy', 'excited', 'thrilled', 'delighted', 'elated'],
+      sadness: ['sad', 'grief', 'loss', 'mourning', 'heartbroken', 'melancholy'],
+      anxiety: ['worried', 'anxious', 'nervous', 'stressed', 'overwhelmed', 'fearful'],
+      anger: ['angry', 'frustrated', 'irritated', 'furious', 'annoyed'],
+      love: ['love', 'affection', 'care', 'cherish', 'adore'],
+      gratitude: ['grateful', 'thankful', 'blessed', 'appreciate']
+    };
+
+    let detectedEmotion = null;
+    for (const [emotion, words] of Object.entries(emotionalWords)) {
+      if (words.some(word => lowercaseMessage.includes(word))) {
+        detectedEmotion = emotion;
+        break;
+      }
+    }
+
+    if (detectedEmotion) {
+      const emotionalResponses = {
+        joy: [
+          "I can feel the joy radiating from your words! These moments of happiness are precious gifts. What made this experience so special for you?",
+          "Your happiness is contagious! I love seeing you celebrate life's beautiful moments. How does this joy connect to your deeper values and what matters most to you?"
+        ],
+        sadness: [
+          "I sense the weight of sadness in your words, and I want you to know that these feelings are valid and important. Sometimes our deepest growth comes through difficult emotions. Would you like to share what's weighing on your heart?",
+          "Grief and sadness are profound teachers, though painful ones. I'm here to listen and help you process these feelings. What would feel most supportive right now?"
+        ],
+        anxiety: [
+          "I can hear the worry in your words. Anxiety often signals that something matters deeply to us. Let's explore what's beneath these feelings - what are you most concerned about?",
+          "When we feel overwhelmed, it can help to break things down into smaller pieces. What's the core of what's troubling you right now?"
+        ],
+        anger: [
+          "I sense frustration in your message. Anger often points to our boundaries or values being challenged. What feels most important to address right now?",
+          "These feelings of anger are telling us something important. What do you think is at the heart of this frustration?"
+        ],
+        love: [
+          "The love in your words is beautiful to witness. These connections that matter to us are what make life meaningful. Tell me more about this relationship that brings you such joy.",
+          "Love is one of life's greatest gifts. I can feel how much this means to you. How has this love shaped who you are?"
+        ],
+        gratitude: [
+          "Your gratitude is touching. These moments of appreciation often reveal what we value most deeply. What about this experience fills you with such thankfulness?",
+          "Gratitude has such power to transform our perspective. I'm moved by your appreciation. How does this gratitude connect to your life's larger story?"
+        ]
+      };
+
+      const responses = emotionalResponses[detectedEmotion as keyof typeof emotionalResponses];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+    
+    // Enhanced question handling with context awareness
     if (lowercaseMessage.includes('?')) {
       if (lowercaseMessage.includes('why')) {
-        return "That's a thoughtful question. Based on your journal entries, let's explore the underlying reasons together.";
+        if (context.length > 0) {
+          return "That's a profound question that touches on some themes I've noticed in your journal entries. Looking at your past reflections, I see patterns that might help us explore this 'why' together. What draws you to ask this particular question right now?";
+        }
+        return "That's such an important question - the 'why' behind our experiences often holds the deepest meaning. What's prompting you to explore this particular aspect of your life?";
       }
       if (lowercaseMessage.includes('how')) {
-        return "Good question. Let's break this down and examine your experiences related to this topic.";
+        return "Great question! I love how you're thinking about the 'how' - the process and journey matter as much as the destination. Based on your experiences, what approaches have worked well for you in the past?";
       }
       if (lowercaseMessage.includes('what')) {
-        return "Let's reflect on your past experiences and insights about this.";
+        return "That's a thoughtful question that invites deeper exploration. From what I know about your journey through your journal entries, what aspects of this topic feel most significant to you?";
       }
     }
 
-    // Check for emotional content
-    const emotionalWords = ['feel', 'sad', 'happy', 'angry', 'worried', 'excited'];
-    if (emotionalWords.some(word => lowercaseMessage.includes(word))) {
-      return "I can sense this holds emotional significance for you. Would you like to explore these feelings further?";
+    // Memory and reflection prompts
+    const memoryKeywords = ['remember', 'memory', 'childhood', 'past', 'used to', 'back then'];
+    if (memoryKeywords.some(keyword => lowercaseMessage.includes(keyword))) {
+      return "Memories are such treasures - they shape who we are and connect us to our authentic selves. I'm curious about this memory you're sharing. What emotions or insights does it bring up for you now, looking back?";
     }
 
-    // Search for relevant entries
-    const relevantEntries = entries.filter(entry => 
-      entry.content.toLowerCase().includes(lowercaseMessage) ||
-      entry.tags.some(tag => tag.toLowerCase().includes(lowercaseMessage))
-    );
+    // Family and relationship topics
+    const relationshipKeywords = ['family', 'mother', 'father', 'parent', 'child', 'friend', 'spouse', 'partner'];
+    if (relationshipKeywords.some(keyword => lowercaseMessage.includes(keyword))) {
+      return "Relationships are the threads that weave the tapestry of our lives. I can sense this person holds special meaning for you. How has this relationship shaped your understanding of yourself and what matters most?";
+    }
+
+    // Search for relevant entries with enhanced matching
+    const relevantEntries = entries.filter(entry => {
+      const entryText = (entry.content + ' ' + entry.title + ' ' + entry.tags.join(' ')).toLowerCase();
+      const messageWords = lowercaseMessage.split(' ').filter(word => word.length > 3);
+      return messageWords.some(word => entryText.includes(word));
+    });
 
     if (relevantEntries.length > 0) {
       const randomEntry = relevantEntries[Math.floor(Math.random() * relevantEntries.length)];
-      return `I found a relevant memory from your journal about "${randomEntry.title}". Would you like to reflect on this experience?`;
+      const entryDate = new Date(randomEntry.createdAt).toLocaleDateString();
+      return `Your message reminds me of something beautiful you wrote in "${randomEntry.title}" on ${entryDate}. There's a connection here that feels meaningful. How do your thoughts today relate to what you were experiencing then?`;
     }
 
-    // Default responses with context awareness
-    const defaultResponses = [
-      "That's an interesting perspective. How does this relate to your recent experiences?",
-      "I notice this topic isn't in your journal yet. Would you like to create a new entry about it?",
-      "This could be a meaningful area for reflection. What aspects resonate most with you?",
-      "Let's explore this together. How does this connect to your personal journey?",
-      "What memories or feelings does this bring up for you?",
-      "How has your perspective on this changed over time?",
+    // Enhanced default responses with more personality and depth
+    const thoughtfulResponses = [
+      "I find myself drawn to the deeper currents beneath your words. There's something here that feels significant. What aspects of this topic stir something within you?",
+      
+      "Your perspective always offers such rich material for reflection. I'm curious - how does this connect to your broader life story and the themes that matter most to you?",
+      
+      "There's wisdom in what you're sharing, even if it might not feel that way right now. Sometimes our most important insights come through exploring these very thoughts. What feels most alive or urgent about this for you?",
+      
+      "I sense there's more beneath the surface of what you're sharing. Our conversations often reveal unexpected connections. What drew you to bring this up today?",
+      
+      "Your words carry weight and meaning. I'm here to help you unpack whatever feels important. What would feel most valuable to explore about this topic?",
+      
+      "I notice this topic isn't something you've written about in your journal yet. Sometimes our conversations reveal new territories worth exploring. Would you like to delve deeper into this together?",
+      
+      "There's something in your message that suggests this matters to you in a particular way. I'm curious about what makes this significant in your life right now.",
+      
+      "Your thoughts often lead us to unexpected places of insight. What feels most important to understand or explore about what you've shared?"
     ];
 
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    return thoughtfulResponses[Math.floor(Math.random() * thoughtfulResponses.length)];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -161,14 +228,14 @@ const WisdomChatbot: React.FC = () => {
 
     // Generate and add bot response after a delay
     setTimeout(async () => {
-      const botResponse = generateResponse(userMessageText);
+      const botResponse = generateIntelligentResponse(userMessageText);
       await addChatMessage({
         text: botResponse,
         sender: 'bot',
         sessionId: currentChatSession?.id,
       });
       setIsTyping(false);
-    }, 800 + Math.random() * 800);
+    }, 1200 + Math.random() * 800); // Slightly longer delay for more thoughtful responses
   };
 
   const handleNewSession = async () => {
@@ -208,7 +275,7 @@ const WisdomChatbot: React.FC = () => {
         <div className="flex items-center space-x-2">
           <Bot className="h-6 w-6 text-primary-600" />
           <h2 className="text-lg font-semibold text-white">
-            {currentChatSession?.title || 'Wisdom Assistant'}
+            {currentChatSession?.title || 'Legacy Scribe'}
           </h2>
         </div>
         
@@ -326,10 +393,10 @@ const WisdomChatbot: React.FC = () => {
                 {message.sender === 'bot' && (
                   <div className="flex items-center mb-2">
                     <Bot className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Wisdom Assistant</span>
+                    <span className="font-medium">Legacy Scribe</span>
                   </div>
                 )}
-                <p className="text-sm">{message.text}</p>
+                <p className="text-sm leading-relaxed">{message.text}</p>
                 <p className="text-xs mt-1 opacity-70">
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
@@ -342,7 +409,7 @@ const WisdomChatbot: React.FC = () => {
               <div className="bg-white/20 rounded-lg p-3 backdrop-blur-sm border border-white/30">
                 <div className="flex items-center space-x-2">
                   <Bot className="h-5 w-5" />
-                  <span className="font-medium">Wisdom Assistant</span>
+                  <span className="font-medium">Legacy Scribe</span>
                 </div>
                 <div className="flex space-x-2 mt-2">
                   <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -361,7 +428,7 @@ const WisdomChatbot: React.FC = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Share your thoughts with Legacy Scribe..."
               className="flex-1 rounded-md border border-white/30 px-3 py-2 text-sm bg-white/10 text-white placeholder-white/60 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
             <Button 

@@ -136,8 +136,8 @@ const DashboardPage: React.FC = () => {
     },
     {
       icon: Bot,
-      title: "AI Assistant",
-      description: "Chat with your wisdom assistant.",
+      title: "Legacy Scribe",
+      description: "Chat with your personal memory companion.",
       link: "/wisdom-chatbot",
       buttonText: "Start Chat",
       gradient: "from-pink-400 to-purple-500",
