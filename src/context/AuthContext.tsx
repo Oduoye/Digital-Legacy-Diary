@@ -98,7 +98,7 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Changed from true to false
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
   // Helper function to handle auth errors and clear session
@@ -115,15 +115,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(null);
       }
     }
+    
+    // Always stop loading on error
+    setLoading(false);
   };
 
   useEffect(() => {
     let mounted = true;
+    let initTimeout: NodeJS.Timeout;
 
     // Initialize session and set up auth listener
     const initializeAuth = async () => {
       try {
         console.log('🔄 Initializing authentication...');
+        setLoading(true);
+        
+        // Set a timeout to prevent infinite loading
+        initTimeout = setTimeout(() => {
+          if (mounted) {
+            console.log('⏰ Auth initialization timeout, stopping loading...');
+            setLoading(false);
+            setSessionInitialized(true);
+          }
+        }, 5000); // 5 second timeout
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -132,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await handleAuthError(error, 'Session initialization');
           if (mounted) {
             setSessionInitialized(true);
+            setLoading(false);
           }
           return;
         }
@@ -147,6 +162,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         if (mounted) {
           setSessionInitialized(true);
+          setLoading(false);
+          if (initTimeout) clearTimeout(initTimeout);
         }
       }
     };
@@ -185,6 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (initTimeout) clearTimeout(initTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -250,45 +268,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    const redirectUrl = getRedirectUrl('/auth/callback');
-    console.log('🔄 Registering user with redirect URL:', redirectUrl);
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          subscription_tier: subscriptionTier,
-        },
-        emailRedirectTo: redirectUrl
+    setLoading(true);
+    try {
+      const redirectUrl = getRedirectUrl('/auth/callback');
+      console.log('🔄 Registering user with redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            subscription_tier: subscriptionTier,
+          },
+          emailRedirectTo: redirectUrl
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
       }
-    });
 
-    if (error) {
-      throw new Error(error.message);
+      // Check if email confirmation is required
+      const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+      
+      console.log('Registration result:', {
+        user: data.user,
+        session: data.session,
+        emailConfirmationRequired,
+        email_confirmed_at: data.user?.email_confirmed_at,
+        redirectUrl
+      });
+
+      // If user is immediately confirmed, fetch their profile
+      if (data.user && (data.user.email_confirmed_at || data.session)) {
+        setTimeout(async () => {
+          await fetchUserProfile(data.user!.id);
+        }, 1000);
+        return { emailConfirmationRequired: false };
+      }
+
+      return { emailConfirmationRequired: true };
+    } finally {
+      setLoading(false);
     }
-
-    // Check if email confirmation is required
-    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
-    
-    console.log('Registration result:', {
-      user: data.user,
-      session: data.session,
-      emailConfirmationRequired,
-      email_confirmed_at: data.user?.email_confirmed_at,
-      redirectUrl
-    });
-
-    // If user is immediately confirmed, fetch their profile
-    if (data.user && (data.user.email_confirmed_at || data.session)) {
-      setTimeout(async () => {
-        await fetchUserProfile(data.user!.id);
-      }, 1000);
-      return { emailConfirmationRequired: false };
-    }
-
-    return { emailConfirmationRequired: true };
   };
 
   const logout = async () => {

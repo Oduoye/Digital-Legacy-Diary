@@ -16,7 +16,18 @@ const EmailVerificationCallbackPage: React.FC = () => {
   const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (status === 'loading') {
+        console.log('⏰ Email verification timeout, stopping loading...');
+        setStatus('error');
+        setMessage('Email verification is taking longer than expected. Please try again or request a new verification email.');
+      }
+    }, 10000); // 10 second timeout
+
     handleEmailVerification();
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleEmailVerification = async () => {

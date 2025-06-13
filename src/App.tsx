@@ -33,16 +33,7 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Minimal loading component that doesn't block UI
-const MinimalLoadingIndicator: React.FC = () => (
-  <div className="fixed top-4 right-4 z-50">
-    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-    </div>
-  </div>
-);
-
-// Protected route component with non-blocking loading
+// Protected route component - no loading indicator
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -50,19 +41,13 @@ const ProtectedRoute: React.FC<{
   children, 
   redirectTo = '/login' 
 }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
   
-  // Don't block UI during auth initialization
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 // Public route component that redirects authenticated users
@@ -73,19 +58,14 @@ const PublicRoute: React.FC<{
   children, 
   redirectTo = '/dashboard' 
 }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated } = useAuth();
   
   // If user is authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 function App() {
