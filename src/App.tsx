@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Loader } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DiaryProvider } from './context/DiaryContext';
@@ -34,21 +33,16 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Global Loading Indicator Component
-const GlobalLoadingIndicator: React.FC = () => {
-  const { loading } = useAuth();
-  
-  if (!loading) return null;
-  
-  return (
-    <div className="fixed top-4 right-4 z-[9999] flex items-center bg-black/20 backdrop-blur-sm rounded-full px-3 py-2 border border-white/20">
-      <Loader className="h-4 w-4 text-white animate-spin" />
-      <span className="ml-2 text-sm text-white hidden sm:inline">Loading...</span>
+// Minimal loading component that doesn't block UI
+const MinimalLoadingIndicator: React.FC = () => (
+  <div className="fixed top-4 right-4 z-50">
+    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
     </div>
-  );
-};
+  </div>
+);
 
-// Protected route component - no loading indicator
+// Protected route component with non-blocking loading
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -56,13 +50,19 @@ const ProtectedRoute: React.FC<{
   children, 
   redirectTo = '/login' 
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   
+  // Don't block UI during auth initialization
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return <>{children}</>;
+  return (
+    <>
+      {loading && <MinimalLoadingIndicator />}
+      {children}
+    </>
+  );
 };
 
 // Public route component that redirects authenticated users
@@ -73,14 +73,19 @@ const PublicRoute: React.FC<{
   children, 
   redirectTo = '/dashboard' 
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   
   // If user is authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return <>{children}</>;
+  return (
+    <>
+      {loading && <MinimalLoadingIndicator />}
+      {children}
+    </>
+  );
 };
 
 function App() {
@@ -88,9 +93,6 @@ function App() {
     <Router>
       <AuthProvider>
         <DiaryProvider>
-          {/* Global Loading Indicator - appears on all pages */}
-          <GlobalLoadingIndicator />
-          
           <Routes>
             {/* Public routes - redirect to dashboard if authenticated */}
             <Route 

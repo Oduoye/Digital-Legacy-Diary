@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  loading: true,
+  loading: false,
   login: async () => {},
   register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
@@ -58,6 +58,21 @@ const getRedirectUrl = (path: string = '/auth/callback') => {
   return `${window.location.origin}${path}`;
 };
 
+// Helper function to check if error is related to invalid refresh token
+const isRefreshTokenError = (error: any): boolean => {
+  if (!error) return false;
+  
+  const errorMessage = error.message?.toLowerCase() || '';
+  const errorCode = error.code?.toLowerCase() || '';
+  
+  return (
+    errorMessage.includes('refresh token not found') ||
+    errorMessage.includes('invalid refresh token') ||
+    errorCode === 'refresh_token_not_found' ||
+    errorCode === 'invalid_grant'
+  );
+};
+
 // Helper function to convert database user to app user
 const convertDbUserToAppUser = (dbUser: any): User => {
   return {
@@ -83,8 +98,24 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
+
+  // Helper function to handle auth errors and clear session
+  const handleAuthError = async (error: any, context: string) => {
+    console.error(`❌ ${context} error:`, error);
+    
+    if (isRefreshTokenError(error)) {
+      console.log('🔄 Invalid refresh token detected, clearing session...');
+      try {
+        await supabase.auth.signOut();
+        setCurrentUser(null);
+      } catch (signOutError) {
+        console.error('❌ Error during signOut:', signOutError);
+        setCurrentUser(null);
+      }
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -98,9 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('❌ Session initialization error:', error);
+          await handleAuthError(error, 'Session initialization');
           if (mounted) {
-            setLoading(false);
             setSessionInitialized(true);
           }
           return;
@@ -111,16 +141,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           console.log('👤 Session user found, fetching profile...');
           await fetchUserProfile(session.user.id);
-        } else {
-          if (mounted) {
-            setLoading(false);
-          }
         }
       } catch (error) {
-        console.error('❌ Auth initialization error:', error);
-        if (mounted) {
-          setLoading(false);
-        }
+        await handleAuthError(error, 'Auth initialization');
       } finally {
         if (mounted) {
           setSessionInitialized(true);
@@ -137,22 +160,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in, fetching profile');
+          setLoading(true);
           await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setCurrentUser(null);
-          setLoading(false);
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed');
           if (!currentUser) {
             await fetchUserProfile(session.user.id);
           }
-        } else if (event === 'USER_UPDATED' && session?.user) {
-          console.log('👤 User updated');
-          await fetchUserProfile(session.user.id);
         }
       } catch (error) {
-        console.error('❌ Auth state change error:', error);
+        await handleAuthError(error, 'Auth state change');
+      } finally {
         if (mounted) {
           setLoading(false);
         }
@@ -181,11 +202,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('❌ Error fetching user profile:', error);
         
+        if (isRefreshTokenError(error)) {
+          await handleAuthError(error, 'Profile fetch');
+          return;
+        }
+        
         if (error.code === 'PGRST116') {
           console.log('⚠️ User not found in users table, they may need to complete registration');
           setCurrentUser(null);
         }
-        setLoading(false);
         return;
       }
 
@@ -193,89 +218,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ User profile fetched successfully');
         setCurrentUser(convertDbUserToAppUser(data));
       }
-      setLoading(false);
     } catch (error) {
       console.error('❌ Error in fetchUserProfile:', error);
-      setLoading(false);
+      
+      if (isRefreshTokenError(error)) {
+        await handleAuthError(error, 'Profile fetch');
+        return;
+      }
     }
   };
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      console.log('🔄 Attempting login for:', email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error('❌ Login error:', error);
-        setLoading(false);
         throw new Error(error.message);
       }
 
       if (data.user) {
-        console.log('✅ Login successful, user:', data.user.id);
-        // Profile will be fetched via auth state change listener
-        // Don't set loading to false here, let the auth state change handle it
+        console.log('✅ Login successful, fetching profile');
+        await fetchUserProfile(data.user.id);
       }
-    } catch (error) {
-      console.error('❌ Login failed:', error);
+    } finally {
       setLoading(false);
-      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    setLoading(true);
-    try {
-      const redirectUrl = getRedirectUrl('/auth/callback');
-      console.log('🔄 Registering user with redirect URL:', redirectUrl);
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            subscription_tier: subscriptionTier,
-          },
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-      if (error) {
-        console.error('❌ Registration error:', error);
-        setLoading(false);
-        throw new Error(error.message);
+    const redirectUrl = getRedirectUrl('/auth/callback');
+    console.log('🔄 Registering user with redirect URL:', redirectUrl);
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          subscription_tier: subscriptionTier,
+        },
+        emailRedirectTo: redirectUrl
       }
+    });
 
-      // Check if email confirmation is required
-      const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
-      
-      console.log('📋 Registration result:', {
-        user: !!data.user,
-        session: !!data.session,
-        emailConfirmationRequired,
-        email_confirmed_at: data.user?.email_confirmed_at
-      });
-
-      // If user is immediately confirmed and has a session, they're logged in
-      if (data.user && data.session && data.user.email_confirmed_at) {
-        console.log('✅ User immediately confirmed and logged in');
-        // Profile will be fetched via auth state change listener
-        return { emailConfirmationRequired: false };
-      }
-
-      setLoading(false);
-      return { emailConfirmationRequired };
-    } catch (error) {
-      console.error('❌ Registration failed:', error);
-      setLoading(false);
-      throw error;
+    if (error) {
+      throw new Error(error.message);
     }
+
+    // Check if email confirmation is required
+    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+    
+    console.log('Registration result:', {
+      user: data.user,
+      session: data.session,
+      emailConfirmationRequired,
+      email_confirmed_at: data.user?.email_confirmed_at,
+      redirectUrl
+    });
+
+    // If user is immediately confirmed, fetch their profile
+    if (data.user && (data.user.email_confirmed_at || data.session)) {
+      setTimeout(async () => {
+        await fetchUserProfile(data.user!.id);
+      }, 1000);
+      return { emailConfirmationRequired: false };
+    }
+
+    return { emailConfirmationRequired: true };
   };
 
   const logout = async () => {
@@ -283,15 +296,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('❌ Logout error:', error);
         throw new Error(error.message);
       }
       setCurrentUser(null);
+    } finally {
       setLoading(false);
-    } catch (error) {
-      console.error('❌ Logout error:', error);
-      setLoading(false);
-      throw error;
     }
   };
 

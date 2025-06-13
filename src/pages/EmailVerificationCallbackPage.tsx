@@ -33,19 +33,21 @@ const EmailVerificationCallbackPage: React.FC = () => {
       const errorDescription = searchParams.get('error_description');
       const code = searchParams.get('code');
 
-      console.log('📧 Email verification params:', { 
+      console.log('Email verification params:', { 
         hasAccessToken: !!accessToken, 
         hasRefreshToken: !!refreshToken, 
         type, 
         hasTokenHash: !!tokenHash,
         hasCode: !!code,
         error,
-        errorDescription
+        errorDescription,
+        fullUrl: window.location.href,
+        searchParams: Object.fromEntries(searchParams.entries())
       });
 
       // Handle error from URL params first
       if (error) {
-        console.error('❌ URL error:', error, errorDescription);
+        console.error('URL error:', error, errorDescription);
         setStatus('error');
         
         if (error === 'access_denied' || errorDescription?.includes('expired')) {
@@ -61,7 +63,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       // Check if user is already verified first
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser && currentUser.email_confirmed_at) {
-        console.log('✅ User is already verified:', currentUser);
+        console.log('User is already verified:', currentUser);
         setUserEmail(currentUser.email || '');
         setStatus('success');
         setMessage('Your email is already verified! Redirecting to dashboard...');
@@ -74,24 +76,16 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Modern Supabase auth flow - use exchangeCodeForSession if we have a code
       if (code) {
-        console.log('🔄 Using modern auth flow with code exchange');
-        
-        const { data, error: codeError } = await supabase.auth.exchangeCodeForSession(code);
+        console.log('Using modern auth flow with code exchange');
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-        if (codeError) {
-          console.error('❌ Code exchange error:', codeError);
-          
-          if (codeError.message?.includes('expired') || codeError.message?.includes('invalid')) {
-            setStatus('error');
-            setMessage('The verification link has expired or is invalid. Please request a new verification email.');
-            return;
-          }
-          
-          throw codeError;
+        if (error) {
+          console.error('Code exchange error:', error);
+          throw error;
         }
 
         if (data.user && data.session) {
-          console.log('✅ Email verified successfully with code exchange:', data.user);
+          console.log('Email verified successfully with code exchange:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -106,27 +100,19 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Fallback: Handle token_hash method (newer Supabase versions)
       if (tokenHash && type) {
-        console.log('🔄 Using token hash verification');
-        
-        const { data, error: hashError } = await supabase.auth.verifyOtp({
+        console.log('Using token hash verification');
+        const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: type as any,
         });
 
-        if (hashError) {
-          console.error('❌ Token hash verification error:', hashError);
-          
-          if (hashError.message?.includes('expired') || hashError.message?.includes('invalid')) {
-            setStatus('error');
-            setMessage('The verification link has expired or is invalid. Please request a new verification email.');
-            return;
-          }
-          
-          throw hashError;
+        if (error) {
+          console.error('Token hash verification error:', error);
+          throw error;
         }
 
         if (data.user && data.session) {
-          console.log('✅ Email verified successfully with token hash:', data.user);
+          console.log('Email verified successfully with token hash:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -140,27 +126,19 @@ const EmailVerificationCallbackPage: React.FC = () => {
 
       // Legacy fallback: access_token method
       if (accessToken && refreshToken) {
-        console.log('🔄 Using legacy access token method');
-        
-        const { data, error: sessionError } = await supabase.auth.setSession({
+        console.log('Using legacy access token method');
+        const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
-        if (sessionError) {
-          console.error('❌ Session error:', sessionError);
-          
-          if (sessionError.message?.includes('expired') || sessionError.message?.includes('invalid')) {
-            setStatus('error');
-            setMessage('The verification link has expired or is invalid. Please request a new verification email.');
-            return;
-          }
-          
-          throw sessionError;
+        if (error) {
+          console.error('Session error:', error);
+          throw error;
         }
 
         if (data.user) {
-          console.log('✅ Email verified successfully with session:', data.user);
+          console.log('Email verified successfully with session:', data.user);
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
@@ -172,11 +150,11 @@ const EmailVerificationCallbackPage: React.FC = () => {
         }
       }
 
-      // If no verification parameters are present
+      // If no verification parameters are present, this might be a configuration issue
       if (!code && !tokenHash && !accessToken && !refreshToken) {
-        console.error('❌ No verification parameters found in URL');
+        console.error('No verification parameters found in URL');
         setStatus('error');
-        setMessage('The verification link appears to be incomplete. Please try requesting a new verification email.');
+        setMessage('The verification link appears to be incomplete. This might be a configuration issue. Please try requesting a new verification email or contact support if the problem persists.');
         return;
       }
 
@@ -184,7 +162,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       throw new Error('Unable to verify email with provided parameters');
 
     } catch (error: any) {
-      console.error('❌ Email verification error:', error);
+      console.error('Email verification error:', error);
       setStatus('error');
       
       // Provide more specific error messages
@@ -194,6 +172,8 @@ const EmailVerificationCallbackPage: React.FC = () => {
         setMessage('The verification link is invalid. Please try requesting a new verification email.');
       } else if (error.message?.includes('already_verified') || error.message?.includes('Email link is invalid or has expired')) {
         setMessage('Your email may already be verified. Please try logging in to your account.');
+      } else if (error.message?.includes('Unable to verify email with provided parameters')) {
+        setMessage('The verification link is missing required information. This might be a configuration issue. Please try requesting a new verification email.');
       } else {
         setMessage('Email verification failed. The link may be invalid or expired. Please try requesting a new verification email.');
       }
@@ -237,7 +217,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
       setResendSuccess(true);
       setTimeout(() => setResendSuccess(false), 5000);
     } catch (err: any) {
-      console.error('❌ Error resending verification email:', err);
+      console.error('Error resending verification email:', err);
       setMessage('Failed to resend verification email. Please try again or contact support.');
     } finally {
       setIsResendingEmail(false);

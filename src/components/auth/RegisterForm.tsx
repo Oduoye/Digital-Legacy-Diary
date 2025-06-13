@@ -102,21 +102,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         }, 2000);
       }
     } catch (err: any) {
-      let errorMessage = err.message || 'Failed to create account. Please try again.';
-      
-      // Handle specific error cases
-      if (err.message?.includes('User already registered')) {
-        errorMessage = 'An account with this email already exists. Please try logging in instead.';
-      } else if (err.message?.includes('Password should be at least 6 characters')) {
-        errorMessage = 'Password must be at least 6 characters long.';
-      } else if (err.message?.includes('Invalid email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (err.message?.includes('Signup is disabled')) {
-        errorMessage = 'Account registration is temporarily disabled. Please try again later.';
-      }
-      
-      setError(errorMessage);
-      console.error('❌ Registration error:', err);
+      setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +118,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
       setTimeout(() => setResendSuccess(false), 5000);
     } catch (err: any) {
       setError('Failed to resend verification email. Please try again.');
-      console.error('❌ Error resending verification email:', err);
     } finally {
       setIsResendingEmail(false);
     }
