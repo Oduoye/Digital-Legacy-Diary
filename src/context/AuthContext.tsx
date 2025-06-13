@@ -22,7 +22,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  loading: false,
+  loading: true,
   login: async () => {},
   register: async () => ({ emailConfirmationRequired: false }),
   logout: async () => {},
@@ -98,7 +98,7 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false); // Changed from true to false
+  const [loading, setLoading] = useState(true);
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
   // Helper function to handle auth errors and clear session
@@ -115,38 +115,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(null);
       }
     }
-    
-    // Always stop loading on error
-    setLoading(false);
   };
 
   useEffect(() => {
     let mounted = true;
-    let initTimeout: NodeJS.Timeout;
 
     // Initialize session and set up auth listener
     const initializeAuth = async () => {
       try {
         console.log('🔄 Initializing authentication...');
-        setLoading(true);
         
-        // Set a timeout to prevent infinite loading
-        initTimeout = setTimeout(() => {
-          if (mounted) {
-            console.log('⏰ Auth initialization timeout, stopping loading...');
-            setLoading(false);
-            setSessionInitialized(true);
-          }
-        }, 5000); // 5 second timeout
-        
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Get initial session with timeout
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 10000)
+        );
+
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
 
         if (error) {
-          await handleAuthError(error, 'Session initialization');
+          console.error('Session error:', error);
           if (mounted) {
-            setSessionInitialized(true);
             setLoading(false);
+            setSessionInitialized(true);
           }
           return;
         }
@@ -158,12 +152,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await fetchUserProfile(session.user.id);
         }
       } catch (error) {
+        console.error('Auth initialization error:', error);
         await handleAuthError(error, 'Auth initialization');
       } finally {
         if (mounted) {
           setSessionInitialized(true);
           setLoading(false);
-          if (initTimeout) clearTimeout(initTimeout);
         }
       }
     };
@@ -177,11 +171,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in, fetching profile');
-          setLoading(true);
           await fetchUserProfile(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setCurrentUser(null);
+          setLoading(false);
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 Token refreshed');
           if (!currentUser) {
@@ -189,8 +183,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } catch (error) {
+        console.error('Auth state change error:', error);
         await handleAuthError(error, 'Auth state change');
-      } finally {
         if (mounted) {
           setLoading(false);
         }
@@ -202,7 +196,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
-      if (initTimeout) clearTimeout(initTimeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -220,15 +213,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('❌ Error fetching user profile:', error);
         
-        if (isRefreshTokenError(error)) {
-          await handleAuthError(error, 'Profile fetch');
-          return;
-        }
-        
         if (error.code === 'PGRST116') {
           console.log('⚠️ User not found in users table, they may need to complete registration');
           setCurrentUser(null);
         }
+        setLoading(false);
         return;
       }
 
@@ -236,39 +225,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ User profile fetched successfully');
         setCurrentUser(convertDbUserToAppUser(data));
       }
+      setLoading(false);
     } catch (error) {
       console.error('❌ Error in fetchUserProfile:', error);
-      
-      if (isRefreshTokenError(error)) {
-        await handleAuthError(error, 'Profile fetch');
-        return;
-      }
+      setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
+      console.log('🔄 Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         throw new Error(error.message);
       }
 
       if (data.user) {
-        console.log('✅ Login successful, fetching profile');
-        await fetchUserProfile(data.user.id);
+        console.log('✅ Login successful, user:', data.user.id);
+        // Profile will be fetched via auth state change listener
       }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
     }
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    setLoading(true);
     try {
       const redirectUrl = getRedirectUrl('/auth/callback');
       console.log('🔄 Registering user with redirect URL:', redirectUrl);
@@ -286,6 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        console.error('Registration error:', error);
         throw new Error(error.message);
       }
 
@@ -293,37 +282,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
       
       console.log('Registration result:', {
-        user: data.user,
-        session: data.session,
+        user: !!data.user,
+        session: !!data.session,
         emailConfirmationRequired,
-        email_confirmed_at: data.user?.email_confirmed_at,
-        redirectUrl
+        email_confirmed_at: data.user?.email_confirmed_at
       });
 
-      // If user is immediately confirmed, fetch their profile
-      if (data.user && (data.user.email_confirmed_at || data.session)) {
-        setTimeout(async () => {
-          await fetchUserProfile(data.user!.id);
-        }, 1000);
-        return { emailConfirmationRequired: false };
-      }
-
-      return { emailConfirmationRequired: true };
-    } finally {
-      setLoading(false);
+      return { emailConfirmationRequired };
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw new Error(error.message);
       }
       setCurrentUser(null);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
     }
   };
 
