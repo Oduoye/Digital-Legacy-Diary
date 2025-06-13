@@ -33,16 +33,32 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Minimal loading component that doesn't block UI
-const MinimalLoadingIndicator: React.FC = () => (
-  <div className="fixed top-4 right-4 z-50">
-    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+// Loading screen component
+const LoadingScreen: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="h-12 w-12 bg-black rounded-full flex items-center justify-center p-1 shadow-2xl border border-white/20 mx-auto mb-4">
+        <img 
+          src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
+          alt="Digital Legacy Diary"
+          className="h-full w-full object-contain"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              parent.innerHTML = '<span class="text-2xl font-serif font-bold text-white">D</span>';
+            }
+          }}
+        />
+      </div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+      <p className="text-white/80">Loading your digital legacy...</p>
     </div>
   </div>
 );
 
-// Protected route component with non-blocking loading
+// Protected route component
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -52,17 +68,15 @@ const ProtectedRoute: React.FC<{
 }) => {
   const { isAuthenticated, loading } = useAuth();
   
-  // Don't block UI during auth initialization
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 // Public route component that redirects authenticated users
@@ -75,17 +89,16 @@ const PublicRoute: React.FC<{
 }) => {
   const { isAuthenticated, loading } = useAuth();
   
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  
   // If user is authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 function App() {
