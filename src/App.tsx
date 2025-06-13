@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Loader } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DiaryProvider } from './context/DiaryContext';
@@ -32,6 +33,20 @@ import SettingsPage from './pages/SettingsPage';
 import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
+
+// Global Loading Indicator Component
+const GlobalLoadingIndicator: React.FC = () => {
+  const { loading } = useAuth();
+  
+  if (!loading) return null;
+  
+  return (
+    <div className="fixed top-4 right-4 z-[9999] flex items-center bg-black/20 backdrop-blur-sm rounded-full px-3 py-2 border border-white/20">
+      <Loader className="h-4 w-4 text-white animate-spin" />
+      <span className="ml-2 text-sm text-white hidden sm:inline">Loading...</span>
+    </div>
+  );
+};
 
 // Protected route component - no loading indicator
 const ProtectedRoute: React.FC<{ 
@@ -73,6 +88,9 @@ function App() {
     <Router>
       <AuthProvider>
         <DiaryProvider>
+          {/* Global Loading Indicator - appears on all pages */}
+          <GlobalLoadingIndicator />
+          
           <Routes>
             {/* Public routes - redirect to dashboard if authenticated */}
             <Route 

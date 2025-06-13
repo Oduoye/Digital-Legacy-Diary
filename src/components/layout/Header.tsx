@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard, HelpCircle, Crown, Shield, Star, Loader } from 'lucide-react';
+import { User, Settings, LogOut, Menu, X, ChevronDown, CreditCard, HelpCircle, Crown, Shield, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
 const Header: React.FC = () => {
-  const { currentUser, logout, isAuthenticated, loading } = useAuth();
+  const { currentUser, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = React.useState(false);
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
@@ -86,14 +86,6 @@ const Header: React.FC = () => {
           </div>
           
           <div className="flex items-center">
-            {/* Loading indicator in top right */}
-            {loading && (
-              <div className="mr-4 flex items-center">
-                <Loader className="h-5 w-5 text-white animate-spin" />
-                <span className="ml-2 text-sm text-white/80 hidden sm:inline">Loading...</span>
-              </div>
-            )}
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
               {currentUser ? (
