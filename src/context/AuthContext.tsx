@@ -41,20 +41,7 @@ export const useAuth = () => useContext(AuthContext);
 
 // Get the correct redirect URL based on environment
 const getRedirectUrl = (path: string = '/auth/callback') => {
-  // Use production URL for Netlify deployment
-  if (window.location.hostname === 'digitallegacydiary.netlify.app' || 
-      window.location.hostname.includes('netlify.app')) {
-    return `https://digitallegacydiary.netlify.app${path}`;
-  }
-  
-  // For other production domains
-  if (window.location.hostname !== 'localhost' && 
-      window.location.hostname !== '127.0.0.1' && 
-      !window.location.hostname.includes('stackblitz')) {
-    return `${window.location.origin}${path}`;
-  }
-  
-  // For development environments (localhost, StackBlitz, etc.)
+  // Always use the current origin for the redirect URL
   return `${window.location.origin}${path}`;
 };
 
