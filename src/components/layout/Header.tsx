@@ -64,7 +64,8 @@ const Header: React.FC = () => {
           <div className="flex items-center">
             <Link to={currentUser ? '/dashboard' : '/'} className="flex items-center group">
               <div className="flex items-center">
-                <div className="h-12 w-12 flex items-center justify-center">
+                {/* Logo sized to match text height */}
+                <div className="h-6 w-6 md:h-7 md:w-7 flex items-center justify-center mr-2">
                   <img 
                     src="/DLD Logo with Navy Blue and Silver_20250601_034009_0000.png" 
                     alt="Digital Legacy Diary"
@@ -75,12 +76,13 @@ const Header: React.FC = () => {
                       target.style.display = 'none';
                       const parent = target.parentElement;
                       if (parent) {
-                        parent.innerHTML = '<span class="text-2xl font-serif font-bold text-white">D</span>';
+                        parent.innerHTML = '<span class="text-lg md:text-xl font-serif font-bold text-white">D</span>';
                       }
                     }}
                   />
                 </div>
-                <span className="ml-2 text-xl font-serif font-semibold text-white">Digital Legacy Diary</span>
+                {/* Title text sized to match logo */}
+                <span className="text-lg md:text-xl font-serif font-semibold text-white">Digital Legacy Diary</span>
               </div>
             </Link>
           </div>
