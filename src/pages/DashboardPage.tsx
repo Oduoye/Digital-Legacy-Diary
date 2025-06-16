@@ -37,9 +37,9 @@ const DashboardPage: React.FC = () => {
   }, []);
   
   const totalEntries = entries.length;
-  const recentEntries = entries.slice(0, 3);
+  const recentEntries = entries.slice(0, 1); // Show only the latest entry
   const allTags = entries.flatMap(entry => entry.tags);
-  const uniqueTags = [...new Set(allTags)].slice(0, 8);
+  const uniqueTags = [...new Set(allTags)].slice(0, 4); // Show only first 4 tags
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   const entriesThisMonth = entries.filter(entry => {
@@ -330,23 +330,35 @@ const DashboardPage: React.FC = () => {
                 </Card>
                 
                 <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
-                  <CardHeader>
+                  <CardHeader className="flex justify-between items-center">
                     <h2 className="text-xl font-serif font-semibold text-white flex items-center">
                       <Tag className="mr-2 h-5 w-5 text-cyan-400" />
                       Your Tags
                     </h2>
+                    {[...new Set(allTags)].length > 4 && (
+                      <Link to="/journal" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium">
+                        View All ({[...new Set(allTags)].length})
+                      </Link>
+                    )}
                   </CardHeader>
                   <CardContent>
                     {uniqueTags.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {uniqueTags.map((tag, index) => (
-                          <span 
-                            key={index}
-                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm border border-white/30"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          {uniqueTags.map((tag, index) => (
+                            <span 
+                              key={index}
+                              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm border border-white/30"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        {[...new Set(allTags)].length > 4 && (
+                          <p className="text-xs text-white/60 text-center">
+                            +{[...new Set(allTags)].length - 4} more tags
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <p className="text-white/70 text-sm">
@@ -362,9 +374,11 @@ const DashboardPage: React.FC = () => {
               <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
                 <CardHeader className="flex justify-between items-center">
                   <h2 className="text-xl font-serif font-semibold text-white">Recent Entries</h2>
-                  <Link to="/journal" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium">
-                    View All
-                  </Link>
+                  {entries.length > 1 && (
+                    <Link to="/journal" className="text-sm text-cyan-400 hover:text-cyan-300 font-medium">
+                      View All ({entries.length})
+                    </Link>
+                  )}
                 </CardHeader>
                 <CardContent>
                   {recentEntries.length > 0 ? (
@@ -402,6 +416,19 @@ const DashboardPage: React.FC = () => {
                           </div>
                         </Link>
                       ))}
+                      {entries.length > 1 && (
+                        <div className="text-center pt-4 border-t border-white/20">
+                          <Link to="/journal">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="border-white/30 text-white hover:bg-white/10"
+                            >
+                              View All {entries.length} Entries
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="py-8 text-center">
