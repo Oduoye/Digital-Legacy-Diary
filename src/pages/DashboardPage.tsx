@@ -173,12 +173,8 @@ const DashboardPage: React.FC = () => {
 
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          {/* Header Section with Enhanced Animation */}
-          <div 
-            className={`flex justify-between items-start mb-8 transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-          >
+          {/* Header Section - Removed scrolling animation */}
+          <div className="flex justify-between items-start mb-8">
             <div>
               <h2 className="text-lg text-white/80">Welcome back,</h2>
               <h1 className="text-2xl font-serif font-bold text-white">{currentUser?.name}</h1>
@@ -224,13 +220,8 @@ const DashboardPage: React.FC = () => {
             </Link>
           </div>
 
-          {/* Professional KYC Verification Card - Compact Version */}
-          <div 
-            className={`mb-8 transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-            style={{ transitionDelay: '200ms' }}
-          >
+          {/* Professional KYC Verification Card - Removed scrolling animation */}
+          <div className="mb-8">
             <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl relative overflow-hidden">
               {/* Professional header stripe */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600" />
@@ -266,18 +257,12 @@ const DashboardPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Dashboard Cards with Staggered Animation */}
+          {/* Dashboard Cards - Removed scrolling animations */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
             {dashboardCards.map((card, index) => (
               <Card 
                 key={index}
-                className={`backdrop-blur-xl ${card.bgClass || 'bg-white/10'} border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 ${
-                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                }`}
-                style={{ 
-                  transitionDelay: `${400 + index * 100}ms`,
-                  transitionDuration: '600ms'
-                }}
+                className={`backdrop-blur-xl ${card.bgClass || 'bg-white/10'} border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1`}
               >
                 <CardContent className="flex flex-col items-start py-6">
                   <div className={`bg-gradient-to-r ${card.gradient} p-3 rounded-full mb-4 shadow-lg`}>
@@ -299,13 +284,8 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Writing Prompt Section with Enhanced Animation */}
-          <div 
-            className={`mb-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-            style={{ transitionDelay: '1100ms' }}
-          >
+          {/* Writing Prompt Section - Removed scrolling animation */}
+          <div className="mb-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-6 shadow-2xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div className="mb-4 md:mb-0">
                 <h2 className="text-xl font-serif font-semibold text-white mb-2 flex items-center">
@@ -319,13 +299,8 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Stats and Recent Entries with Enhanced Animation */}
-          <div 
-            className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-800 ease-out ${
-              isLoaded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-6'
-            }`}
-            style={{ transitionDelay: '1200ms' }}
-          >
+          {/* Stats and Recent Entries - Removed scrolling animation */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
               <div className="grid grid-cols-1 gap-6">
                 <Card className="backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl">
@@ -396,15 +371,7 @@ const DashboardPage: React.FC = () => {
                     <div className="space-y-4">
                       {recentEntries.map((entry, index) => (
                         <Link key={entry.id} to={`/journal/${entry.id}`}>
-                          <div 
-                            className={`p-4 rounded-lg hover:bg-white/10 transition-all duration-500 border border-white/20 backdrop-blur-sm transform ${
-                              isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
-                            }`}
-                            style={{ 
-                              transitionDelay: `${1400 + index * 150}ms`,
-                              transitionDuration: '600ms'
-                            }}
-                          >
+                          <div className="p-4 rounded-lg hover:bg-white/10 transition-all duration-500 border border-white/20 backdrop-blur-sm transform">
                             <div className="flex justify-between items-start mb-1">
                               <h3 className="font-semibold text-white">{entry.title}</h3>
                               <span className="text-xs text-white/70">

@@ -17,6 +17,8 @@ interface ConversationContext {
   };
   lastUserIntent: string | null;
   emotionalCues: string[];
+  conversationHistory: string[];
+  lastResponseType: string | null;
 }
 
 // Enhanced response generation system
@@ -24,6 +26,7 @@ class LegacyScribeAI {
   private context: ConversationContext;
   private conversationHistory: ChatMessage[];
   private userEntries: any[];
+  private responseVariations: Map<string, string[]>;
 
   constructor(entries: any[], chatHistory: ChatMessage[]) {
     this.userEntries = entries;
@@ -38,8 +41,37 @@ class LegacyScribeAI {
         topicsOfInterest: []
       },
       lastUserIntent: null,
-      emotionalCues: []
+      emotionalCues: [],
+      conversationHistory: [],
+      lastResponseType: null
     };
+
+    // Initialize response variations to avoid repetition
+    this.responseVariations = new Map([
+      ['greeting', [
+        "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey.",
+        "Welcome! I'm Legacy Scribe, and I'm delighted to meet you. I've been getting to know you through your journal entries, and I'm excited to help you explore the rich tapestry of your memories and experiences.",
+        "Hi there! I'm Legacy Scribe, your AI companion for memory exploration. I've been learning about your unique story through your writings, and I'm here to help you reflect, discover insights, and preserve your wisdom."
+      ]],
+      ['encouragement', [
+        "That's a beautiful reflection. Your experiences have shaped you in meaningful ways.",
+        "I can sense the depth of your thoughts. There's real wisdom in what you're sharing.",
+        "Your perspective is truly valuable. These insights could be precious gifts for future generations.",
+        "What you're expressing shows such thoughtfulness and self-awareness."
+      ]],
+      ['curiosity', [
+        "I'm curious to learn more about that. What stands out most to you about this experience?",
+        "That sounds significant. What emotions or thoughts come up when you think about it now?",
+        "I'd love to understand this better. How did this experience change your perspective?",
+        "That's fascinating. What would you want others to understand about this part of your journey?"
+      ]],
+      ['validation', [
+        "Your feelings about this are completely valid and understandable.",
+        "It makes perfect sense that you would feel this way about such an important experience.",
+        "Your reaction shows how much this meant to you, and that's beautiful.",
+        "Anyone would be moved by an experience like that. Your response shows your humanity."
+      ]]
+    ]);
   }
 
   // Analyze user input for emotional cues and intent
@@ -49,8 +81,14 @@ class LegacyScribeAI {
     keywords: string[];
     urgency: 'low' | 'medium' | 'high';
     needsValidation: boolean;
+    isRepeatTopic: boolean;
   } {
     const lowercaseMessage = message.toLowerCase();
+    
+    // Check if this is a repeat topic
+    const isRepeatTopic = this.context.conversationHistory.some(prev => 
+      this.calculateSimilarity(prev, lowercaseMessage) > 0.7
+    );
     
     // Emotional analysis
     const emotionalIndicators = {
@@ -116,8 +154,34 @@ class LegacyScribeAI {
       intent: detectedIntent,
       keywords: words,
       urgency,
-      needsValidation
+      needsValidation,
+      isRepeatTopic
     };
+  }
+
+  // Calculate similarity between two strings
+  private calculateSimilarity(str1: string, str2: string): number {
+    const words1 = new Set(str1.toLowerCase().split(/\s+/));
+    const words2 = new Set(str2.toLowerCase().split(/\s+/));
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    return intersection.size / union.size;
+  }
+
+  // Get varied response to avoid repetition
+  private getVariedResponse(category: string): string {
+    const responses = this.responseVariations.get(category) || [];
+    if (responses.length === 0) return '';
+    
+    // Avoid using the same response type consecutively
+    let availableResponses = responses;
+    if (this.context.lastResponseType === category && responses.length > 1) {
+      availableResponses = responses.filter((_, index) => index !== 0);
+    }
+    
+    const response = availableResponses[Math.floor(Math.random() * availableResponses.length)];
+    this.context.lastResponseType = category;
+    return response;
   }
 
   // Update conversation context based on analysis
@@ -125,6 +189,7 @@ class LegacyScribeAI {
     this.context.lastUserIntent = analysis.intent;
     this.context.emotionalCues = [...this.context.emotionalCues.slice(-2), analysis.emotion];
     this.context.recentKeywords = [...this.context.recentKeywords.slice(-5), ...analysis.keywords];
+    this.context.conversationHistory = [...this.context.conversationHistory.slice(-5), userMessage.toLowerCase()];
 
     // Update mood based on emotional analysis
     if (['sadness', 'anxiety', 'anger', 'loneliness'].includes(analysis.emotion)) {
@@ -154,6 +219,11 @@ class LegacyScribeAI {
     const analysis = this.analyzeUserInput(userMessage);
     this.updateContext(analysis, userMessage);
 
+    // Handle repeat topics with acknowledgment
+    if (analysis.isRepeatTopic) {
+      return this.generateVariedFollowUp(analysis, userMessage);
+    }
+
     // Handle immediate emotional needs first
     if (analysis.urgency === 'high' || this.context.userMood === 'negative') {
       return this.generateEmotionalSupportResponse(analysis, userMessage);
@@ -169,7 +239,7 @@ class LegacyScribeAI {
       return this.generateAdaptiveResponse(analysis, userMessage);
     }
 
-    // Handle specific intents
+    // Handle specific intents with variation
     switch (analysis.intent) {
       case 'seeking_advice':
         return this.generateAdviceResponse(analysis, userMessage);
@@ -182,6 +252,18 @@ class LegacyScribeAI {
       default:
         return this.generateContextualResponse(analysis, userMessage);
     }
+  }
+
+  private generateVariedFollowUp(analysis: any, userMessage: string): string {
+    const followUps = [
+      "I can see this topic is really meaningful to you. What new aspects of this would you like to explore together?",
+      "You're returning to something important here. What's drawing you back to this particular experience or thought?",
+      "This seems to be on your mind quite a bit. What new insights or feelings are emerging as you think about it more?",
+      "I notice we've touched on this before. What's different about how you're experiencing it now?",
+      "This clearly holds significance for you. What would you like to discover or understand better about it?"
+    ];
+    
+    return followUps[Math.floor(Math.random() * followUps.length)];
   }
 
   private generateEmotionalSupportResponse(analysis: any, userMessage: string): string {
@@ -217,15 +299,8 @@ class LegacyScribeAI {
   }
 
   private generateValidationResponse(analysis: any, userMessage: string): string {
-    const validationResponses = [
-      "What you're feeling and thinking is completely valid. There's no 'right' or 'wrong' way to experience life's complexities. Your perspective and emotions make sense given your unique journey.",
-      "You're asking such an important question, and it shows your thoughtfulness and self-awareness. Trust your instincts - you know yourself better than anyone else.",
-      "It's so normal to question ourselves and seek validation. The fact that you're reflecting on this shows your wisdom and care. What does your heart tell you about this?",
-      "Your concerns and questions are completely understandable. Many people have walked similar paths and felt similar uncertainties. You're not alone in this experience.",
-      "There's no universal 'normal' - there's only what's authentic and true for you. Your feelings and reactions are valid responses to your unique life experiences."
-    ];
-
-    return validationResponses[Math.floor(Math.random() * validationResponses.length)];
+    return this.getVariedResponse('validation') || 
+           "What you're feeling and thinking is completely valid. There's no 'right' or 'wrong' way to experience life's complexities. Your perspective and emotions make sense given your unique journey.";
   }
 
   private generateAdaptiveResponse(analysis: any, userMessage: string): string {
@@ -278,14 +353,8 @@ class LegacyScribeAI {
       return `That's a thoughtful question. I notice you've written about related themes in your journal entries. Your own reflections might hold some insights. What connections do you see between this question and your life experiences?`;
     }
 
-    const questionResponses = [
-      "That's such a meaningful question. Questions like this often lead to the most important discoveries about ourselves. What draws you to explore this particular aspect of life?",
-      "I appreciate the depth of your question. Sometimes the most profound insights come from sitting with questions rather than rushing to answers. What thoughts or feelings does this question stir up for you?",
-      "You're asking about something that clearly resonates with you. The questions we ask often reveal what matters most to us. What makes this question particularly important to you right now?",
-      "That's a question worth exploring deeply. Your curiosity about this topic suggests it connects to something meaningful in your life. What experiences have led you to wonder about this?"
-    ];
-
-    return questionResponses[Math.floor(Math.random() * questionResponses.length)];
+    return this.getVariedResponse('curiosity') || 
+           "That's such a meaningful question. Questions like this often lead to the most important discoveries about ourselves. What draws you to explore this particular aspect of life?";
   }
 
   private generateGratitudeResponse(analysis: any, userMessage: string): string {
@@ -320,24 +389,9 @@ class LegacyScribeAI {
       return `What you're sharing reminds me of the wisdom in your journal entry "${entry.title}." There's a beautiful connection between what you're expressing now and the insights you've captured before. How do these thoughts feel different or similar to what you were experiencing then?`;
     }
 
-    // Default contextual responses based on mood and flow
-    const contextualResponses = {
-      positive: [
-        "I can sense the positive energy in what you're sharing. There's something wonderful about how you're reflecting on this. What aspects of this experience bring you the most joy or satisfaction?",
-        "Your perspective on this is really insightful. I love how you're approaching this topic with such openness. What discoveries are you making about yourself through this reflection?"
-      ],
-      reflective: [
-        "I can feel the depth of your reflection in what you're sharing. You're touching on something that clearly holds meaning for you. What insights are emerging as you think about this?",
-        "There's such thoughtfulness in how you're approaching this topic. Your reflective nature is one of your strengths. What patterns or connections are you noticing?"
-      ],
-      neutral: [
-        "Thank you for sharing that with me. I'm curious to understand more about your perspective on this. What aspects of this topic feel most significant to you?",
-        "I appreciate you bringing this up. There's always more to explore beneath the surface. What draws you to think about this particular aspect of your experience?"
-      ]
-    };
-
-    const moodResponses = contextualResponses[this.context.userMood as keyof typeof contextualResponses] || contextualResponses.neutral;
-    return moodResponses[Math.floor(Math.random() * moodResponses.length)];
+    // Use varied responses based on mood
+    return this.getVariedResponse('encouragement') || 
+           "Thank you for sharing that with me. I'm curious to understand more about your perspective on this. What aspects of this topic feel most significant to you?";
   }
 
   private findRelevantEntries(keywords: string[]): any[] {
@@ -369,6 +423,7 @@ const WisdomChatbot: React.FC = () => {
   const [showSessionMenu, setShowSessionMenu] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [hasInitialized, setHasInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize AI instance
@@ -386,17 +441,27 @@ const WisdomChatbot: React.FC = () => {
     scrollToBottom();
   }, [chatMessages]);
 
-  // Initialize with welcome message if no messages exist
+  // Initialize with welcome message immediately when component mounts
   useEffect(() => {
-    if (currentChatSession && chatMessages.length === 0) {
-      const welcomeMessage = "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey. I'm designed to listen carefully to what you share and respond thoughtfully to your unique perspective. What would you like to discuss today?";
+    if (currentChatSession && !hasInitialized && chatMessages.length === 0) {
+      setHasInitialized(true);
+      
+      // Add welcome message immediately without delay
+      const welcomeMessages = [
+        "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey. I'm designed to listen carefully to what you share and respond thoughtfully to your unique perspective. What would you like to discuss today?",
+        "Welcome! I'm Legacy Scribe, and I'm delighted to meet you. I've been getting to know you through your journal entries, and I'm excited to help you explore the rich tapestry of your memories and experiences. What's on your mind today?",
+        "Hi there! I'm Legacy Scribe, your AI companion for memory exploration. I've been learning about your unique story through your writings, and I'm here to help you reflect, discover insights, and preserve your wisdom. What would you like to talk about?"
+      ];
+      
+      const welcomeMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+      
       addChatMessage({
         text: welcomeMessage,
         sender: 'bot',
         sessionId: currentChatSession.id,
       });
     }
-  }, [currentChatSession, chatMessages.length]);
+  }, [currentChatSession, hasInitialized, chatMessages.length, addChatMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -413,7 +478,8 @@ const WisdomChatbot: React.FC = () => {
       sessionId: currentChatSession?.id,
     });
 
-    // Generate AI response with enhanced intelligence
+    // Generate AI response with enhanced intelligence and natural timing
+    const responseDelay = 800 + Math.random() * 600; // 800-1400ms for more natural feel
     setTimeout(async () => {
       if (aiRef.current) {
         const botResponse = aiRef.current.generateResponse(userMessageText);
@@ -424,18 +490,20 @@ const WisdomChatbot: React.FC = () => {
         });
       }
       setIsTyping(false);
-    }, 1200 + Math.random() * 800);
+    }, responseDelay);
   };
 
   const handleNewSession = async () => {
     await createNewChatSession();
     setShowSessionMenu(false);
+    setHasInitialized(false); // Reset initialization for new session
   };
 
   const handleSessionSelect = async (session: ChatSession) => {
     setCurrentChatSession(session);
     await loadChatHistory(session.id);
     setShowSessionMenu(false);
+    setHasInitialized(true); // Mark as initialized since we're loading existing session
   };
 
   const handleEditSession = (session: ChatSession) => {
@@ -454,6 +522,7 @@ const WisdomChatbot: React.FC = () => {
   const handleDeleteSession = async (sessionId: string) => {
     if (chatSessions.length > 1) {
       await deleteChatSession(sessionId);
+      setHasInitialized(false); // Reset for potential new session
     }
   };
 
