@@ -8,15 +8,19 @@ import Card from '../../components/ui/Card';
 // Enhanced conversation context tracking
 interface ConversationContext {
   currentTopic: string | null;
-  userMood: 'positive' | 'negative' | 'neutral' | 'reflective' | 'seeking_advice';
-  conversationFlow: 'greeting' | 'deep_discussion' | 'advice_seeking' | 'memory_sharing' | 'emotional_support';
+  userMood: 'positive' | 'negative' | 'neutral' | 'reflective' | 'seeking_advice' | 'frustrated' | 'excited';
+  conversationFlow: 'greeting' | 'deep_discussion' | 'advice_seeking' | 'memory_sharing' | 'emotional_support' | 'clarification';
   recentKeywords: string[];
   userPreferences: {
-    responseStyle: 'supportive' | 'analytical' | 'conversational';
+    responseStyle: 'supportive' | 'analytical' | 'conversational' | 'brief' | 'detailed';
     topicsOfInterest: string[];
   };
   lastUserIntent: string | null;
   emotionalCues: string[];
+  conversationHistory: string[];
+  userFeedback: 'positive' | 'negative' | 'neutral' | null;
+  needsValidation: boolean;
+  isFirstInteraction: boolean;
 }
 
 // Enhanced response generation system
@@ -24,10 +28,12 @@ class LegacyScribeAI {
   private context: ConversationContext;
   private conversationHistory: ChatMessage[];
   private userEntries: any[];
+  private responsePatterns: Set<string>;
 
   constructor(entries: any[], chatHistory: ChatMessage[]) {
     this.userEntries = entries;
     this.conversationHistory = chatHistory;
+    this.responsePatterns = new Set();
     this.context = {
       currentTopic: null,
       userMood: 'neutral',
@@ -38,7 +44,11 @@ class LegacyScribeAI {
         topicsOfInterest: []
       },
       lastUserIntent: null,
-      emotionalCues: []
+      emotionalCues: [],
+      conversationHistory: [],
+      userFeedback: null,
+      needsValidation: false,
+      isFirstInteraction: chatHistory.length === 0
     };
   }
 
@@ -49,19 +59,41 @@ class LegacyScribeAI {
     keywords: string[];
     urgency: 'low' | 'medium' | 'high';
     needsValidation: boolean;
+    feedback: 'positive' | 'negative' | 'neutral';
+    isRedirection: boolean;
+    specificRequest: string | null;
   } {
     const lowercaseMessage = message.toLowerCase();
     
-    // Emotional analysis
+    // Check for user feedback about bot responses
+    const feedbackIndicators = {
+      positive: ['thank you', 'thanks', 'helpful', 'good', 'great', 'perfect', 'exactly', 'yes', 'right'],
+      negative: ['no', 'not really', 'wrong', 'not helpful', 'different', 'stop', 'change topic', 'something else']
+    };
+
+    let feedback: 'positive' | 'negative' | 'neutral' = 'neutral';
+    for (const [type, indicators] of Object.entries(feedbackIndicators)) {
+      if (indicators.some(indicator => lowercaseMessage.includes(indicator))) {
+        feedback = type as 'positive' | 'negative';
+        break;
+      }
+    }
+
+    // Check for redirection or topic change
+    const redirectionIndicators = ['actually', 'instead', 'but', 'however', 'let me tell you', 'i want to talk about', 'can we discuss', 'what about'];
+    const isRedirection = redirectionIndicators.some(indicator => lowercaseMessage.includes(indicator));
+
+    // Emotional analysis with more nuanced detection
     const emotionalIndicators = {
-      sadness: ['sad', 'grief', 'loss', 'mourning', 'heartbroken', 'melancholy', 'depressed', 'down', 'upset', 'crying'],
-      anxiety: ['worried', 'anxious', 'nervous', 'stressed', 'overwhelmed', 'fearful', 'scared', 'panic', 'afraid'],
-      anger: ['angry', 'frustrated', 'irritated', 'furious', 'annoyed', 'mad', 'rage', 'hate'],
-      joy: ['happy', 'joy', 'excited', 'thrilled', 'delighted', 'elated', 'wonderful', 'amazing', 'great'],
-      confusion: ['confused', 'lost', 'unclear', 'don\'t understand', 'puzzled', 'bewildered'],
+      sadness: ['sad', 'grief', 'loss', 'mourning', 'heartbroken', 'melancholy', 'depressed', 'down', 'upset', 'crying', 'miss', 'gone'],
+      anxiety: ['worried', 'anxious', 'nervous', 'stressed', 'overwhelmed', 'fearful', 'scared', 'panic', 'afraid', 'uncertain'],
+      anger: ['angry', 'frustrated', 'irritated', 'furious', 'annoyed', 'mad', 'rage', 'hate', 'unfair'],
+      joy: ['happy', 'joy', 'excited', 'thrilled', 'delighted', 'elated', 'wonderful', 'amazing', 'great', 'love'],
+      confusion: ['confused', 'lost', 'unclear', 'don\'t understand', 'puzzled', 'bewildered', 'what do you mean'],
       gratitude: ['grateful', 'thankful', 'blessed', 'appreciate', 'thank you'],
       loneliness: ['lonely', 'alone', 'isolated', 'nobody', 'empty', 'disconnected'],
-      hope: ['hope', 'optimistic', 'looking forward', 'excited about', 'can\'t wait']
+      hope: ['hope', 'optimistic', 'looking forward', 'excited about', 'can\'t wait', 'future'],
+      frustration: ['stuck', 'can\'t', 'won\'t', 'always', 'never', 'why does', 'tired of']
     };
 
     let detectedEmotion = 'neutral';
@@ -75,22 +107,42 @@ class LegacyScribeAI {
       }
     }
 
-    // Intent analysis
+    // Intent analysis with more specific patterns
     const intentPatterns = {
-      seeking_advice: ['what should i', 'how do i', 'advice', 'help me', 'what would you', 'recommend'],
-      sharing_memory: ['remember', 'when i', 'back then', 'used to', 'memory', 'childhood'],
-      asking_question: ['?', 'why', 'how', 'what', 'when', 'where', 'who'],
-      expressing_feeling: ['feel', 'feeling', 'emotion', 'think', 'believe'],
-      seeking_validation: ['am i', 'is it okay', 'is this normal', 'do you think'],
-      wanting_to_talk: ['tell you', 'share', 'talk about', 'discuss'],
+      seeking_advice: ['what should i', 'how do i', 'advice', 'help me', 'what would you', 'recommend', 'suggest'],
+      sharing_memory: ['remember', 'when i', 'back then', 'used to', 'memory', 'childhood', 'once', 'years ago'],
+      asking_question: ['?', 'why', 'how', 'what', 'when', 'where', 'who', 'can you explain'],
+      expressing_feeling: ['feel', 'feeling', 'emotion', 'think', 'believe', 'sense'],
+      seeking_validation: ['am i', 'is it okay', 'is this normal', 'do you think', 'right or wrong'],
+      wanting_to_talk: ['tell you', 'share', 'talk about', 'discuss', 'want to say'],
       expressing_gratitude: ['thank', 'grateful', 'appreciate'],
-      expressing_disagreement: ['no', 'but', 'however', 'disagree', 'not really', 'actually']
+      expressing_disagreement: ['no', 'but', 'however', 'disagree', 'not really', 'actually'],
+      requesting_clarification: ['what do you mean', 'can you explain', 'i don\'t understand', 'clarify'],
+      changing_topic: ['let\'s talk about', 'what about', 'instead', 'different topic', 'something else']
     };
 
     let detectedIntent = 'general_conversation';
     for (const [intent, patterns] of Object.entries(intentPatterns)) {
       if (patterns.some(pattern => lowercaseMessage.includes(pattern))) {
         detectedIntent = intent;
+        break;
+      }
+    }
+
+    // Extract specific requests
+    let specificRequest = null;
+    const requestPatterns = [
+      /tell me about (.+)/i,
+      /what about (.+)/i,
+      /can we discuss (.+)/i,
+      /i want to talk about (.+)/i,
+      /help me with (.+)/i
+    ];
+
+    for (const pattern of requestPatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        specificRequest = match[1];
         break;
       }
     }
@@ -102,11 +154,11 @@ class LegacyScribeAI {
     );
 
     // Determine urgency and validation needs
-    const urgencyIndicators = ['urgent', 'emergency', 'crisis', 'help', 'desperate', 'immediately'];
+    const urgencyIndicators = ['urgent', 'emergency', 'crisis', 'help', 'desperate', 'immediately', 'now'];
     const validationIndicators = ['am i', 'is it okay', 'normal', 'right', 'wrong', 'should i'];
 
     const urgency = urgencyIndicators.some(indicator => lowercaseMessage.includes(indicator)) ? 'high' :
-                   ['worried', 'anxious', 'confused'].some(word => lowercaseMessage.includes(word)) ? 'medium' : 'low';
+                   ['worried', 'anxious', 'confused', 'stuck'].some(word => lowercaseMessage.includes(word)) ? 'medium' : 'low';
 
     const needsValidation = validationIndicators.some(indicator => lowercaseMessage.includes(indicator)) ||
                            detectedIntent === 'seeking_validation';
@@ -116,20 +168,44 @@ class LegacyScribeAI {
       intent: detectedIntent,
       keywords: words,
       urgency,
-      needsValidation
+      needsValidation,
+      feedback,
+      isRedirection,
+      specificRequest
     };
   }
 
   // Update conversation context based on analysis
   private updateContext(analysis: any, userMessage: string) {
+    // Store conversation history
+    this.context.conversationHistory.push(userMessage);
+    if (this.context.conversationHistory.length > 10) {
+      this.context.conversationHistory = this.context.conversationHistory.slice(-10);
+    }
+
+    // Update based on user feedback
+    if (analysis.feedback !== 'neutral') {
+      this.context.userFeedback = analysis.feedback;
+      if (analysis.feedback === 'negative') {
+        this.context.userPreferences.responseStyle = 'brief';
+      }
+    }
+
+    // Handle topic redirection
+    if (analysis.isRedirection || analysis.intent === 'changing_topic') {
+      this.context.currentTopic = analysis.specificRequest;
+      this.context.conversationFlow = 'clarification';
+    }
+
     this.context.lastUserIntent = analysis.intent;
-    this.context.emotionalCues = [...this.context.emotionalCues.slice(-2), analysis.emotion];
-    this.context.recentKeywords = [...this.context.recentKeywords.slice(-5), ...analysis.keywords];
+    this.context.emotionalCues = [...this.context.emotionalCues.slice(-3), analysis.emotion];
+    this.context.recentKeywords = [...this.context.recentKeywords.slice(-8), ...analysis.keywords];
+    this.context.needsValidation = analysis.needsValidation;
 
     // Update mood based on emotional analysis
-    if (['sadness', 'anxiety', 'anger', 'loneliness'].includes(analysis.emotion)) {
+    if (['sadness', 'anxiety', 'anger', 'loneliness', 'frustration'].includes(analysis.emotion)) {
       this.context.userMood = 'negative';
-    } else if (['joy', 'gratitude', 'hope'].includes(analysis.emotion)) {
+    } else if (['joy', 'gratitude', 'hope', 'excited'].includes(analysis.emotion)) {
       this.context.userMood = 'positive';
     } else if (['confusion'].includes(analysis.emotion)) {
       this.context.userMood = 'seeking_advice';
@@ -144,9 +220,27 @@ class LegacyScribeAI {
       this.context.conversationFlow = 'memory_sharing';
     } else if (this.context.userMood === 'negative') {
       this.context.conversationFlow = 'emotional_support';
+    } else if (analysis.intent === 'requesting_clarification') {
+      this.context.conversationFlow = 'clarification';
     } else {
       this.context.conversationFlow = 'deep_discussion';
     }
+
+    this.context.isFirstInteraction = false;
+  }
+
+  // Check if response is too similar to recent responses
+  private isResponseTooSimilar(response: string): boolean {
+    const responseSignature = response.substring(0, 50).toLowerCase();
+    if (this.responsePatterns.has(responseSignature)) {
+      return true;
+    }
+    this.responsePatterns.add(responseSignature);
+    if (this.responsePatterns.size > 10) {
+      const firstPattern = this.responsePatterns.values().next().value;
+      this.responsePatterns.delete(firstPattern);
+    }
+    return false;
   }
 
   // Generate contextually appropriate response
@@ -154,7 +248,12 @@ class LegacyScribeAI {
     const analysis = this.analyzeUserInput(userMessage);
     this.updateContext(analysis, userMessage);
 
-    // Handle immediate emotional needs first
+    // Handle user feedback first
+    if (analysis.feedback === 'negative') {
+      return this.generateAdaptiveResponse(analysis, userMessage);
+    }
+
+    // Handle immediate emotional needs
     if (analysis.urgency === 'high' || this.context.userMood === 'negative') {
       return this.generateEmotionalSupportResponse(analysis, userMessage);
     }
@@ -164,9 +263,9 @@ class LegacyScribeAI {
       return this.generateValidationResponse(analysis, userMessage);
     }
 
-    // Handle disagreement or correction
-    if (analysis.intent === 'expressing_disagreement') {
-      return this.generateAdaptiveResponse(analysis, userMessage);
+    // Handle specific requests or topic changes
+    if (analysis.specificRequest) {
+      return this.generateSpecificResponse(analysis, userMessage);
     }
 
     // Handle specific intents
@@ -179,9 +278,34 @@ class LegacyScribeAI {
         return this.generateQuestionResponse(analysis, userMessage);
       case 'expressing_gratitude':
         return this.generateGratitudeResponse(analysis, userMessage);
+      case 'requesting_clarification':
+        return this.generateClarificationResponse(analysis, userMessage);
       default:
         return this.generateContextualResponse(analysis, userMessage);
     }
+  }
+
+  private generateSpecificResponse(analysis: any, userMessage: string): string {
+    const request = analysis.specificRequest;
+    const responses = [
+      `I'd love to explore ${request} with you. This sounds like something that holds meaning in your life. What draws you to think about ${request} right now?`,
+      `${request} - that's an interesting topic to delve into. From your life experiences, what aspects of ${request} feel most significant to you?`,
+      `Let's talk about ${request}. I'm curious about your personal connection to this. What would you like to share or explore about ${request}?`,
+      `${request} is something worth discussing. Based on your journey so far, how has ${request} played a role in shaping who you are today?`
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  private generateClarificationResponse(analysis: any, userMessage: string): string {
+    const responses = [
+      "I want to make sure I understand you correctly. Could you help me see this from your perspective? What's most important to you about what we're discussing?",
+      "Let me step back and listen more carefully to what you're sharing. What would be most helpful for me to focus on right now?",
+      "I sense there might be something I'm missing in our conversation. What would you like me to understand better about your experience?",
+      "Thank you for guiding our conversation. You know what you need to explore better than I do. What feels most relevant to you at this moment?"
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
   }
 
   private generateEmotionalSupportResponse(analysis: any, userMessage: string): string {
@@ -196,21 +320,19 @@ class LegacyScribeAI {
         "Anxiety often signals that something important to us feels uncertain or threatened. Your feelings are valid, and it's okay to feel this way. What would help you feel more grounded in this moment?",
         "I hear the anxiety in your words. Sometimes when we're worried, it helps to focus on what we can control. What aspects of this situation feel most manageable to you right now?"
       ],
-      anger: [
-        "I can sense the frustration and anger in your message. These are powerful emotions that often point to something important - perhaps a boundary that's been crossed or a value that's been challenged. What's at the heart of this anger for you?",
-        "Your anger is telling us something important. It's a valid emotion that deserves to be heard and understood. What feels most important to address about this situation?",
-        "I hear the intensity of your feelings. Anger often emerges when we feel powerless or when something we care deeply about is threatened. What would feel most empowering for you right now?"
-      ],
-      loneliness: [
-        "I hear the loneliness in your words, and I want you to know that reaching out here shows incredible strength. Feeling isolated is one of the most difficult human experiences. You're not as alone as you might feel right now.",
-        "Loneliness can feel so overwhelming, but the fact that you're sharing this with me shows your courage to connect. What kinds of connections have felt most meaningful to you in the past?",
-        "I sense you're feeling disconnected right now. That's such a painful place to be. Sometimes sharing our stories and memories can help us feel more connected to ourselves and others. What's one memory that makes you feel most like yourself?"
+      frustration: [
+        "I can sense your frustration, and that's completely understandable. Sometimes life presents us with challenges that feel overwhelming or unfair. What's at the heart of what's bothering you right now?",
+        "Frustration often comes when we feel stuck or when things aren't going as we hoped. Your feelings make complete sense. What would feel like progress to you in this situation?",
+        "I hear that you're feeling frustrated. That's such a valid response when things feel difficult or out of our control. What support do you need right now?"
       ]
     };
 
     const responses = supportiveResponses[analysis.emotion as keyof typeof supportiveResponses];
     if (responses) {
-      return responses[Math.floor(Math.random() * responses.length)];
+      const response = responses[Math.floor(Math.random() * responses.length)];
+      if (!this.isResponseTooSimilar(response)) {
+        return response;
+      }
     }
 
     return "I can sense you're going through something difficult right now. Your feelings are valid and important. I'm here to listen and support you. What would feel most helpful for you in this moment?";
@@ -225,16 +347,19 @@ class LegacyScribeAI {
       "There's no universal 'normal' - there's only what's authentic and true for you. Your feelings and reactions are valid responses to your unique life experiences."
     ];
 
-    return validationResponses[Math.floor(Math.random() * validationResponses.length)];
+    const response = validationResponses[Math.floor(Math.random() * validationResponses.length)];
+    return this.isResponseTooSimilar(response) ? 
+      "Your feelings and experiences are completely valid. What matters most is what feels true and authentic for you. What would help you feel more confident about this?" :
+      response;
   }
 
   private generateAdaptiveResponse(analysis: any, userMessage: string): string {
     const adaptiveResponses = [
       "I hear you, and I appreciate you sharing your perspective. You know your experience better than anyone else. Help me understand what feels most important to you about this.",
-      "Thank you for that insight. You're absolutely right to correct me or share a different viewpoint. What would you like to explore about this instead?",
+      "Thank you for that insight. You're absolutely right to guide our conversation. What would you like to explore instead?",
       "I value your perspective and want to make sure I'm understanding you correctly. It sounds like there's something different you'd like to focus on. What feels most relevant to you right now?",
-      "You're the expert on your own life and experiences. I appreciate you guiding our conversation toward what matters most to you. What would you like to talk about?",
-      "I hear you redirecting our conversation, and that's completely valid. You know what you need to discuss. What's really on your mind today?"
+      "You're the expert on your own life and experiences. I appreciate you redirecting our conversation toward what matters most to you. What's really on your mind today?",
+      "I hear you guiding our conversation, and that's exactly what I want. You know what you need to discuss. What would be most helpful to talk about?"
     ];
 
     return adaptiveResponses[Math.floor(Math.random() * adaptiveResponses.length)];
@@ -256,7 +381,10 @@ class LegacyScribeAI {
       "You're seeking guidance on something significant, and that shows your thoughtfulness. Looking at the patterns in your life and the lessons you've learned, what approach feels most authentic to you?"
     ];
 
-    return adviceResponses[Math.floor(Math.random() * adviceResponses.length)];
+    const response = adviceResponses[Math.floor(Math.random() * adviceResponses.length)];
+    return this.isResponseTooSimilar(response) ? 
+      "You're asking about something really important. What wisdom from your own life experiences might guide you here? What has worked for you in similar situations before?" :
+      response;
   }
 
   private generateMemoryResponse(analysis: any, userMessage: string): string {
@@ -267,7 +395,10 @@ class LegacyScribeAI {
       "Thank you for trusting me with that memory. There's wisdom in reflecting on our past experiences. What would you want future generations to understand about this part of your journey?"
     ];
 
-    return memoryResponses[Math.floor(Math.random() * memoryResponses.length)];
+    const response = memoryResponses[Math.floor(Math.random() * memoryResponses.length)];
+    return this.isResponseTooSimilar(response) ? 
+      "That memory sounds meaningful to you. What stands out most about that experience when you think about it now?" :
+      response;
   }
 
   private generateQuestionResponse(analysis: any, userMessage: string): string {
@@ -285,7 +416,10 @@ class LegacyScribeAI {
       "That's a question worth exploring deeply. Your curiosity about this topic suggests it connects to something meaningful in your life. What experiences have led you to wonder about this?"
     ];
 
-    return questionResponses[Math.floor(Math.random() * questionResponses.length)];
+    const response = questionResponses[Math.floor(Math.random() * questionResponses.length)];
+    return this.isResponseTooSimilar(response) ? 
+      "That's an interesting question to explore. What's behind your curiosity about this? What makes it feel important to you right now?" :
+      response;
   }
 
   private generateGratitudeResponse(analysis: any, userMessage: string): string {
@@ -296,7 +430,10 @@ class LegacyScribeAI {
       "Your thankfulness is beautiful to hear. Gratitude often opens our hearts to deeper connections and insights. What does this gratitude teach you about what brings meaning to your life?"
     ];
 
-    return gratitudeResponses[Math.floor(Math.random() * gratitudeResponses.length)];
+    const response = gratitudeResponses[Math.floor(Math.random() * gratitudeResponses.length)];
+    return this.isResponseTooSimilar(response) ? 
+      "I'm touched by your gratitude. What you're thankful for says so much about what matters to you. What makes this feel particularly meaningful?" :
+      response;
   }
 
   private generateContextualResponse(analysis: any, userMessage: string): string {
@@ -337,7 +474,11 @@ class LegacyScribeAI {
     };
 
     const moodResponses = contextualResponses[this.context.userMood as keyof typeof contextualResponses] || contextualResponses.neutral;
-    return moodResponses[Math.floor(Math.random() * moodResponses.length)];
+    const response = moodResponses[Math.floor(Math.random() * moodResponses.length)];
+    
+    return this.isResponseTooSimilar(response) ? 
+      "I'm listening to what you're sharing. What feels most important to you about this right now?" :
+      response;
   }
 
   private findRelevantEntries(keywords: string[]): any[] {
@@ -369,6 +510,7 @@ const WisdomChatbot: React.FC = () => {
   const [showSessionMenu, setShowSessionMenu] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize AI instance
@@ -386,17 +528,26 @@ const WisdomChatbot: React.FC = () => {
     scrollToBottom();
   }, [chatMessages]);
 
-  // Initialize with welcome message if no messages exist
-  useEffect(() => {
-    if (currentChatSession && chatMessages.length === 0) {
-      const welcomeMessage = "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey. I'm designed to listen carefully to what you share and respond thoughtfully to your unique perspective. What would you like to discuss today?";
-      addChatMessage({
-        text: welcomeMessage,
-        sender: 'bot',
-        sessionId: currentChatSession.id,
-      });
+  // Show welcome message only when user sends their first message
+  const showWelcomeMessage = async () => {
+    if (!hasShownWelcome && currentChatSession) {
+      setHasShownWelcome(true);
+      setIsTyping(true);
+      
+      // Delay to make it feel more natural
+      setTimeout(async () => {
+        const welcomeMessage = "Hello! I'm Legacy Scribe, your personal memory companion. I've been studying your journal entries and I'm here to help you explore your memories, reflect on your experiences, and discover deeper insights about your life's journey. I'm designed to listen carefully to what you share and respond thoughtfully to your unique perspective. What would you like to discuss today?";
+        
+        await addChatMessage({
+          text: welcomeMessage,
+          sender: 'bot',
+          sessionId: currentChatSession.id,
+        });
+        
+        setIsTyping(false);
+      }, 1000);
     }
-  }, [currentChatSession, chatMessages.length]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -404,6 +555,12 @@ const WisdomChatbot: React.FC = () => {
 
     const userMessageText = input;
     setInput('');
+
+    // Show welcome message if this is the first user message
+    if (!hasShownWelcome) {
+      await showWelcomeMessage();
+    }
+
     setIsTyping(true);
 
     // Add user message
@@ -430,12 +587,14 @@ const WisdomChatbot: React.FC = () => {
   const handleNewSession = async () => {
     await createNewChatSession();
     setShowSessionMenu(false);
+    setHasShownWelcome(false); // Reset welcome message for new session
   };
 
   const handleSessionSelect = async (session: ChatSession) => {
     setCurrentChatSession(session);
     await loadChatHistory(session.id);
     setShowSessionMenu(false);
+    setHasShownWelcome(true); // Don't show welcome for existing sessions
   };
 
   const handleEditSession = (session: ChatSession) => {
