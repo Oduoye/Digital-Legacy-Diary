@@ -250,8 +250,8 @@ const HomePage: React.FC = () => {
         {/* Floating Contact Button */}
         <FloatingContactButton variant="floating" />
 
-        {/* Bolt.new Powered By Logo - Mobile: Bottom Center, Desktop: Bottom Right */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 md:left-auto md:right-8 md:transform-none z-30">
+        {/* Bolt.new Powered By Logo - Mobile: Bottom Center, Desktop: Bottom Left */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 md:left-8 md:transform-none z-30">
           <a
             href="https://bolt.new"
             target="_blank"
