@@ -121,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let authStateChangeUnsubscribe: (() => void) | null = null;
 
     // Initialize session and set up auth listener
     const initializeAuth = async () => {
@@ -157,40 +158,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
+    const setupAuthListener = () => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
 
-      console.log('🔄 Auth state change:', event, session?.user?.id);
-      
-      try {
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ User signed in, fetching profile');
-          setLoading(true);
-          await fetchUserProfile(session.user.id);
-        } else if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out');
-          setCurrentUser(null);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('🔄 Token refreshed');
-          if (!currentUser) {
+        console.log('🔄 Auth state change:', event, session?.user?.id);
+        
+        try {
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('✅ User signed in, fetching profile');
+            setLoading(true);
             await fetchUserProfile(session.user.id);
+          } else if (event === 'SIGNED_OUT') {
+            console.log('👋 User signed out');
+            setCurrentUser(null);
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            console.log('🔄 Token refreshed');
+            if (!currentUser) {
+              await fetchUserProfile(session.user.id);
+            }
+          }
+        } catch (error) {
+          await handleAuthError(error, 'Auth state change');
+        } finally {
+          if (mounted) {
+            setLoading(false);
           }
         }
-      } catch (error) {
-        await handleAuthError(error, 'Auth state change');
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    });
+      });
 
-    // Initialize auth
-    initializeAuth();
+      authStateChangeUnsubscribe = subscription.unsubscribe;
+    };
+
+    // Initialize auth and set up listener
+    const init = async () => {
+      await initializeAuth();
+      if (mounted) {
+        setupAuthListener();
+      }
+    };
+
+    init();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (authStateChangeUnsubscribe) {
+        authStateChangeUnsubscribe();
+      }
     };
   }, []);
 
@@ -264,12 +278,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
         }
         
-        // Fetch user profile
-        await fetchUserProfile(data.user.id);
+        // Fetch user profile - this will be handled by the auth state change listener
+        // No need to manually fetch here as it can cause race conditions
       }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      setLoading(false); // Make sure to clear loading on error
+      throw error;
     }
+    // Don't set loading to false here - let the auth state change handle it
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
@@ -305,26 +321,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         redirectUrl: getRedirectUrl('/auth/callback')
       });
 
-      // If user is immediately confirmed, create profile and fetch it
+      // If user is immediately confirmed, the auth state change listener will handle profile creation
       if (data.user && data.user.email_confirmed_at && data.session) {
-        console.log('✅ User immediately confirmed, creating profile');
-        
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            name,
-            email,
-            subscription_tier: subscriptionTier,
-          });
-
-        if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
-          console.error('❌ Profile creation error:', profileError);
-        }
-
-        // Fetch the profile
-        await fetchUserProfile(data.user.id);
+        console.log('✅ User immediately confirmed');
         return { emailConfirmationRequired: false };
       }
 
