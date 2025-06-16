@@ -19,6 +19,26 @@ const EmailVerificationCallbackPage: React.FC = () => {
     handleEmailVerification();
   }, []);
 
+  const getRedirectUrl = (path: string = '/auth/callback') => {
+    // Check if we're in production (custom domain)
+    if (window.location.hostname === 'digitallegacydiary.tech') {
+      return `https://digitallegacydiary.tech${path}`;
+    }
+    
+    // Check if we're in Netlify staging
+    if (window.location.hostname === 'digitallegacydiary.netlify.app') {
+      return `https://digitallegacydiary.netlify.app${path}`;
+    }
+    
+    // Check for other production domains
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return `${window.location.origin}${path}`;
+    }
+    
+    // Default to current origin for development
+    return `${window.location.origin}${path}`;
+  };
+
   const handleEmailVerification = async () => {
     try {
       setStatus('loading');
@@ -249,7 +269,7 @@ const EmailVerificationCallbackPage: React.FC = () => {
         type: 'signup',
         email: emailToUse,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getRedirectUrl('/auth/callback')
         }
       });
 

@@ -41,7 +41,12 @@ export const useAuth = () => useContext(AuthContext);
 
 // Get the correct redirect URL based on environment
 const getRedirectUrl = (path: string = '/auth/callback') => {
-  // Check if we're in production (Netlify)
+  // Check if we're in production (custom domain)
+  if (window.location.hostname === 'digitallegacydiary.tech') {
+    return `https://digitallegacydiary.tech${path}`;
+  }
+  
+  // Check if we're in Netlify staging
   if (window.location.hostname === 'digitallegacydiary.netlify.app') {
     return `https://digitallegacydiary.netlify.app${path}`;
   }

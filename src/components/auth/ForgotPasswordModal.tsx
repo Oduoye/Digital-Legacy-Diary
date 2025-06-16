@@ -11,7 +11,12 @@ interface ForgotPasswordModalProps {
 
 // Get the correct redirect URL based on environment
 const getRedirectUrl = (path: string = '/reset-password') => {
-  // Check if we're in production (Netlify)
+  // Check if we're in production (custom domain)
+  if (window.location.hostname === 'digitallegacydiary.tech') {
+    return `https://digitallegacydiary.tech${path}`;
+  }
+  
+  // Check if we're in Netlify staging
   if (window.location.hostname === 'digitallegacydiary.netlify.app') {
     return `https://digitallegacydiary.netlify.app${path}`;
   }
