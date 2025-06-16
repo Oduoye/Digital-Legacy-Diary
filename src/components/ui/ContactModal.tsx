@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Phone, User, MessageSquare, CheckCircle } from 'lucide-react';
+import { useForm, ValidationError } from '@formspree/react';
 import Button from './Button';
 import Input from './Input';
 import Textarea from './Textarea';
@@ -7,97 +8,23 @@ import Textarea from './Textarea';
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (data: ContactFormData) => void;
 }
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  phone?: string;
-  message: string;
-}
-
-const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState<ContactFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errors, setErrors] = useState<Partial<ContactFormData>>({});
+const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
+  const [state, handleSubmit] = useForm("mldbqpgy");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   if (!isOpen) return null;
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<ContactFormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.message.trim()) {
-      newErrors.message = 'Message is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (onSubmit) {
-        onSubmit(formData);
-      }
-      
-      setIsSuccess(true);
-      
-      // Auto close after success
-      setTimeout(() => {
-        handleClose();
-      }, 3000);
-    } catch (error) {
-      console.error('Error submitting contact form:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // Handle successful form submission
+  if (state.succeeded && !showSuccessModal) {
+    setShowSuccessModal(true);
+  }
 
   const handleClose = () => {
     onClose();
-    // Reset form after a delay to allow for exit animation
-    setTimeout(() => {
-      setFormData({ name: '', email: '', phone: '', message: '' });
-      setErrors({});
-      setIsSuccess(false);
-      setIsSubmitting(false);
-    }, 300);
-  };
-
-  const handleInputChange = (field: keyof ContactFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    // Reset success modal state when closing
+    setShowSuccessModal(false);
   };
 
   return (
@@ -122,7 +49,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit }
         </button>
 
         <div className="relative z-10">
-          {isSuccess ? (
+          {showSuccessModal ? (
             <div className="text-center py-8">
               <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-green-400/30 animate-pulse">
                 <CheckCircle className="h-10 w-10 text-green-400 animate-scale-in" />
@@ -147,6 +74,13 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit }
                   Closing automatically...
                 </p>
               </div>
+              
+              {/* Auto-close after 3 seconds */}
+              {setTimeout(() => {
+                if (showSuccessModal) {
+                  handleClose();
+                }
+              }, 3000)}
             </div>
           ) : (
             <>
@@ -163,63 +97,87 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit }
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                  label="Name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Your full name"
-                  icon={<User className="h-5 w-5 text-gray-400" />}
-                  error={errors.name}
-                  required
-                />
+                <div>
+                  <Input
+                    label="Name"
+                    name="name"
+                    placeholder="Your full name"
+                    icon={<User className="h-5 w-5 text-gray-400" />}
+                    required
+                  />
+                  <ValidationError 
+                    prefix="Name" 
+                    field="name"
+                    errors={state.errors}
+                    className="text-red-300 text-sm mt-1"
+                  />
+                </div>
                 
-                <Input
-                  label="Email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your.email@example.com"
-                  icon={<Mail className="h-5 w-5 text-gray-400" />}
-                  error={errors.email}
-                  required
-                />
+                <div>
+                  <Input
+                    label="Email"
+                    type="email"
+                    name="email"
+                    placeholder="your.email@example.com"
+                    icon={<Mail className="h-5 w-5 text-gray-400" />}
+                    required
+                  />
+                  <ValidationError 
+                    prefix="Email" 
+                    field="email"
+                    errors={state.errors}
+                    className="text-red-300 text-sm mt-1"
+                  />
+                </div>
                 
-                <Input
-                  label="Phone (Optional)"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="Your phone number"
-                  icon={<Phone className="h-5 w-5 text-gray-400" />}
-                />
+                <div>
+                  <Input
+                    label="Phone (Optional)"
+                    type="tel"
+                    name="phone"
+                    placeholder="Your phone number"
+                    icon={<Phone className="h-5 w-5 text-gray-400" />}
+                  />
+                  <ValidationError 
+                    prefix="Phone" 
+                    field="phone"
+                    errors={state.errors}
+                    className="text-red-300 text-sm mt-1"
+                  />
+                </div>
                 
-                <Textarea
-                  label="Message"
-                  value={formData.message}
-                  onChange={(e) => handleInputChange('message', e.target.value)}
-                  placeholder="How can we help you?"
-                  className="h-32"
-                  error={errors.message}
-                  required
-                />
+                <div>
+                  <Textarea
+                    label="Message"
+                    name="message"
+                    placeholder="How can we help you?"
+                    className="h-32"
+                    required
+                  />
+                  <ValidationError 
+                    prefix="Message" 
+                    field="message"
+                    errors={state.errors}
+                    className="text-red-300 text-sm mt-1"
+                  />
+                </div>
                 
                 <div className="flex justify-end space-x-3 pt-4">
                   <Button 
                     type="button"
                     variant="outline" 
                     onClick={handleClose}
-                    disabled={isSubmitting}
+                    disabled={state.submitting}
                     className="border-white/30 text-white hover:bg-white/10"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
-                    isLoading={isSubmitting}
-                    disabled={isSubmitting}
+                    disabled={state.submitting}
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
                   >
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                    {state.submitting ? 'Sending...' : 'Send Message'}
                   </Button>
                 </div>
               </form>
@@ -232,3 +190,5 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, onSubmit }
 };
 
 export default ContactModal;
+
+export default ContactModal
