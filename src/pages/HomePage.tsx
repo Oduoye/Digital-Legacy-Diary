@@ -249,6 +249,22 @@ const HomePage: React.FC = () => {
 
         {/* Floating Contact Button */}
         <FloatingContactButton variant="floating" />
+
+        {/* Bolt.new Powered By Logo - Mobile: Bottom Center, Desktop: Bottom Right */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 md:left-auto md:right-8 md:transform-none z-30">
+          <a
+            href="https://bolt.new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            <img
+              src="/20250616_232035_0000.png"
+              alt="Powered by Bolt.new"
+              className="h-8 md:h-10 w-auto opacity-80 hover:opacity-100 transition-opacity duration-300 shadow-lg rounded-lg"
+            />
+          </a>
+        </div>
       </Layout>
     </div>
   );
