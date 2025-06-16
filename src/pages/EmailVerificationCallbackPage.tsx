@@ -68,6 +68,9 @@ const EmailVerificationCallbackPage: React.FC = () => {
         setStatus('success');
         setMessage('Your email is already verified! Redirecting to dashboard...');
         
+        // Ensure user profile exists
+        await ensureUserProfile(currentUser);
+        
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
         }, 2000);
@@ -89,6 +92,9 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
+          
+          // Ensure user profile exists
+          await ensureUserProfile(data.user);
           
           // Redirect to dashboard after a short delay
           setTimeout(() => {
@@ -117,6 +123,9 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
           
+          // Ensure user profile exists
+          await ensureUserProfile(data.user);
+          
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 2000);
@@ -142,6 +151,9 @@ const EmailVerificationCallbackPage: React.FC = () => {
           setUserEmail(data.user.email || '');
           setStatus('success');
           setMessage('Your email has been verified successfully! Redirecting to dashboard...');
+          
+          // Ensure user profile exists
+          await ensureUserProfile(data.user);
           
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
@@ -177,6 +189,37 @@ const EmailVerificationCallbackPage: React.FC = () => {
       } else {
         setMessage('Email verification failed. The link may be invalid or expired. Please try requesting a new verification email.');
       }
+    }
+  };
+
+  const ensureUserProfile = async (user: any) => {
+    try {
+      // Check if user profile exists
+      const { data: existingProfile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        console.log('Creating user profile for verified user');
+        
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            name: user.user_metadata?.name || user.raw_user_meta_data?.name || 'User',
+            email: user.email,
+            subscription_tier: user.user_metadata?.subscription_tier || user.raw_user_meta_data?.subscription_tier || 'free',
+          });
+
+        if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
+          console.error('Profile creation error:', profileError);
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring user profile:', error);
     }
   };
 

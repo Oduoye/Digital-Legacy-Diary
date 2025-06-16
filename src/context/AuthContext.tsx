@@ -95,7 +95,7 @@ const convertDbUserToAppUser = (dbUser: any): User => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [sessionInitialized, setSessionInitialized] = useState(false);
 
   // Helper function to handle auth errors and clear session
@@ -121,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         console.log('🔄 Initializing authentication...');
+        setLoading(true);
         
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -129,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await handleAuthError(error, 'Session initialization');
           if (mounted) {
             setSessionInitialized(true);
+            setLoading(false);
           }
           return;
         }
@@ -144,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } finally {
         if (mounted) {
           setSessionInitialized(true);
+          setLoading(false);
         }
       }
     };
@@ -228,17 +231,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      console.log('🔄 Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('❌ Login error:', error);
+        
+        // Handle specific error cases
+        if (error.message?.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+        } else if (error.message?.includes('Invalid login credentials')) {
+          throw new Error('The email or password you entered is incorrect.');
+        } else {
+          throw new Error(error.message);
+        }
       }
 
       if (data.user) {
-        console.log('✅ Login successful, fetching profile');
+        console.log('✅ Login successful, user:', data.user.id);
+        
+        // Check if user has confirmed email
+        if (!data.user.email_confirmed_at) {
+          throw new Error('Please verify your email address before signing in. Check your inbox for a verification link.');
+        }
+        
+        // Fetch user profile
         await fetchUserProfile(data.user.id);
       }
     } finally {
@@ -247,42 +268,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, subscriptionTier: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          subscription_tier: subscriptionTier,
-        },
-        emailRedirectTo: getRedirectUrl('/auth/callback')
+    setLoading(true);
+    try {
+      console.log('🔄 Attempting registration for:', email);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            subscription_tier: subscriptionTier,
+          },
+          emailRedirectTo: getRedirectUrl('/auth/callback')
+        }
+      });
+
+      if (error) {
+        console.error('❌ Registration error:', error);
+        throw new Error(error.message);
       }
-    });
 
-    if (error) {
-      throw new Error(error.message);
+      // Check if email confirmation is required
+      const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
+      
+      console.log('Registration result:', {
+        user: data.user,
+        session: data.session,
+        emailConfirmationRequired,
+        email_confirmed_at: data.user?.email_confirmed_at,
+        redirectUrl: getRedirectUrl('/auth/callback')
+      });
+
+      // If user is immediately confirmed, create profile and fetch it
+      if (data.user && data.user.email_confirmed_at && data.session) {
+        console.log('✅ User immediately confirmed, creating profile');
+        
+        // Create user profile
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            name,
+            email,
+            subscription_tier: subscriptionTier,
+          });
+
+        if (profileError && profileError.code !== '23505') { // Ignore duplicate key errors
+          console.error('❌ Profile creation error:', profileError);
+        }
+
+        // Fetch the profile
+        await fetchUserProfile(data.user.id);
+        return { emailConfirmationRequired: false };
+      }
+
+      return { emailConfirmationRequired: true };
+    } finally {
+      setLoading(false);
     }
-
-    // Check if email confirmation is required
-    const emailConfirmationRequired = !data.user?.email_confirmed_at && data.user && !data.session;
-    
-    console.log('Registration result:', {
-      user: data.user,
-      session: data.session,
-      emailConfirmationRequired,
-      email_confirmed_at: data.user?.email_confirmed_at,
-      redirectUrl: getRedirectUrl('/auth/callback')
-    });
-
-    // If user is immediately confirmed, fetch their profile
-    if (data.user && (data.user.email_confirmed_at || data.session)) {
-      setTimeout(async () => {
-        await fetchUserProfile(data.user!.id);
-      }, 1000);
-      return { emailConfirmationRequired: false };
-    }
-
-    return { emailConfirmationRequired: true };
   };
 
   const logout = async () => {
@@ -413,7 +457,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     currentUser,
-    loading: loading,
+    loading,
     login,
     register,
     logout,
