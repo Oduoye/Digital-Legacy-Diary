@@ -33,16 +33,17 @@ import LifeStoryPage from './pages/LifeStoryPage';
 import MemoryConstellationPage from './pages/MemoryConstellationPage';
 import WisdomChatbotPage from './pages/WisdomChatbotPage';
 
-// Minimal loading component that doesn't block UI
-const MinimalLoadingIndicator: React.FC = () => (
-  <div className="fixed top-4 right-4 z-50">
-    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+// Loading component for initial app load
+const AppLoadingScreen: React.FC = () => (
+  <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-white/80 text-lg">Loading Digital Legacy Diary...</p>
     </div>
   </div>
 );
 
-// Protected route component with non-blocking loading
+// Protected route component
 const ProtectedRoute: React.FC<{ 
   children: React.ReactNode;
   redirectTo?: string; 
@@ -52,17 +53,15 @@ const ProtectedRoute: React.FC<{
 }) => {
   const { isAuthenticated, loading } = useAuth();
   
-  // Don't block UI during auth initialization
+  if (loading) {
+    return <AppLoadingScreen />;
+  }
+  
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 // Public route component that redirects authenticated users
@@ -75,17 +74,16 @@ const PublicRoute: React.FC<{
 }) => {
   const { isAuthenticated, loading } = useAuth();
   
+  if (loading) {
+    return <AppLoadingScreen />;
+  }
+  
   // If user is authenticated, redirect to dashboard
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  return (
-    <>
-      {loading && <MinimalLoadingIndicator />}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 };
 
 function App() {
