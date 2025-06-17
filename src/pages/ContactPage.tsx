@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
-import { Mail, MessageSquare, Send, User, Phone } from 'lucide-react';
+import { Mail, MessageSquare, Send, User, Phone, Home } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
@@ -44,10 +45,18 @@ const ContactPage: React.FC = () => {
                     <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
                       <Send className="h-8 w-8 text-green-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Message Sent!</h3>
-                    <p className="text-white/80">
-                      Thank you for reaching out. We'll get back to you soon.
+                    <h3 className="text-xl font-semibold text-white mb-2">Thank You!</h3>
+                    <p className="text-white/80 mb-6">
+                      Thank you for reaching out. We'll get back to you as soon as possible.
                     </p>
+                    <Link to="/">
+                      <Button 
+                        icon={<Home className="h-5 w-5 mr-2" />}
+                        className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
+                      >
+                        Back to Homepage
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
