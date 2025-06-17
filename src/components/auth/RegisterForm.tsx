@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { User, Mail, Lock, CheckCircle, X, Eye, EyeOff, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import AuthInput from '../ui/AuthInput';
@@ -361,13 +361,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ selectedTier }) => {
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
           <p className="text-sm text-white/80">
             By creating an account, you agree to our{' '}
-            <a href="/terms" className="text-cyan-400 hover:text-cyan-300">
+            <Link to="/terms" className="text-cyan-400 hover:text-cyan-300 underline">
               Terms of Service
-            </a>{' '}
+            </Link>{' '}
             and{' '}
-            <a href="/privacy" className="text-cyan-400 hover:text-cyan-300">
+            <Link to="/privacy" className="text-cyan-400 hover:text-cyan-300 underline">
               Privacy Policy
-            </a>
+            </Link>
             .
           </p>
         </div>
