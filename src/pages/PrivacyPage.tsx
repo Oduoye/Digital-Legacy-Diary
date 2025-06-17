@@ -175,9 +175,8 @@ const PrivacyPage: React.FC = () => {
                 </h2>
                 <p className="mb-4">If you have any questions about this Privacy Policy or our data practices, please contact us:</p>
                 <ul className="list-disc pl-6 mt-4 space-y-1">
-                  <li><strong>Email:</strong> privacy@digitallegacydiary.com</li>
-                  <li><strong>Contact Form:</strong> Available on our website</li>
-                  <li><strong>Mail:</strong> Digital Legacy Diary, Privacy Department, [Your Address]</li>
+                  <li><strong>Email:</strong> contact@digitallegacydiary.tech</li>
+                  <li><strong>Mail:</strong> Ibadan, Nigeria</li>
                 </ul>
 
                 <div className="mt-8 p-4 bg-white/10 rounded-lg border border-white/20">

@@ -180,8 +180,8 @@ const TermsPage: React.FC = () => {
                   13. Governing Law and Dispute Resolution
                 </h2>
                 <p className="mb-6">
-                  These Terms shall be governed by the laws of [Your Jurisdiction]. Any disputes will be resolved through 
-                  binding arbitration or in the courts of [Your Jurisdiction].
+                  These Terms shall be governed by the laws of Nigeria. Any disputes will be resolved through 
+                  binding arbitration or in the courts of Nigeria.
                 </p>
 
                 <h2 className="text-2xl font-serif font-semibold text-white mt-8 mb-4">
@@ -189,9 +189,8 @@ const TermsPage: React.FC = () => {
                 </h2>
                 <p className="mb-4">If you have any questions about these Terms, please contact us:</p>
                 <ul className="list-disc pl-6 mt-4 space-y-1">
-                  <li><strong>Email:</strong> legal@digitallegacydiary.com</li>
-                  <li><strong>Contact Form:</strong> Available on our website</li>
-                  <li><strong>Mail:</strong> Digital Legacy Diary, Legal Department, [Your Address]</li>
+                  <li><strong>Email:</strong> contact@digitallegacydiary.tech</li>
+                  <li><strong>Mail:</strong> Ibadan, Nigeria</li>
                 </ul>
 
                 <div className="mt-8 p-4 bg-white/10 rounded-lg border border-white/20">
