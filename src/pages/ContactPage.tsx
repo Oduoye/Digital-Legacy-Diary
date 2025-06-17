@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
-import { Mail, MessageSquare, Send } from 'lucide-react';
+import { Mail, MessageSquare, Send, User, Phone, CheckCircle } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
+import { useForm, ValidationError } from '@formspree/react';
 
 const ContactPage: React.FC = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [state, handleSubmit] = useForm("mldbqpgy");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1000);
+  // Show success modal when form is successfully submitted
+  React.useEffect(() => {
+    if (state.succeeded && !showSuccessModal) {
+      setShowSuccessModal(true);
+    }
+  }, [state.succeeded, showSuccessModal]);
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
   };
 
   return (
@@ -50,7 +51,7 @@ const ContactPage: React.FC = () => {
               <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl shadow-2xl p-8">
                 <h2 className="text-2xl font-serif font-bold text-white mb-6">Get in Touch</h2>
                 
-                {submitted ? (
+                {state.succeeded ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-green-400/30">
                       <Send className="h-8 w-8 text-green-400" />
@@ -62,33 +63,77 @@ const ContactPage: React.FC = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <Input
-                      label="Name"
-                      required
-                      placeholder="Your name"
-                    />
+                    <div>
+                      <Input
+                        label="Name"
+                        name="name"
+                        required
+                        placeholder="Your name"
+                        icon={<User className="h-5 w-5 text-gray-400" />}
+                      />
+                      <ValidationError 
+                        prefix="Name" 
+                        field="name"
+                        errors={state.errors}
+                        className="text-red-300 text-sm mt-1"
+                      />
+                    </div>
                     
-                    <Input
-                      label="Email"
-                      type="email"
-                      required
-                      placeholder="your.email@example.com"
-                      icon={<Mail className="h-5 w-5 text-white/60" />}
-                    />
+                    <div>
+                      <Input
+                        label="Email"
+                        type="email"
+                        name="email"
+                        required
+                        placeholder="your.email@example.com"
+                        icon={<Mail className="h-5 w-5 text-gray-400" />}
+                      />
+                      <ValidationError 
+                        prefix="Email" 
+                        field="email"
+                        errors={state.errors}
+                        className="text-red-300 text-sm mt-1"
+                      />
+                    </div>
                     
-                    <Textarea
-                      label="Message"
-                      required
-                      placeholder="How can we help you?"
-                      rows={5}
-                    />
+                    <div>
+                      <Input
+                        label="Phone (Optional)"
+                        type="tel"
+                        name="phone"
+                        placeholder="Your phone number"
+                        icon={<Phone className="h-5 w-5 text-gray-400" />}
+                      />
+                      <ValidationError 
+                        prefix="Phone" 
+                        field="phone"
+                        errors={state.errors}
+                        className="text-red-300 text-sm mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Textarea
+                        label="Message"
+                        name="message"
+                        required
+                        placeholder="How can we help you?"
+                        rows={5}
+                      />
+                      <ValidationError 
+                        prefix="Message" 
+                        field="message"
+                        errors={state.errors}
+                        className="text-red-300 text-sm mt-1"
+                      />
+                    </div>
                     
                     <Button 
                       type="submit" 
-                      isLoading={isSubmitting}
+                      disabled={state.submitting}
                       className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-xl"
                     >
-                      Send Message
+                      {state.submitting ? 'Sending...' : 'Send Message'}
                     </Button>
                   </form>
                 )}
@@ -127,6 +172,53 @@ const ContactPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[200] animate-fade-in">
+              <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl max-w-md w-full p-6 animate-scale-in shadow-2xl relative overflow-hidden">
+                {/* Animated background elements */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-green-400/10 via-cyan-400/5 to-blue-500/10 animate-gradient-x" />
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-green-400/20 to-cyan-400/20 rounded-full blur-xl animate-float" />
+                  <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }} />
+                </div>
+
+                <div className="text-center relative z-10">
+                  <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-green-400/30 animate-pulse">
+                    <CheckCircle className="h-10 w-10 text-green-400 animate-scale-in" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-white mb-3 animate-fade-in-up">
+                    Message Sent Successfully!
+                  </h3>
+                  <p className="text-white/90 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                    Thank you for reaching out. We'll get back to you as soon as possible.
+                  </p>
+                  
+                  <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                    <div className="w-full bg-white/20 rounded-full h-1 overflow-hidden backdrop-blur-sm">
+                      <div 
+                        className="h-full bg-gradient-to-r from-green-400 via-cyan-400 to-blue-400 rounded-full animate-shrink-width"
+                        style={{ 
+                          animation: `shrinkWidth 3000ms linear forwards`
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-white/60 mt-2">
+                      Closing automatically...
+                    </p>
+                  </div>
+                  
+                  {/* Auto-close after 3 seconds */}
+                  {setTimeout(() => {
+                    if (showSuccessModal) {
+                      handleSuccessClose();
+                    }
+                  }, 3000)}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Layout>
     </div>
